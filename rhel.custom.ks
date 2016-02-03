@@ -26,6 +26,16 @@ if [ ${#opts[@]} -gt 1 ]; then
   done
 fi
 
+echo "${args[@]}"
+sleep 5
+
+# Force prompt if ${args[INSTALL]} not present
+if [ -n "${args[INSTALL]}" ]; then
+  install="no"
+else
+  install="yes"
+fi
+
 # Ensure user knows they are going to wipe out the machine
 while [ "${install}" != "yes" ]; do
 #  clear    
@@ -92,13 +102,8 @@ fi
 
 # Write the hashed/salted ${pass} to /tmp/rootpw
 echo "rootpw ${pass} --iscrypted" > /tmp/rootpw
-
-# Force prompt if ${args[INSTALL]} not present
-if [ -n "${args[INSTALL]}" ]; then
-  install="no"
-else
-  install="yes"
-fi
+cat /tmp/rootpw
+sleep 5
 
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${args[HOSTNAME]}" == "" ]; then
