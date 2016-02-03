@@ -85,9 +85,9 @@ clear
 if [ "${args[ROOTPW]}" == "" ]; then
   echo "Please enter root user password"
   pass="$(grub-crypt 2>/dev/null|tail -1)"
-else
+#else
   # Pass ${args[ROOTPW]} to grub-crypt regardless of stdin?
-  pass="${args[ROOTPW]}"
+  # pass="${args[ROOTPW]}"
 fi
 
 # Write the hashed/salted ${pass} to /tmp/rootpw
