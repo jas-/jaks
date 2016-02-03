@@ -1,5 +1,5 @@
 # Begin pre-installation script
-%pre --interpreter=/bin/bash
+%pre --interpreter=/bin/bash --log /tmp/pre-install.log
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
@@ -27,7 +27,7 @@ if [ ${#opts[@]} -gt 1 ]; then
 fi
 
 echo "${args[@]}"
-sleep 5
+sleep 15
 
 # Force prompt if ${args[INSTALL]} not present
 if [ -n "${args[INSTALL]}" ]; then
