@@ -104,7 +104,7 @@ fi
 if [ "${args[HOSTNAME]}" == "" ]; then
 
   # If static DHCP enabled option 12 *might* contain the appropriate hostname
-  hostname=$(uname -n|tr '[:lower:]' '[:upper:]')
+  hostname="$(uname -n|tr '[:lower:]' '[:upper:]')"
 else
   hostname="$(echo "${args[HOSTNAME]}"|tr '[:lower:]' '[:upper:]')"
 fi
