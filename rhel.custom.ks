@@ -24,7 +24,7 @@ if [ ${#opts[@]} -gt 1 ]; then
     fi
   done
 
-cat <<<EOF
+cat <<EOF
 Specified argument list:
   General options:
     INSTALL:       ${INSTALL}
@@ -38,6 +38,7 @@ Specified argument list:
     NETMASK:       ${NETMASK}
     GATEWAY:       ${GATEWAY}
 EOF
+
 fi
 
 sleep 15
