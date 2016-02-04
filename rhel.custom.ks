@@ -88,16 +88,13 @@ fi
 # Write the hashed/salted ${pass} to /tmp/rootpw
 echo "rootpw ${pass} --iscrypted" > /tmp/rootpw
 
-env
-sleep 20
-
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${HOSTNAME}" == "" ]; then
 
   # If static DHCP enabled option 12 *might* contain the appropriate hostname
-  hostname="$(uname -n|tr '[:lower:]' '[:upper:]')"
+  hostname="$(uname -n|awk '{print tolower($0)}')"
 else
-  hostname="$(echo "${HOSTNAME}"|tr '[:lower:]' '[:upper:]')"
+  hostname="$(echo "${HOSTNAME}"|awk '{print tolower($0)}')"
 fi
 
 # Set ${country} to geographic location (no way to auto-determine unless geoIP
@@ -112,8 +109,8 @@ else
 fi
 
 # Prompt for ${LOCATION} if it doesn't match the list
-while [[ ! "${LOCATION}" =~ PPW|SLC ]]; do
-  read -p "Physical location? [PPW|SLC] " location
+while [[ ! "${LOCATION}" =~ PDX|SLC ]]; do
+  read -p "Physical location? [PDX|SLC] " location
 done
 
 # Use ${LOCATION} to determine NFS server (don't count on DNS)
