@@ -1,6 +1,9 @@
 # Begin pre-installation script
 %pre --interpreter=/bin/bash --log /tmp/pre-install.log
 
+# Example usage:
+#  boot> RHEL INSTALL=true IPADDR=192.168.74.10 NETMASK=255.255.255.0 GATEWAY=192.168.74.129 HOSTNAME=test-system LOCATION=slc
+
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
@@ -19,8 +22,6 @@ if [ ${#opts[@]} -gt 1 ]; then
       key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
       value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
       eval ${key}=${value}
-    else
-      eval ${key}="true"
     fi
   done
 
@@ -43,8 +44,8 @@ fi
 
 sleep 15
 
-# Force prompt if ${args[INSTALL]} not present
-if [ -n "${args[INSTALL]}" ]; then
+# Force prompt if ${INSTALL} not present
+if [ "${INSTALL}" != "true" ]; then
   install="no"
 else
   install="yes"
@@ -76,44 +77,60 @@ done
 clear
 
 # Prompt for root password, hash and write it out
-if [ "${args[ROOTPW]}" == "" ]; then
+if [ "${ROOTPW}" == "" ]; then
   echo "Please enter root user password"
   pass="$(grub-crypt 2>/dev/null|tail -1)"
-#else
-  # Pass ${args[ROOTPW]} to grub-crypt regardless of stdin?
-  # pass="${args[ROOTPW]}"
+else
+  # Pass ${ROOTPW} to grub-crypt regardless of stdin?
+  pass="${ROOTPW}"
 fi
 
 # Write the hashed/salted ${pass} to /tmp/rootpw
 echo "rootpw ${pass} --iscrypted" > /tmp/rootpw
-cat /tmp/rootpw
-sleep 5
 
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
-if [ "${args[HOSTNAME]}" == "" ]; then
+if [ "${HOSTNAME}" == "" ]; then
 
   # If static DHCP enabled option 12 *might* contain the appropriate hostname
   hostname="$(uname -n|tr '[:lower:]' '[:upper:]')"
 else
-  hostname="$(echo "${args[HOSTNAME]}"|tr '[:lower:]' '[:upper:]')"
+  hostname="$(echo "${HOSTNAME}"|tr '[:lower:]' '[:upper:]')"
 fi
 
-# Set location to ${args[LOCATION]} or first 3 characters of ${hostname}
-if [ "${args[LOCATION]}" == "" ]; then
-  location="$(echo "\${hostname:0:3}")"
+# Set ${country} to geographic location (no way to auto-determine unless geoIP
+# functionality exists in initramfs)
+country="America"
+
+# Set location to ${LOCATION} or first 3 characters of ${hostname}
+if [ "${LOCATION}" == "" ]; then
+  location="$(echo "${hostname:0:3}")"
 else
-  location="${args[LOCATION]}"
+  location="${LOCATION}"
 fi
 
-# NFS servers per location abbreviation (don't count on DNS)
-declare -A nfs_servers
-nfs_servers[PDX]="131.219.230.48"  # pdxnfsc01p
-nfs_servers[SLC]="131.219.218.226" # slcnfsc01p
-
-# Prompt for ${location} if it doesn't match the list
-while [[ ! "${location}" =~ PPW|SLC ]]; do
+# Prompt for ${LOCATION} if it doesn't match the list
+while [[ ! "${LOCATION}" =~ PPW|SLC ]]; do
   read -p "Physical location? [PPW|SLC] " location
 done
+
+# Use ${LOCATION} to determine NFS server (don't count on DNS)
+case "${LOCATION}"; in
+  SLC)
+    zone="Denver"
+    nfs_server="131.219.218.226" ;; # slcnfsc01p
+  PDX)
+    zone="Los_Angeles"
+    nfs_server="131.219.220.48" ;;  # pdxnfsc01p
+  *)
+    zone="Los_Angeles"
+    nfs_server="131.219.220.48" ;;
+esac
+
+# Write out /tmp/nfsshare file
+echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/nfsshare
+
+# Write out /tmp/timezone
+echo "timezone ${country}/${zone} --isUtc" > /tmp/timezone
 
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
@@ -122,23 +139,6 @@ path="/var/tmp/unixbuild"
 if [ ! -d "${path}" ] ; then
   mkdir -p "${path}"
 fi
-
-# Write out /tmp/nfsshare file
-echo "nfs --server=${nfs_servers[${location}]} --dir=${path}" > /tmp/nfsshare
-
-# Set ${country} to geographic location (no way to auto-determine unless geoIP
-# functionality exists in initramfs)
-country="America"
-
-# Set ${zone} based on ${location} value
-case "${location}"; in
-  PDX) zone="Los_Angeles" ;;
-  SLC) zone="Denver" ;;
-  *) zone="Los_Angeles" ;;
-esac
-
-# Write out /tmp/timezone
-echo "timezone ${country}/${zone} --isUtc" > /tmp/timezone
 
 # Use supplied ${args[IP]}, ${args[NETMASK]} & ${args[GATEWAY]} to write
 # network configuration
