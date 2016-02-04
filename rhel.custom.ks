@@ -36,7 +36,7 @@ Specified argument list:
     HOSTNAME:      ${HOSTNAME}
     IPADDR:        ${IPADDR}
     NETMASK:       ${NETMASK}
-    GATEWAY:       ${NETMASK}
+    GATEWAY:       ${GATEWAY}
 EOF
 fi
 
