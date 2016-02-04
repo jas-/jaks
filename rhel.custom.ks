@@ -12,16 +12,15 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 opts=($(cat /proc/cmdline))
 
 # Iterate ${opts[@]} & extract args key/values
-delcare -A args
 if [ ${#opts[@]} -gt 1 ]; then
   for opt in "${opts[@]}"; do
     i=$((i+1))
     if [[ "${opt}" =~ = ]]; then
       key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
       value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
-      args["${key}"]="${value}"
+      eval ${key}=${value}
     else
-      args[${i}]="${value}"
+      eval ${key}="true"
     fi
   done
 fi
