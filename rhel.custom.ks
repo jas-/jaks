@@ -23,9 +23,23 @@ if [ ${#opts[@]} -gt 1 ]; then
       eval ${key}="true"
     fi
   done
+
+cat <<<EOF
+Specified argument list:
+  General options:
+    INSTALL:       ${INSTALL}
+
+  Location options:
+    LOCATION:      ${LOCATION}
+
+  Networking options:
+    HOSTNAME:      ${HOSTNAME}
+    IPADDR:        ${IPADDR}
+    NETMASK:       ${NETMASK}
+    GATEWAY:       ${NETMASK}
+EOF
 fi
 
-echo "${args[@]}"
 sleep 15
 
 # Force prompt if ${args[INSTALL]} not present
