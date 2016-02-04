@@ -88,6 +88,9 @@ fi
 # Write the hashed/salted ${pass} to /tmp/rootpw
 echo "rootpw ${pass} --iscrypted" > /tmp/rootpw
 
+env
+sleep 20
+
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${HOSTNAME}" == "" ]; then
 
