@@ -112,7 +112,7 @@ else
 fi
 
 # Prompt for ${LOCATION} if it doesn't match the list
-while [[ ! "${LOCATION}" =~ PDX|SLC ]]; do
+while [[ ! "${LOCATION}" =~ PDX ]] && [[ ! "${LOCATION}" =~ SLC ]]; do
   read -p "Physical location? [PDX|SLC] " location
 done
 
