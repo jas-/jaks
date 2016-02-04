@@ -97,6 +97,9 @@ else
   hostname="$(echo "${HOSTNAME}"|awk '{print tolower($0)}')"
 fi
 
+echo "Hostname: ${hostname}"
+sleep 5
+
 # Set ${country} to geographic location (no way to auto-determine unless geoIP
 # functionality exists in initramfs)
 country="America"
@@ -125,6 +128,11 @@ case "${LOCATION}"; in
     zone="Los_Angeles"
     nfs_server="131.219.220.48" ;;
 esac
+
+echo "Location: ${location}"
+echo "Zone: ${zone}"
+echo "nfs_server: ${nfs_server}"
+sleep 15
 
 # Write out /tmp/nfsshare file
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/nfsshare
