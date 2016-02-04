@@ -113,7 +113,7 @@ fi
 
 # Prompt for ${LOCATION} if it doesn't match the list
 while [[ ! "${LOCATION}" =~ PDX ]] && [[ ! "${LOCATION}" =~ SLC ]]; do
-  read -p "Physical location? [PDX|SLC] " location
+  read -p "Physical location? [PDX|SLC] " LOCATION
 done
 
 # Use ${LOCATION} to determine NFS server (don't count on DNS)
