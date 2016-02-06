@@ -100,8 +100,8 @@ fi
 echo "Hostname: ${hostname}"
 sleep 5
 
-# Set ${country} to geographic location (no way to auto-determine unless geoIP
-# functionality exists in initramfs)
+# Set ${country} to geographic location (echo "Hostname: ${hostname}"
+# no way to auto-determine unless geoIP functionality exists in initramfs)
 country="America"
 
 # Set location to ${LOCATION} or first 3 characters of ${hostname}
@@ -110,6 +110,9 @@ if [ "${LOCATION}" == "" ]; then
 else
   location="${LOCATION}"
 fi
+
+echo "Hostname: ${location}"
+sleep 5
 
 # Prompt for ${LOCATION} if it doesn't match the list
 while [[ ! "${LOCATION}" =~ PDX ]] && [[ ! "${LOCATION}" =~ SLC ]]; do
