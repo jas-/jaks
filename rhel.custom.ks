@@ -378,7 +378,7 @@ cd ${build_tools}
 echo "Performing initial state validation"
 ./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-while [ "${input}" != "yes" ]; then
+while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
@@ -387,7 +387,7 @@ continue=
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-while [ "${input}" != "yes" ]; then
+while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
@@ -396,7 +396,7 @@ continue=
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-while [ "${input}" != "yes" ]; then
+while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
@@ -422,9 +422,10 @@ if [ ! -f /tmp/ks-networking ]; then
 fi
 
 # Obtain ${IPADDR}, ${NETMASK} & ${GATEWAY} from /tmp/ks-networking
-IPADDR="$(cat /tmp/ks-networking|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-NETMASK="$(cat /tmp/ks-networking|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-GATEWAY="$(cat /tmp/ks-networking|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+net="$(cat /tmp/ks-networking)"
+IPADDR="$(echo "${net}"|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+NETMASK="$(echo "${net}"|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
@@ -434,7 +435,7 @@ GATEWAY="$(cat /tmp/ks-networking|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\
 echo "Created backup of configuration & kickstart files"
 cp /tmp/ks* ${folder}/kickstart
 
-while [ "${input}" != "yes" ]; then
+while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
