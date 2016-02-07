@@ -5,8 +5,10 @@
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
+
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -15,6 +17,7 @@ function pause() {
     read -p "Paused; Continue? " continue
   done
 }
+
 
 # IPv4 validation function
 function valid_ip()
@@ -34,8 +37,10 @@ function valid_ip()
   return $stat
 }
 
+
 # Capture array of arguments
 opts=($(cat /proc/cmdline))
+
 
 # Iterate ${opts[@]} & extract args key/values
 if [ ${#opts[@]} -gt 1 ]; then
@@ -49,8 +54,10 @@ if [ ${#opts[@]} -gt 1 ]; then
     fi
   done
 
+
 # Clear the terminal
 clear
+
 
 # Print out the list of arguments
 cat <<EOF
@@ -69,6 +76,7 @@ Specified argument list:
     GATEWAY:       ${GATEWAY}
 EOF
 
+
 # Write arguments to /tmp/ks-arguments
 cat <<EOF > /tmp/ks-arguments
 INSTALL ${INSTALL}
@@ -80,11 +88,15 @@ EOF
 
 fi
 
+
 sleep 3
 
+
+# If ${DEBUG} = true, pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Force prompt if ${INSTALL} not present
 if [ "${INSTALL}" != "true" ]; then
@@ -92,6 +104,7 @@ if [ "${INSTALL}" != "true" ]; then
 else
   install="yes"
 fi
+
 
 # Ensure user knows they are going to wipe out the machine
 while [ "${install}" != "yes" ]; do
@@ -115,8 +128,10 @@ while [ "${install}" != "yes" ]; do
   read -p "Proceed with install? " install
 done
 
+
 # Clear the terminal
 clear
+
 
 # If ${ROOTPW} preset copy to ${pass}
 if [ "${ROOTPW}" != "" ]; then
@@ -139,6 +154,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${HOSTNAME}" == "" ]; then
 
@@ -147,11 +163,13 @@ if [ "${HOSTNAME}" == "" ]; then
 else
   hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
 fi
+echo "Set hostname to ${hostname}"
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -170,11 +188,13 @@ while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
   read -p "Physical location? [PDX|SLC] " location
   echo ""
 done
+echo "Set location to ${location}"
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Use ${location} to determine NFS server (don't count on DNS)
 if [ "${location}" == "SLC" ]; then
@@ -203,6 +223,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Write out /tmp/nfsshare file
 echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
@@ -211,6 +232,7 @@ echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Set /tmp/ks-networking to prevent failures
 echo "" > /tmp/ks-networking
@@ -329,14 +351,17 @@ firstboot --disable
 # Begin post-installation script
 %post --nochroot --interpreter=/bin/bash --log /tmp/ks-post-install.log
 
-clear
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
+clear
+
+
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -346,6 +371,7 @@ function pause() {
   done
 }
 
+
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
 echo "Copied all temporary scripts to chroot env."
@@ -354,6 +380,7 @@ echo "Copied all temporary scripts to chroot env."
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Attempt to get our previously written ${nfs_share} from /tmp/ks-nfsshare
 if [ ! -f /tmp/ks-nfsshare ]; then
@@ -376,6 +403,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Mount point for NFS share
 path="/mnt/sysimage/var/tmp/unixbuild"
 
@@ -396,6 +424,7 @@ echo "NFS server; ${nfs_server} responding to ICMP requests"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Mount NFS share for %post processing
 nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
@@ -418,10 +447,13 @@ fi
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
+
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+
 clear
+
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -431,8 +463,10 @@ function pause() {
   done
 }
 
+
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
+
 
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
@@ -449,6 +483,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Does our build tool exist?
 if [ ! -f "${build_tools}/rhel-builder" ]; then
   echo "RHEL build tool doesn't seem to exist @ ${build_tools}/rhel-builder"
@@ -460,6 +495,7 @@ echo "Our build tools exist!"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Record a timestamped hostname string for build logs
 folder=/root/$(hostname)-$(date +%Y%m%d-%H%M)
@@ -479,6 +515,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Go to ${build_tools}
 cd ${build_tools}
 
@@ -491,6 +528,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 # Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
@@ -499,6 +537,7 @@ echo "Performing OS build"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
