@@ -68,7 +68,7 @@ while [ "${install}" != "yes" ]; do
   echo '*                                                                     *'
   echo '*  This process will install a completely new operating system.       *'
   echo '*                                                                     *'
-  echo '*  Do you wish to continue?  Type "yes" to proceed                     *'
+  echo '*  Do you wish to continue?  Type "yes" to proceed                    *'
   echo '*                                                                     *'
   echo '***********************************************************************'
   echo
@@ -363,12 +363,16 @@ folder=/root/$(hostname)-$(date +%Y%m%d-%H%M)
 # Create a folder structure for operational logging
 if [ ! -d "${folder}" ]; then
   mkdir -p ${folder}/
+  mkdir -p ${folder}/kickstart
   mkdir -p ${folder}/pre
   mkdir -p ${folder}/build
   mkdir -p ${folder}/post
 fi
 
 echo "Created ${folder}"
+
+# Make a backup of /tmp/ks* to ${folder}/kickstart
+cp /tmp/ks* ${folder}/kickstart
 
 # Go to ${build_tools}
 cd ${build_tools}
@@ -377,26 +381,47 @@ cd ${build_tools}
 echo "Performing initial state validation"
 ./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-sleep 150
+sleep 5
 
 # Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-sleep 150
+sleep 5
 
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log
 
-sleep 150
+sleep 5
 
-# Examine 'post' build log for errors and make attempts to run each tool again
+# Examine 'post' build log for errors and make attempts to run each tool again?
 
 # Run the $(dirname ${build_tools})/scripts/config-network tool by itself
 # because the argument requirements differ from all the other tools
 
-# Once a second look & possible second run of failed tools is complete
-# create an archive and put it somewhere for possible SOX compliance
+# Exit if config-network tool doesn't exist
+if [ ! -f scripts/config-network ]; then
+  echo "scripts/config-network tool does not exist in specified location"
+  exit 1
+fi
+
+# Change into scripts/ subfolder if scripts/config-network exists
+cd scripts/  
+
+# Make sure our configuration data exists
+if [ ! -f /tmp/ks-networking ]; then
+  echo "/tmp/ks-networking file is missing, exiting"
+  exit 1
+fi
+
+# Obtain ${IPADDR}, ${NETMASK} & ${GATEWAY} from /tmp/ks-networking
+IPADDR="$(cat /tmp/ks-networking|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+NETMASK="$(cat /tmp/ks-networking|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+GATEWAY="$(cat /tmp/ks-networking|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+
+# Run ./config-network with network params to auto-configure bonded interfaces
+# for physical servers & non-bonded interfaces for virtual machine guests
+./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
 
 %end
