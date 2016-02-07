@@ -203,7 +203,8 @@ echo "gateway: ${GATEWAY}" >> /tmp/ks-pre-install.log
 
 %end
 
-# Default installation settings
+# Force text mode installation
+text
 
 # Default language
 lang en_US
@@ -222,14 +223,8 @@ keyboard us
 # Restart system after kicked
 reboot
 
-# Force text mode installation
-text
-
 # Use NFS share for installation media
 %include /tmp/ks-nfsshare
-
-# Install GRUB
-bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
 
 # Clear out disk
 zerombr
@@ -237,6 +232,9 @@ clearpart --all --initlabel
 
 # Include disk configuration
 #%include /tmp/ks-diskconfig
+
+# Install GRUB
+bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
 
 # Include networking configuration
 %include /tmp/ks-networking
