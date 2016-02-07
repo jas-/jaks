@@ -376,7 +376,7 @@ cd ${build_tools}
 
 # Run ${build_tools} to validate current configuration with logging
 echo "Performing initial state validation"
-./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
@@ -385,7 +385,7 @@ continue=
 
 "# Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
-./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
@@ -394,7 +394,7 @@ continue=
 
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
-./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
@@ -429,7 +429,7 @@ GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.
 
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
-./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
+./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
 
 # Make a backup of /tmp/ks* to ${folder}/kickstart
 echo "Created backup of configuration & kickstart files"
