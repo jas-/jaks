@@ -12,7 +12,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 function pause() {
   local continue=
   while [ "${continue}" != "yes" ]; do
-    read -p "Continue? " continue
+    read -p "Paused; Continue? " continue
   done
 }
 
@@ -134,6 +134,7 @@ done
 echo "Wrote root password to /tmp/ks-rootpw"
 echo "rootpw ${pass}" > /tmp/ks-rootpw
 
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
@@ -147,6 +148,7 @@ else
   hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
 fi
 
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
@@ -169,6 +171,7 @@ while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
   echo ""
 done
 
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
@@ -179,6 +182,7 @@ if [ "${location}" == "SLC" ]; then
   nfs_server="131.219.218.226" # slcnfsc01p
 fi
 
+# Handle PDX types
 if [ "${location}" == "PDX" ]; then
   zone="Los_Angeles"
   nfs_server="131.219.220.48" # pdxnfsc01p
@@ -194,6 +198,7 @@ fi
 echo "Wrote timezone data to /tmp/ks-timezone"
 echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
 
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
@@ -202,6 +207,7 @@ fi
 echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
@@ -256,6 +262,11 @@ fi
 # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network configuration
 echo "Wrote network configuration data to /tmp/ks-networking"
 echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 %end
 
@@ -318,6 +329,8 @@ firstboot --disable
 # Begin post-installation script
 %post --nochroot --interpreter=/bin/bash --log /tmp/ks-post-install.log
 
+clear
+
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
@@ -325,18 +338,28 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+# Pause function handle pausing if ${DEBUG} = true
+function pause() {
+  local continue=
+  while [ "${continue}" != "yes" ]; do
+    read -p "Paused; continue? " continue
+  done
+}
+
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
-clear
 echo "Copied all temporary scripts to chroot env."
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Attempt to get our previously written ${nfs_share} from /tmp/ks-nfsshare
 if [ ! -f /tmp/ks-nfsshare ]; then
   echo "/tmp/ks-nfsshare file is missing, exiting"
   exit 1
 fi
-
-echo "Found /tmp/ks-nfsshare!"
 
 # Split up /tmp/ks-nfsshare to get our nfs server
 nfs_server="$(cat /tmp/ks-nfsshare|awk '$0 ~ /^nfs/{split($2, obj, "=");print obj[2]}')"
@@ -346,8 +369,12 @@ if [ "${nfs_server}" == "" ]; then
   echo "Could not get the NFS server"
   exit 1
 fi
-
 echo "Set our NFS server to ${nfs_server}"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Mount point for NFS share
 path="/mnt/sysimage/var/tmp/unixbuild"
@@ -363,6 +390,12 @@ if [ $? -ne 0 ]; then
   echo "Could not contact the ${nfs_server}, check routing table (gateway)"
   exit 1
 fi
+echo "NFS server; ${nfs_server} responding to ICMP requests"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Mount NFS share for %post processing
 nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
@@ -370,8 +403,12 @@ if [ $? -ne 0 ]; then
   echo "An error occured mount ${nfs_server} @ ${path}, exiting"
   exit 1
 fi
-
 echo "Mounted ${nfs_server} @ ${path}"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 %end
 
@@ -384,16 +421,15 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+clear
+
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
   local continue=
   while [ "${continue}" != "yes" ]; do
-    read -p "Continue? " continue
+    read -p "Paused; continue? " continue
   done
 }
-
-clear
-echo "Now in the chroot env"
 
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
@@ -401,25 +437,29 @@ path="/var/tmp/unixbuild"
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
 
-echo "Our build tools should be @ ${build_tools}"
-
-# Documentation @ http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/RHEL%20Linux/rhel-builder.doc
-
 # Make sure the NFS mount provided the directory
 if [ ! -d "${build_tools}" ]; then
   echo "Unable to open ${build_tools}"
   exit 1
 fi
-
 echo "Our NFS share is mounted @ ${build_tools}"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Does our build tool exist?
 if [ ! -f "${build_tools}/rhel-builder" ]; then
   echo "RHEL build tool doesn't seem to exist @ ${build_tools}/rhel-builder"
   exit 1
 fi
-
 echo "Our build tools exist!"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Record a timestamped hostname string for build logs
 folder=/root/$(hostname)-$(date +%Y%m%d-%H%M)
@@ -432,8 +472,12 @@ if [ ! -d "${folder}" ]; then
   mkdir -p ${folder}/build
   mkdir -p ${folder}/post
 fi
-
 echo "Created ${folder}"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Go to ${build_tools}
 cd ${build_tools}
@@ -442,23 +486,37 @@ cd ${build_tools}
 echo "Performing initial state validation"
 ./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
 # Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Examine 'post' build log for errors and make attempts to run each tool again?
 
 # Run the $(dirname ${build_tools})/scripts/config-network tool by itself
 # because the argument requirements differ from all the other tools
 
-
 # Exit if config-network tool doesn't exist
-if [ ! -f scripts/config-network ]; then
-  echo "scripts/config-network tool does not exist in specified location"
+if [ ! -f ${build_tools}/scripts/config-network ]; then
+  echo "${build_tools/scripts/config-network tool does not exist in specified location"
   exit 1
 fi
 
