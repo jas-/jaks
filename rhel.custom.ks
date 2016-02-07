@@ -51,7 +51,6 @@ if [ ${#opts[@]} -gt 1 ]; then
       key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
       value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
       eval ${key}=${value}
-      echo "${key}: ${value}" >> /tmp/ks-pre-install.log
     fi
   done
 
