@@ -374,6 +374,15 @@ function pause() {
 }
 
 
+# Set our env variables from /tmp/ks-arguments
+DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
+INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
+HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
+IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
+NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
+GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+
+
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
 echo "Copied all temporary scripts to chroot env."
@@ -467,7 +476,7 @@ function pause() {
 }
 
 
-# Set our env variables
+# Set our env variables from /tmp/ks-arguments
 DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
 INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
 HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
@@ -567,7 +576,13 @@ fi
 
 # Exit if config-network tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-network ]; then
-  echo "${build_tools}/scripts/config-network tool does not exist in specified location"
+  echo "${build_tools}/scripts/config-network missing"
+  pwd
+  # If ${DEBUG} is set to true; pause
+  if [ "${DEBUG}" == "true" ]; then
+    pause
+  fi
+
   exit 1
 fi
 echo "Found ${build_tools}/scripts/config-network"
