@@ -228,7 +228,7 @@ reboot
 
 # Clear out disk
 zerombr
-clearpart --all --initlabel
+clearpart --all --initlabel --drives=sda
 
 # Include disk configuration
 #%include /tmp/ks-diskconfig
