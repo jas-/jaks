@@ -567,8 +567,14 @@ fi
 
 # Exit if config-network tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-network ]; then
-  echo "${build_tools/scripts/config-network tool does not exist in specified location"
+  echo "${build_tools}/scripts/config-network tool does not exist in specified location"
   exit 1
+fi
+echo "Found ${build_tools}/scripts/config-network"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
 fi
 
 # Change into scripts/ subfolder if scripts/config-network exists
