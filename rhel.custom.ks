@@ -371,10 +371,6 @@ fi
 
 echo "Created ${folder}"
 
-# Make a backup of /tmp/ks* to ${folder}/kickstart
-echo "Created backup of configuration & kickstart files"
-cp /tmp/ks* ${folder}/kickstart
-
 # Go to ${build_tools}
 cd ${build_tools}
 
@@ -433,6 +429,10 @@ GATEWAY="$(cat /tmp/ks-networking|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
+
+# Make a backup of /tmp/ks* to ${folder}/kickstart
+echo "Created backup of configuration & kickstart files"
+cp /tmp/ks* ${folder}/kickstart
 
 while [ "${input}" != "yes" ]; then
   read -p "Continue? " input
