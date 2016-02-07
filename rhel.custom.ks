@@ -425,4 +425,9 @@ GATEWAY="$(cat /tmp/ks-networking|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
 
+while [ "${input}" != "yes" ]; then
+  read -p "Continue? " input
+done
+continue=
+
 %end
