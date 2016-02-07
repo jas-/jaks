@@ -464,6 +464,16 @@ function pause() {
 }
 
 
+# Set our env variables
+DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
+INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
+ROOTPW="$(cat /tmp/ks-arguments|awk '$0 ~ /^ROOTPW/{print $2}')"
+HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
+IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
+NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
+GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+
+
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
 
