@@ -15,6 +15,7 @@ function pause() {
   local continue=
   while [ "${continue}" != "yes" ]; do
     read -p "Paused; Continue? " continue
+    echo ""
   done
 }
 
@@ -368,6 +369,7 @@ function pause() {
   local continue=
   while [ "${continue}" != "yes" ]; do
     read -p "Paused; continue? " continue
+    echo ""
   done
 }
 
@@ -460,6 +462,7 @@ function pause() {
   local continue=
   while [ "${continue}" != "yes" ]; do
     read -p "Paused; continue? " continue
+    echo ""
   done
 }
 
@@ -467,7 +470,6 @@ function pause() {
 # Set our env variables
 DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
 INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
-ROOTPW="$(cat /tmp/ks-arguments|awk '$0 ~ /^ROOTPW/{print $2}')"
 HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
