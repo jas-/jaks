@@ -382,6 +382,8 @@ while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
+pwd
+ls -la
 
 "# Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
@@ -391,7 +393,8 @@ while [ "${input}" != "yes" ]; do
   read -p "Continue? " input
 done
 continue=
-
+pwd
+ls -la
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
