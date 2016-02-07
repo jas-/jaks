@@ -82,7 +82,7 @@ fi
 
 sleep 3
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -134,7 +134,7 @@ done
 echo "Wrote root password to /tmp/ks-rootpw"
 echo "rootpw ${pass}" > /tmp/ks-rootpw
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -147,7 +147,7 @@ else
   hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
 fi
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -169,7 +169,7 @@ while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
   echo ""
 done
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -194,7 +194,7 @@ fi
 echo "Wrote timezone data to /tmp/ks-timezone"
 echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -202,7 +202,7 @@ fi
 echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
@@ -485,7 +485,7 @@ GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.
 echo "Created backup of configuration & kickstart files"
 cp /tmp/ks* ${folder}/kickstart
 
-if [ "${DEBUG}" != "true" ]; then
+if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
