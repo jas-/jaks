@@ -270,7 +270,7 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
-cp /tmp/ks-* /mnt/sysimage/tmp
+cp /tmp/ks* /mnt/sysimage/tmp
 clear
 echo "Copied all temporary scripts to chroot env."
 
