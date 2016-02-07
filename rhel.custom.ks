@@ -1,5 +1,5 @@
 # Begin pre-installation script
-%pre --interpreter=/bin/bash --log /tmp/ks-pre-install.log
+%pre --interpreter=/bin/bash
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
@@ -79,6 +79,7 @@ EOF
 
 # Write arguments to /tmp/ks-arguments
 cat <<EOF > /tmp/ks-arguments
+DEBUG ${DEBUG}
 INSTALL ${INSTALL}
 LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
@@ -349,7 +350,7 @@ firstboot --disable
 %end
 
 # Begin post-installation script
-%post --nochroot --interpreter=/bin/bash --log /tmp/ks-post-install.log
+%post --nochroot --interpreter=/bin/bash
 
 
 # Setup the env (setting /dev/tty3 as default IO)
@@ -442,7 +443,7 @@ fi
 
 %end
 
-%post --interpreter=/bin/bash --log /tmp/ks-post-install.log
+%post --interpreter=/bin/bash
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
