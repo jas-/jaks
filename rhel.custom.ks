@@ -8,6 +8,32 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+# Pause function handle pausing if ${DEBUG} = true
+function pause() {
+  local continue=
+  while [ "${continue}" != "yes" ]; do
+    read -p "Continue? " continue
+  done
+}
+
+# IPv4 validation function
+function valid_ip()
+{
+  local  ip=$1
+  local  stat=1
+
+  if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+    OIFS=$IFS
+    IFS='.'
+    ip=($ip)
+    IFS=$OIFS
+    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+      stat=$?
+  fi
+
+  return $stat
+}
+
 # Capture array of arguments
 opts=($(cat /proc/cmdline))
 
@@ -43,9 +69,22 @@ Specified argument list:
     GATEWAY:       ${GATEWAY}
 EOF
 
+# Write arguments to /tmp/ks-arguments
+cat <<EOF > /tmp/ks-arguments
+INSTALL ${INSTALL}
+LOCATION ${LOCATION}
+HOSTNAME ${HOSTNAME}
+IPADDR ${IPADDR}
+GATEWAY ${GATEWAY}
+EOF
+
 fi
 
-sleep 15
+sleep 3
+
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Force prompt if ${INSTALL} not present
 if [ "${INSTALL}" != "true" ]; then
@@ -56,6 +95,7 @@ fi
 
 # Ensure user knows they are going to wipe out the machine
 while [ "${install}" != "yes" ]; do
+  clear
   echo '***********************************************************************'
   echo '*  __________               .__  _____.__                             *'
   echo '*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *'
@@ -85,13 +125,18 @@ fi
 
 # Prompt for root password, hash and write it out
 while [ "${pass}" == "" ]; do
-  read -sp "Please enter root user password: " pass
+  echo "No root password specified; use ROOTPW=<pass> as boot arg to skip"
+  read -sp "Enter root user password: " pass
   echo ""
 done
 
 # Write ${pass} to roopw 
+echo "Wrote root password to /tmp/ks-rootpw"
 echo "rootpw ${pass}" > /tmp/ks-rootpw
-echo "rootpw: ${pass}" >> /tmp/ks-pre-install.log
+
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${HOSTNAME}" == "" ]; then
@@ -101,7 +146,10 @@ if [ "${HOSTNAME}" == "" ]; then
 else
   hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
 fi
-echo "hostname: ${hostname}" >> /tmp/ks-pre-install.log
+
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -116,9 +164,14 @@ fi
 
 # Prompt for ${location} if it doesn't match the list
 while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
+  echo "Could not determine server physical location; use LOCATION=<PDX|SLC> as boot arg"
   read -p "Physical location? [PDX|SLC] " location
+  echo ""
 done
-echo "location: ${location}" >> /tmp/ks-pre-install.log
+
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Use ${location} to determine NFS server (don't count on DNS)
 if [ "${location}" == "SLC" ]; then
@@ -138,36 +191,28 @@ if [ "${zone}" == "" ]; then
 fi
 
 # Write out /tmp/timezone
+echo "Wrote timezone data to /tmp/ks-timezone"
 echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
-echo "timezone: ${country}/${zone}" >> /tmp/ks-pre-install.log
+
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Write out /tmp/nfsshare file
+echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
-echo "nfs server: ${nfs_server}" >> /tmp/ks-pre-install.log
 
-# IPv4 validation function
-function valid_ip()
-{
-  local  ip=$1
-  local  stat=1
-
-  if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-    OIFS=$IFS
-    IFS='.'
-    ip=($ip)
-    IFS=$OIFS
-    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-      stat=$?
-  fi
-
-  return $stat
-}
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 # Set /tmp/ks-networking to prevent failures
 echo "" > /tmp/ks-networking
 
 # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
 if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" ]]; then
+
+  echo "IP, Netmask & Gateway specified as boot params"
 
   # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
   if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || [[ $(valid_ip "${NETMASK}") -ne 0 ]] || [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
@@ -178,7 +223,15 @@ if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" 
     [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
     exit 1
   fi
+
+  # Update /tmp/ks-arguments with network information
+  sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+  sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
 else
+
+  echo "Attempting to gather network configuration data from previous DHCP request"
+
   # Check to see if anything was applied via DHCP
   IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
   NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
@@ -193,13 +246,16 @@ else
     [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
     exit 1
   fi
+
+  # Update /tmp/ks-arguments with network information
+  sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+  sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
 fi
 
 # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network configuration
+echo "Wrote network configuration data to /tmp/ks-networking"
 echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
-echo "ipaddr: ${IPADDR}" >> /tmp/ks-pre-install.log
-echo "netmask: ${NETMASK}" >> /tmp/ks-pre-install.log
-echo "gateway: ${GATEWAY}" >> /tmp/ks-pre-install.log
 
 %end
 
@@ -328,6 +384,14 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+# Pause function handle pausing if ${DEBUG} = true
+function pause() {
+  local continue=
+  while [ "${continue}" != "yes" ]; do
+    read -p "Continue? " continue
+  done
+}
+
 clear
 echo "Now in the chroot env"
 
@@ -382,25 +446,15 @@ echo "Performing initial state validation"
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
-while [ "${input}" != "yes" ]; do
-  read -p "Continue? " input
-done
-continue=
-pwd
-ls -la
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
-
-while [ "${input}" != "yes" ]; do
-  read -p "Continue? " input
-done
-continue=
 
 # Examine 'post' build log for errors and make attempts to run each tool again?
 
 # Run the $(dirname ${build_tools})/scripts/config-network tool by itself
 # because the argument requirements differ from all the other tools
+
 
 # Exit if config-network tool doesn't exist
 if [ ! -f scripts/config-network ]; then
@@ -409,7 +463,7 @@ if [ ! -f scripts/config-network ]; then
 fi
 
 # Change into scripts/ subfolder if scripts/config-network exists
-cd ${build_tools/scripts/  
+cd ${build_tools}/scripts/  
 
 # Make sure our configuration data exists
 if [ ! -f /tmp/ks-networking ]; then
@@ -431,9 +485,8 @@ GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.
 echo "Created backup of configuration & kickstart files"
 cp /tmp/ks* ${folder}/kickstart
 
-while [ "${input}" != "yes" ]; do
-  read -p "Continue? " input
-done
-continue=
+if [ "${DEBUG}" != "true" ]; then
+  pause
+fi
 
 %end
