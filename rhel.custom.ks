@@ -378,14 +378,7 @@ cd ${build_tools}
 echo "Performing initial state validation"
 ./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
-while [ "${input}" != "yes" ]; do
-  read -p "Continue? " input
-done
-continue=
-pwd
-ls -la
-
-"# Run ${build_tools} to make changes according to RHEL build guide standards
+# Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
