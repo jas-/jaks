@@ -372,6 +372,7 @@ fi
 echo "Created ${folder}"
 
 # Make a backup of /tmp/ks* to ${folder}/kickstart
+echo "Created backup of configuration & kickstart files"
 cp /tmp/ks* ${folder}/kickstart
 
 # Go to ${build_tools}
@@ -379,19 +380,19 @@ cd ${build_tools}
 
 # Run ${build_tools} to validate current configuration with logging
 echo "Performing initial state validation"
-./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 sleep 5
 
-# Run ${build_tools} to make changes according to RHEL build guide standards
+"# Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
-./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 sleep 5
 
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
-./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log
+./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 sleep 5
 
@@ -407,7 +408,7 @@ if [ ! -f scripts/config-network ]; then
 fi
 
 # Change into scripts/ subfolder if scripts/config-network exists
-cd scripts/  
+cd ${build_tools/scripts/  
 
 # Make sure our configuration data exists
 if [ ! -f /tmp/ks-networking ]; then
