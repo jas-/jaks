@@ -265,10 +265,10 @@ fi
 ###############################################
 
 # Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-disks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /[a-z]+$/{print $5":"$4 * 1024}'))
+disks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'))
 
 # Make sure ${disks[@]} is > 0
-if [ ! ${disks[@]} -gt 0 ]; then
+if [ ! ${#disks[@]} -gt 0 ]; then
   echo "No physical disks present! Cannot create necessary disk configuration"
   exit 1
 fi
