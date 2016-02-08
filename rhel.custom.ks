@@ -292,7 +292,8 @@ for disk in ${disks[@]}; do
   # Get the disk bytes
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
-  # Compare ${bytes} with static ${gbytes}
+  # Compare ${bytes} with static ${gbytes} 
+  # Does ${#disks[@]} need to be greater > 1 for this conditional?
   if [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
     echo "Physical build type specified but ${dsk} is less than 100GB (${bytes})"
     echo "Using VM build disk specifications"
