@@ -313,7 +313,8 @@ done
 
 # Determine the amount of memory on the system, used for our swap partition
 swap="$(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}')"
-echo "Setting swap disk space to ${swap} bytes"
+hswap="$(expr ${swap} / 1024 / 1024 / 1024)GB"
+echo "Setting swap disk space to ${hswap}"
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
