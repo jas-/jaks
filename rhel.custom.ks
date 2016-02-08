@@ -293,7 +293,7 @@ for disk in ${disks[@]}; do
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
   # Convert ${bytes} to human readable for ouptut values
-  hbytes="$(expr ${bytes} / 1024 /1024 /1024)GB"
+  hbytes="$(expr ${bytes} / 1024 / 1024 / 1024)GB"
 
   echo "Evaluating ${dsk} (${hbytes}) with specified buildtype (${BUILDTYPE})"
 
