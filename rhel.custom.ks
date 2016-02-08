@@ -295,7 +295,7 @@ for disk in ${disks[@]}; do
   echo "Evaluating ${dsk} (${bytes}) with specified buildtype (${BUILDTYPE})"
 
   # Compare ${bytes} with static ${gbytes} if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
-  if [[ ${#disks[@]} -gt 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
+  if [[ ${#disks[@]} -eq 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
     echo "Physical build type specified but ${dsk} is less than 100GB (${bytes})"
     echo "Using VM build disk specifications"
     BUILDTYPE="vm"
