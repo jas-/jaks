@@ -1,18 +1,19 @@
 # Begin pre-installation script
 %pre --interpreter=/bin/bash --erroronfail
 
+###############################################
+# Environment variables, functions & settings #
+###############################################
+
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
-
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-
 # Set a default ${BUILDTYPE}
 BUILDTYPE="physical"
-
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -22,7 +23,6 @@ function pause() {
     echo ""
   done
 }
-
 
 # IPv4 validation function
 function valid_ip()
@@ -42,10 +42,12 @@ function valid_ip()
   return $stat
 }
 
+###############################################
+# Handling boot parameters                    #
+###############################################
 
 # Capture array of arguments
 opts=($(cat /proc/cmdline))
-
 
 # Iterate ${opts[@]} & extract args key/values
 if [ ${#opts[@]} -gt 1 ]; then
@@ -61,7 +63,6 @@ if [ ${#opts[@]} -gt 1 ]; then
 
 # Clear the terminal
 clear
-
 
 # Print out the list of arguments
 cat <<EOF
@@ -97,15 +98,17 @@ EOF
 
 fi
 
-
 sleep 3
-
 
 # If ${DEBUG} = true, pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
+###############################################
+# If ${INSTALL} != true, require confirmation #
+###############################################
 
 # Force prompt if ${INSTALL} not present
 if [ "${INSTALL}" != "true" ]; then
@@ -137,10 +140,12 @@ while [ "${install}" != "yes" ]; do
   read -p "Proceed with install? " install
 done
 
-
 # Clear the terminal
 clear
 
+###############################################
+# Configuration for the root password         #
+###############################################
 
 # If ${ROOTPW} preset copy to ${pass}
 if [ "${ROOTPW}" != "" ]; then
@@ -163,6 +168,9 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configuration for the hostname              #
+###############################################
 
 # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
 if [ "${HOSTNAME}" == "" ]; then
@@ -179,6 +187,9 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configuration for the physical location     #
+###############################################
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -204,6 +215,9 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configuration for the NFS share & zone      #
+###############################################
 
 # Use ${location} to determine NFS server (don't count on DNS)
 if [ "${location}" == "SLC" ]; then
@@ -244,6 +258,9 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configuration for physical disks            #
+###############################################
 
 # Get a collection of physical disks (filter out partitions & convert blocks to bytes)
 disks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /[a-z]+$/{print $5":"$4 * 1024}'))
@@ -269,6 +286,9 @@ fi
 swap="$(cat /proc/meminfo|awk '$0 /^MemTotal/{print $2}')"
 
 
+###############################################
+# Configuration for the networking            #
+###############################################
 
 # Set /tmp/ks-networking to prevent failures
 echo "" > /tmp/ks-networking
@@ -385,8 +405,11 @@ firstboot --disable
 %end
 
 # Begin post-installation script
-%post --nochroot --interpreter=/bin/bash
+%post --nochroot --interpreter=/bin/bash --erroronfail
 
+###############################################
+# Environment variables, functions & settings #
+###############################################
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
@@ -394,10 +417,8 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
 clear
 
-
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -418,6 +439,10 @@ NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 
 
+###############################################
+# Expose /tmp/ks* files to chroot env         #
+###############################################
+
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
 echo "Copied all temporary scripts to chroot env."
@@ -427,6 +452,10 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
+###############################################
+# Aquire NFS server settings for chroot env   #
+###############################################
 
 # Attempt to get our previously written ${nfs_share} from /tmp/ks-nfsshare
 if [ ! -f /tmp/ks-nfsshare ]; then
@@ -450,6 +479,10 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 
+###############################################
+# Create mount point for NFS share in chroot  #
+###############################################
+
 # Mount point for NFS share
 path="/mnt/sysimage/var/tmp/unixbuild"
 
@@ -457,6 +490,10 @@ path="/mnt/sysimage/var/tmp/unixbuild"
 if [ ! -d "${path}" ] ; then
   mkdir -p "${path}"
 fi
+
+###############################################
+# Make sure the NFS server is accessible      #
+###############################################
 
 # Make sure we can connect to ${nfs_server}
 ping=$(ping -c1 ${nfs_server})
@@ -471,6 +508,9 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Setup NFS mount in chroot @ /mnt/sysimage   #
+###############################################
 
 # Mount NFS share for %post processing
 nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
@@ -487,19 +527,20 @@ fi
 
 %end
 
-%post --interpreter=/bin/bash
+%post --interpreter=/bin/bash --erroronfail
+
+###############################################
+# Environment variables, functions & settings #
+###############################################
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
 exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
-
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-
 clear
-
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -510,7 +551,6 @@ function pause() {
   done
 }
 
-
 # Set our env variables from /tmp/ks-arguments
 DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
 INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
@@ -519,13 +559,15 @@ IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 
-
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
 
-
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
+
+###############################################
+# Validate build-tools location (NFS mount)   #
+###############################################
 
 # Make sure the NFS mount provided the directory
 if [ ! -d "${build_tools}" ]; then
@@ -540,6 +582,10 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 
+###############################################
+# Validate build-tools exist (actual file)    #
+###############################################
+
 # Does our build tool exist?
 if [ ! -f "${build_tools}/rhel-builder" ]; then
   echo "RHEL build tool doesn't seem to exist @ ${build_tools}/rhel-builder"
@@ -552,6 +598,10 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
+###############################################
+# Create build audit folder structure         #
+###############################################
 
 # Record a timestamped hostname string for build logs
 folder=/root/$(hostname)-$(date +%Y%m%d-%H%M)
@@ -571,9 +621,12 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
-
 # Go to ${build_tools}
 cd ${build_tools}
+
+###############################################
+# Run build-tools to validate current env.    #
+###############################################
 
 # Run ${build_tools} to validate current configuration with logging
 echo "Performing initial state validation"
@@ -585,6 +638,10 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 
+###############################################
+# Configure according to RHEL build standard  #
+###############################################
+
 # Run ${build_tools} to make changes according to RHEL build guide standards
 echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
@@ -595,6 +652,10 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 
+###############################################
+# Run build-tools to validate build           #
+###############################################
+
 # Run ${build_tools} to validate changes
 echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
@@ -604,7 +665,22 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
+###############################################
+# Examine post build log for errors           #
+###############################################
+
 # Examine 'post' build log for errors and make attempts to run each tool again?
+
+###############################################
+# Re-run failed jobs individually             #
+###############################################
+
+# Not complete
+
+###############################################
+# Check for config-network tool               #
+###############################################
 
 # Run the $(dirname ${build_tools})/scripts/config-network tool by itself
 # because the argument requirements differ from all the other tools
@@ -636,6 +712,10 @@ if [ ! -f /tmp/ks-networking ]; then
   exit 1
 fi
 
+###############################################
+# Get network parameters for config-network   #
+###############################################
+
 # Obtain ${IPADDR}, ${NETMASK} & ${GATEWAY} from /tmp/ks-networking
 net="$(cat /tmp/ks-networking)"
 IPADDR="$(echo "${net}"|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
@@ -648,6 +728,10 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configure network (802.1 or single) adapter #
+###############################################
+
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
@@ -658,10 +742,18 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Create backup of build configuration files  #
+###############################################
+
 # Make a backup of /tmp/ks* to ${folder}/kickstart
 echo "Created backup of configuration & kickstart files"
 rm /tmp/ks-script-*
 cp /tmp/ks* ${folder}/kickstart
+
+###############################################
+# Setup appropriate permissions on backup     #
+###############################################
 
 # Set some permissions to account for root pw
 chown -R root:root ${folder}
