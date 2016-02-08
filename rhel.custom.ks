@@ -292,18 +292,30 @@ for disk in ${disks[@]}; do
   # Get the disk bytes
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
-  # Compare ${bytes} with static ${gbytes} 
-  # Does ${#disks[@]} need to be greater > 1 for this conditional?
-  if [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
+  echo "Evaluating ${dsk} (${bytes}) with specified buildtype (${BUILDTYPE})"
+
+  # Compare ${bytes} with static ${gbytes} if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
+  if [[ ${#disks[@]} -gt 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
     echo "Physical build type specified but ${dsk} is less than 100GB (${bytes})"
     echo "Using VM build disk specifications"
     BUILDTYPE="vm"
   fi
+
+  # If ${DEBUG} is set to true; pause
+  if [ "${DEBUG}" == "true" ]; then
+    pause
+  fi
+
 done
 
 # Determine the amount of memory on the system, used for our swap partition
 swap="$(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}')"
+echo "Setting swap disk space to ${swap} bytes"
 
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 ###############################################
 # Configuration for the networking            #
