@@ -14,8 +14,56 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-# Set a default ${BUILDTYPE}
+###############################################
+# Disk specific variables & templates         #
+###############################################
+
+# Set a default ${BUILDTYPE} (available are 'physical' or 'vm')
+# If ${BUILDTYPE} is default (physical), only one physical disk present
+# and is less than 100GB ${BUILTYPE} gets set to 'vm'
 BUILDTYPE="physical"
+
+# Define a template for 'vm' ${BUILDTYPE} disk configurations
+read -d '' vm_disk_template <<"EOF"
+zerombr
+clearpart --all --initlabel --drives={DISKS}
+
+part swap --size={SWAP}
+
+part /boot --fstype="ext4" --size=500
+
+part rootpv --size={SIZE} --grow
+volgroup rootvg rootpv
+
+logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
+logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
+logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
+logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
+logvol /opt/app --fstype="ext4" --name="optapplv" --vgname="rootvg" --size={OPTAPPLVSIZE} --grow --percent=90
+EOF
+
+# Define a template for 'phsyical' ${BUILDTYPE} disk configurations
+read -d '' phys_disk_template <<"EOF"
+zerombr
+clearpart --all --initlabel --drives={DISKS}
+
+part swap --size={SWAP}
+
+part /boot --fstype="ext4" --size=500
+
+part rootpv --size={SIZE} --grow
+volgroup rootvg rootpv
+
+part optapppv --size={OPTAPPSIZE} --grow
+volgroup optappvg optapppv
+
+logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
+logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
+logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
+logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
+
+logvol /optapp --fstype="ext4" --name="optapplv" --vgname="optappvg" --size={OPTAPPLVSIZE} --grow --percent=90
+EOF
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -42,6 +90,12 @@ function valid_ip()
   fi
 
   return $stat
+}
+
+# Calculate bytes to MB
+function bytes2megabytes()
+{
+  echo $(expr $1 / 1024 / 1024)
 }
 
 ###############################################
@@ -279,7 +333,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
-# 100GB in bytes
+# 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
 gbytes=1073741824
 
 # Iterate ${disks[@]} to determine if disk size will not allow for a 100GB
@@ -411,10 +465,6 @@ reboot
 
 # Use NFS share for installation media
 %include /tmp/ks-nfsshare
-
-# Clear out disk
-zerombr
-clearpart --all --initlabel --drives=sda
 
 # Include disk configuration
 #%include /tmp/ks-diskconfig
