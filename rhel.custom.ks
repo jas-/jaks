@@ -224,6 +224,8 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+# Mount point for NFS share
+path="unixshr"
 
 # Write out /tmp/nfsshare file
 echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
@@ -606,14 +608,31 @@ net="$(cat /tmp/ks-networking)"
 IPADDR="$(echo "${net}"|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 NETMASK="$(echo "${net}"|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+echo "Read network configuration from /tmp/ks-networking"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+echo "Created static networking configuration"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 # Make a backup of /tmp/ks* to ${folder}/kickstart
 echo "Created backup of configuration & kickstart files"
+rm /tmp/ks-script-*
 cp /tmp/ks* ${folder}/kickstart
+
+# Set some permissions to account for root pw
+chown -R root:root ${folder}
+chmod -R 600 ${folder}
 
 if [ "${DEBUG}" == "true" ]; then
   pause
