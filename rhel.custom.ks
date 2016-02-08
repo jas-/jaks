@@ -1,4 +1,6 @@
-# Begin pre-installation script
+###############################################
+# Begin %pre configuration script             #
+###############################################
 %pre --interpreter=/bin/bash --erroronfail
 
 ###############################################
@@ -347,8 +349,14 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 %end
+###############################################
+# End %pre configuration script             #
+###############################################
 
-# Force text mode installation
+
+###############################################
+# Begin kick start automation procedures      #
+###############################################
 text
 
 # Default language
@@ -403,8 +411,14 @@ firstboot --disable
 %packages
 @base
 %end
+###############################################
+# End kick start automation procedures      #
+###############################################
 
-# Begin post-installation script
+
+###############################################
+# Begin %post non-chroot configuration        #
+###############################################
 %post --nochroot --interpreter=/bin/bash --erroronfail
 
 ###############################################
@@ -526,7 +540,14 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 %end
+###############################################
+# End %post non-chroot configuration        #
+###############################################
 
+
+###############################################
+# Begin %post chroot configuration            #
+###############################################
 %post --interpreter=/bin/bash --erroronfail
 
 ###############################################
@@ -764,3 +785,7 @@ if [ "${DEBUG}" == "true" ]; then
 fi
 
 %end
+###############################################
+# End %post chroot configuration              #
+###############################################
+#fin
