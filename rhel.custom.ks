@@ -3,8 +3,9 @@
 ###############################################
 %pre --interpreter=/bin/bash --erroronfail
 
+
 ###############################################
-# Environment variables, functions & settings #
+# Environment variables & settings            #
 ###############################################
 
 # Setup the env (setting /dev/tty3 as default IO)
@@ -13,6 +14,7 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
 
 ###############################################
 # Disk specific variables & templates         #
@@ -23,8 +25,19 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 # and is less than 100GB ${BUILTYPE} gets set to 'vm'
 BUILDTYPE="physical"
 
-# Define a template for 'vm' ${BUILDTYPE} disk configurations
-read -d '' vm_disk_template <<"EOF"
+
+
+# Physical group creation variable
+pv_tpml="part {ID} --grow --ondisk={DISK}"
+
+# 'optappvg' volgroup variable; used when phsyical disks > 1
+vg_tmpl="volgroup optappvg {DISK}"
+
+# 'optapplv' variable for logical volume creation
+lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname={VOLGROUP} --maxsize={SIZE} --grow --percent=90"
+
+# Define a template for disk configurations
+read -d '' disk_template <<"EOF"
 zerombr
 clearpart --all --initlabel --drives={DISKS}
 
@@ -32,38 +45,20 @@ part swap --size={SWAP}
 
 part /boot --fstype="ext4" --size=500
 
-part rootpv --size={SIZE} --grow
+part rootpv --maxsize={MAXSIZE} --grow --ondisk={PRIMARY} --asprimary
 volgroup rootvg rootpv
 
 logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
 logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
 logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
-logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
-logvol /opt/app --fstype="ext4" --name="optapplv" --vgname="rootvg" --size={OPTAPPLVSIZE} --grow --percent=90
+logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size=2048
+
 EOF
 
-# Define a template for 'phsyical' ${BUILDTYPE} disk configurations
-read -d '' phys_disk_template <<"EOF"
-zerombr
-clearpart --all --initlabel --drives={DISKS}
 
-part swap --size={SWAP}
-
-part /boot --fstype="ext4" --size=500
-
-part rootpv --size={SIZE} --grow
-volgroup rootvg rootpv
-
-part optapppv --size={OPTAPPSIZE} --grow
-volgroup optappvg optapppv
-
-logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
-logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
-logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
-logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
-
-logvol /optapp --fstype="ext4" --name="optapplv" --vgname="optappvg" --size={OPTAPPLVSIZE} --grow --percent=90
-EOF
+###############################################
+# Function definitions                        #
+###############################################
 
 # Pause function handle pausing if ${DEBUG} = true
 function pause() {
@@ -93,10 +88,97 @@ function valid_ip()
 }
 
 # Calculate bytes to MB
-function bytes2megabytes()
+function bytes2mb()
 {
   echo $(expr $1 / 1024 / 1024)
 }
+
+# Function to handle disk template creation for dynamic disks
+function templates2output()
+{
+  local disk="${1}"      # comma seperated list of disks; i.e. sda:size,sdb:size etc
+  local swap="${2}"       # swap disk space (physical memory x 1)
+  local maxsize="${3}"    # Max size for primary physical volume group
+  local primary="${4}"    # Primary physical disk used for rootpv
+  local rootlv="${5}"     # Size of the rootlv volume
+  local varlv="${6}"      # Size of the varlv volume
+  local homelv="${7}"     # Size of the varlv volume
+
+  # Convert ${disks} into an array (${disks[@]})
+  IFS=',' read -a disk <<< ${disks}
+
+  # If ${#disks[@]} > 1 send to 'multipledisks()' function
+  if [ ${#disks[@]} -gt 1 ]; then
+
+    # Call multipledisks() which creates a complex entry to handle /opt/app
+    multipledisks "${disk}"
+
+    # Set ${optapp} = 1 to prevent duplication on primary disk
+    local optapp=1
+  fi
+
+  # Use ${disks[0]} as primary disk
+  # Calculate space of disk vs. vm or physical size
+  # If disk size > 100 use physical logical volume sizes
+  # If disk size == 100 use vm logical volume sizes
+  # If disk size < 100 allocate percentages;
+  #   - swap                => physical memory x 1
+  #   - rootlv /            => 20% / 100% - swap
+  #   - varlv  /var         => 10% / 100% - swap 
+  #   - homelv /export/home => 5%  / 100% - swap
+  #   - tmplv  /tmp         => 2%  / 100% - swap
+  #   - optapp /opt/app     => 90% of remainder
+
+}
+
+# Function to handle extending /opt/app with multiple disks
+function multipledisks()
+{
+  local disks="${1}"
+
+  # Make copy of ${disks[@]:1}
+  local copy=(${disks[@]:1})
+
+  # Get the first element as our primary volumegroup
+  local primary="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+
+  # Get the size of our primary volumegroup (converting from bytes to mb)
+  local size=$(bytes2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
+
+  # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
+  echo "$(echo "${pv_tmpl}"|sed -e "s|{ID}|optapppv|g" -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
+
+  # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
+  if [ ${#copy[@]} -gt 1 ]; then
+
+    # Make another copy without the primary in order to extend optappvg
+    local disk_members=(${copy[@]:1})
+
+    # Place holder for space seperated list of disks to add to volgroup
+    local dsks=
+
+    # Iterate ${disk_members[@]} & split into disk & size
+    for dsk in ${disk_members[@]}; do
+
+      # Get the disk name from ${dsk}
+      if [ "${dsks}" == "" ]; then
+        dsks="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+      else
+        dsks="${placeholder} $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+      fi
+
+      # Get size in mb & add to ${size}
+      size=$(expr ${size} + $(bytes2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}')))
+    done
+  fi
+
+  # Generate changes for ${vg_tmpl} and write to /tmp/ks-diskconfig-extra
+  echo "$(echo "${vg_tmpl}"|sed -e "s|{DISK}|${dsks}|g")" >> /tmp/ks-diskconfig-extra
+
+  # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
+  echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|optappvg|g" -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
+}
+
 
 ###############################################
 # Handling boot parameters                    #
@@ -173,7 +255,6 @@ else
   install="yes"
 fi
 
-
 # Ensure user knows they are going to wipe out the machine
 while [ "${install}" != "yes" ]; do
   clear
@@ -198,6 +279,7 @@ done
 
 # Clear the terminal
 clear
+
 
 ###############################################
 # Configuration for the root password         #
@@ -224,6 +306,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 ###############################################
 # Configuration for the hostname              #
 ###############################################
@@ -242,6 +325,7 @@ echo "Set hostname to ${hostname}"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Configuration for the physical location     #
@@ -270,6 +354,7 @@ echo "Set location to ${location}"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Configuration for the NFS share & zone      #
@@ -313,6 +398,7 @@ echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Configuration for physical disks            #
@@ -374,6 +460,7 @@ echo "Setting swap disk space to ${hswap}"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Configuration for the networking            #
@@ -504,6 +591,7 @@ firstboot --disable
 ###############################################
 %post --nochroot --interpreter=/bin/bash --erroronfail
 
+
 ###############################################
 # Environment variables, functions & settings #
 ###############################################
@@ -588,6 +676,7 @@ if [ ! -d "${path}" ] ; then
   mkdir -p "${path}"
 fi
 
+
 ###############################################
 # Make sure the NFS server is accessible      #
 ###############################################
@@ -604,6 +693,7 @@ echo "NFS server; ${nfs_server} responding to ICMP requests"
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Setup NFS mount in chroot @ /mnt/sysimage   #
@@ -632,6 +722,7 @@ fi
 # Begin %post chroot configuration            #
 ###############################################
 %post --interpreter=/bin/bash --erroronfail
+
 
 ###############################################
 # Environment variables, functions & settings #
@@ -668,6 +759,7 @@ path="/var/tmp/unixbuild"
 
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
+
 
 ###############################################
 # Validate build-tools location (NFS mount)   #
@@ -728,6 +820,7 @@ fi
 # Go to ${build_tools}
 cd ${build_tools}
 
+
 ###############################################
 # Run build-tools to validate current env.    #
 ###############################################
@@ -776,11 +869,13 @@ fi
 
 # Examine 'post' build log for errors and make attempts to run each tool again?
 
+
 ###############################################
 # Re-run failed jobs individually             #
 ###############################################
 
 # Not complete
+
 
 ###############################################
 # Check for config-network tool               #
@@ -816,6 +911,7 @@ if [ ! -f /tmp/ks-networking ]; then
   exit 1
 fi
 
+
 ###############################################
 # Get network parameters for config-network   #
 ###############################################
@@ -832,6 +928,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 ###############################################
 # Configure network (802.1 or single) adapter #
 ###############################################
@@ -846,6 +943,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 ###############################################
 # Create backup of build configuration files  #
 ###############################################
@@ -854,6 +952,7 @@ fi
 echo "Created backup of configuration & kickstart files"
 rm /tmp/ks-script-*
 cp /tmp/ks* ${folder}/kickstart
+
 
 ###############################################
 # Setup appropriate permissions on backup     #
@@ -871,4 +970,5 @@ fi
 ###############################################
 # End %post chroot configuration              #
 ###############################################
+
 #fin
