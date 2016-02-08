@@ -1,5 +1,5 @@
 # Begin pre-installation script
-%pre --interpreter=/bin/bash
+%pre --interpreter=/bin/bash --erroronfail
 
 # Setup the env (setting /dev/tty3 as default IO)
 chvt 3
@@ -8,6 +8,10 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
+
+# Set a default ${BUILDTYPE}
+BUILDTYPE="physical"
 
 
 # Pause function handle pausing if ${DEBUG} = true
@@ -69,6 +73,9 @@ Specified argument list:
   Location options:
     LOCATION:      ${LOCATION}
 
+  Disk options:
+    BUILDTYPE:     ${BUILDTYPE}
+
   Networking options:
     HOSTNAME:      ${HOSTNAME}
     IPADDR:        ${IPADDR}
@@ -85,6 +92,7 @@ LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
 GATEWAY ${GATEWAY}
+BUILDTYPE ${BUILDTYPE}
 EOF
 
 fi
@@ -235,6 +243,31 @@ echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
+
+# Get a collection of physical disks (filter out partitions & convert blocks to bytes)
+disks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /[a-z]+$/{print $5":"$4 * 1024}'))
+
+# Make sure ${disks[@]} is > 0
+if [ ! ${disks[@]} -gt 0 ]; then
+  echo "No physical disks present! Cannot create necessary disk configuration"
+  exit 1
+fi
+echo "Aquired array of disks to assemble; #${#disks[@]} found"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
+
+# Just in case ${BUILDTYPE} wasn't specified and the disk size will not allow
+# for a 100GB primary (in the case of a virtual guest)
+
+
+# Determine the amount of memory on the system, used for our swap partition
+swap="$(cat /proc/meminfo|awk '$0 /^MemTotal/{print $2}')"
+
 
 
 # Set /tmp/ks-networking to prevent failures
