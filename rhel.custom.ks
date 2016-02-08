@@ -279,10 +279,26 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+# 100GB in bytes
+gbytes=1073741824
 
-# Just in case ${BUILDTYPE} wasn't specified and the disk size will not allow
-# for a 100GB primary (in the case of a virtual guest)
+# Iterate ${disks[@]} to determine if disk size will not allow for a 100GB
+# primary (in the case of a virtual guest)
+for disk in ${disks[@]}; do
 
+  # Get the disk name
+  dsk=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[1]}')
+
+  # Get the disk bytes
+  bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
+
+  # Compare ${bytes} with static ${gbytes}
+  if [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
+    echo "Physical build type specified but ${dsk} is less than 100GB (${bytes})"
+    echo "Using VM build disk specifications"
+    BUILDTYPE="vm"
+  fi
+done
 
 # Determine the amount of memory on the system, used for our swap partition
 swap="$(cat /proc/meminfo|awk '$0 /^MemTotal/{print $2}')"
