@@ -302,7 +302,7 @@ for disk in ${disks[@]}; do
 done
 
 # Determine the amount of memory on the system, used for our swap partition
-swap="$(cat /proc/meminfo|awk '$0 /^MemTotal/{print $2}')"
+swap="$(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}')"
 
 
 ###############################################
