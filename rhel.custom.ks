@@ -133,13 +133,13 @@ function templates2output()
   # If ${disk} size > 100GB & ${BUILDTYPE} = physical; assume physical
   if [ ${size} -gt ${gbytes} ]; then
 
-    echo "incomplete"
+    echo "incomplete 1"
   fi
 
   # If ${disk} size == 100GB & ${BUILDTYPE} = vm; assume vm
   if [ ${size} -eq ${gbytes} ]; then
 
-    echo "incomplete"
+    echo "incomplete 2"
   fi
 
   # If ${disk} size < 100GB regardless of ${BUILDTYPE}; split disk into percentages
