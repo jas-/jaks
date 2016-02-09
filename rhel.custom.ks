@@ -471,7 +471,7 @@ for disk in ${disks[@]}; do
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
   # Convert ${bytes} to human readable for ouptut values
-  hbytes="$(expr ${bytes} / 1024 / 1024 / 1024)GB"
+  hbytes="$(bytes2mb ${bytes})GB"
 
   echo "Evaluating ${dsk} (${hbytes}) with specified buildtype (${BUILDTYPE})"
 
@@ -491,7 +491,7 @@ done
 
 # Determine the amount of memory on the system, used for our swap partition
 swap="$(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}')"
-hswap="$(expr ${swap} / 1024 / 1024 / 1024)GB"
+hswap="$(bytes2mb ${swap})GB"
 echo "Setting swap disk space to ${hswap}"
 
 # If ${DEBUG} is set to true; pause
