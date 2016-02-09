@@ -25,7 +25,8 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 # and is less than 100GB ${BUILTYPE} gets set to 'vm'
 BUILDTYPE="physical"
 
-
+# 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
+gbytes=1073741824
 
 # Physical group creation variable
 pv_tpml="part {ID} --grow --ondisk={DISK}"
@@ -93,16 +94,22 @@ function bytes2mb()
   echo $(expr $1 / 1024 / 1024)
 }
 
+# Return bytes based on % of total
+function percent()
+{
+  total=${1}
+  percent=${2}
+
+  echo $((${total} / 100 * ${percent}))
+}
+
 # Function to handle disk template creation for dynamic disks
 function templates2output()
 {
-  local disk="${1}"      # comma seperated list of disks; i.e. sda:size,sdb:size etc
+  local disk="${1}"       # comma seperated list of disks; i.e. sda:size,sdb:size etc
   local swap="${2}"       # swap disk space (physical memory x 1)
-  local maxsize="${3}"    # Max size for primary physical volume group
-  local primary="${4}"    # Primary physical disk used for rootpv
-  local rootlv="${5}"     # Size of the rootlv volume
-  local varlv="${6}"      # Size of the varlv volume
-  local homelv="${7}"     # Size of the varlv volume
+
+  local optapp=0          # Is set to 1 when multiple disks are used for /opt/app
 
   # Convert ${disks} into an array (${disks[@]})
   IFS=',' read -a disk <<< ${disks}
@@ -114,20 +121,54 @@ function templates2output()
     multipledisks "${disk}"
 
     # Set ${optapp} = 1 to prevent duplication on primary disk
-    local optapp=1
+    optapp=1
   fi
 
-  # Use ${disks[0]} as primary disk
-  # Calculate space of disk vs. vm or physical size
-  # If disk size > 100 use physical logical volume sizes
-  # If disk size == 100 use vm logical volume sizes
-  # If disk size < 100 allocate percentages;
-  #   - swap                => physical memory x 1
-  #   - rootlv /            => 20% / 100% - swap
-  #   - varlv  /var         => 10% / 100% - swap 
-  #   - homelv /export/home => 5%  / 100% - swap
-  #   - tmplv  /tmp         => 2%  / 100% - swap
-  #   - optapp /opt/app     => 90% of remainder
+  # Copy ${disks[0]} to ${disk}
+  disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+
+  # Copy ${disks[0]} to ${size}
+  local size="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+
+  # If ${disk} size > 100GB & ${BUILDTYPE} = physical; assume physical
+  if [ ${size} -gt ${gbytes} ]; then
+
+    echo "incomplete"
+  fi
+
+  # If ${disk} size == 100GB & ${BUILDTYPE} = vm; assume vm
+  if [ ${size} -eq ${gbytes} ]; then
+
+    echo "incomplete"
+  fi
+
+  # If ${disk} size < 100GB regardless of ${BUILDTYPE}; split disk into percentages
+  if [ ${size} -lt ${gbytes} ]; then
+
+    # First remove ${swap} from ${size}
+    size=$(expr ${size} - ${swap})
+
+    # Allocate 40% of ${size} for /root (rootlv)
+    root_size=$(bytes2mb $(percent ${size} 40))
+
+    # Allocate 20% of ${size} for /var (varlv)
+    var_size=$(bytes2mb $(precent ${size} 20))
+
+    # Allocate 10% of ${size} for /export/home (homelv)
+    home_size=$(bytes2mb $(percent ${size} 10))
+
+    # Allocate 10% of ${size} for /tmp (tmplv)
+    tmp_size=$(bytes2mb $(percent ${size} 10))
+
+    # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
+    # to allocate for ${optapp_size} (if ${optapp} != 1)
+    optapp_size=$((${root_size} - ${var_size} - ${home_size} - ${tmp_size} - ${size}))
+  fi
+
+  # If /opt/app isn't defined go ahead and create it in /tmp/ks-diskconfig-extra
+  if [ ${optapp} == 0 ]; then
+    echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|rootvg|g" -e "s|{SIZE}|${optapp_size}|g")" >> /tmp/ks-diskconfig-extra
+  fi
 
 }
 
@@ -419,9 +460,6 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
-# 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
-gbytes=1073741824
-
 # Iterate ${disks[@]} to determine if disk size will not allow for a 100GB
 # primary (in the case of a virtual guest)
 for disk in ${disks[@]}; do
@@ -461,6 +499,18 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+# If ${#disks[@]} > 1 combine as a comma seperated list
+if [ ${#disks[@]} -gt 1 ]; then
+  disks="$(echo "${disks[@]}"|sed 's/ /,/g')"
+fi
+
+echo "Calling templates2output()"
+templates2output "${disks}" "${swap}"
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
 ###############################################
 # Configuration for the networking            #
