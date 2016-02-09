@@ -26,7 +26,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 BUILDTYPE="physical"
 
 # 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
-gbytes=1073741824
+gbytes=107374182400
 
 # Physical group creation variable
 pv_tpml="part {ID} --grow --ondisk={DISK}"
@@ -35,27 +35,69 @@ pv_tpml="part {ID} --grow --ondisk={DISK}"
 vg_tmpl="volgroup optappvg {DISK}"
 
 # 'optapplv' variable for logical volume creation
-lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname={VOLGROUP} --maxsize={SIZE} --grow --percent=90"
+lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname=rootvg --maxsize={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
+# Zero the MBR
 zerombr
+
+# Clear out partitions for {DISKS}
 clearpart --all --initlabel --drives={DISKS}
 
-part swap --size={SWAP}
+# Create a /boot partition on {PRIMARY} of 500MB
+part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
 
-part /boot --fstype="ext4" --size=500
+# Create a memory partition of {SWAP}MB on {PRIMARY}
+part swap --size={SWAP} --ondisk={PRIMARY}
 
-part rootpv --maxsize={MAXSIZE} --grow --ondisk={PRIMARY} --asprimary
-volgroup rootvg rootpv
+# Create an LVM partition of {SIZE}MB on {PRIMARY}
+part pv.root --size={SIZE} --ondisk={PRIMARY} --grow --asprimary
 
+# Create the root volume group
+volgroup rootvg pv.root
+
+# Create logical volume for the / mount point
 logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
+
+# Create logical volume for the /var mount point
 logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
+
+# Create logical volume for the /export/home mount point
 logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
-logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size=2048
+
+# Create logical volume for the /tmp mount point
+logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
 
 EOF
 
+# 'Extra' disk report
+read -d '' extra_disk_report <<"EOF"
+Extended:
+  Logical Volume Configuration:
+    |_ optapppv       {disks}       {size}
+    | |_ optappvg
+    |___|_ optapplv:  /opt/app      {optapp_size}MB
+EOF
+
+# 'VM' disk report
+vm_disk_report="    |___|_ optapplv:  /opt/app      {optapp_size}MB"
+
+# Final disk report
+read -d '' disk_report <<"EOF"
+Disk configuration:
+Primary:
+  Physical Partitions:
+    |_ sda1:          /boot         500MB
+    |_ swap:                        {swap}MB
+  Logical Volume Configuration:
+    |_ rootpv                       {size}MB
+    | |_ rootvg
+    |   |_ rootlv:    /             {root_size}MB
+    |   |_ varlv:     /var          {var_size}MB
+    |   |_ homelv:    /export/home  {home_size}MB
+    |   |_ tmplv:     /tmp          {tmp_size}MB
+EOF
 
 ###############################################
 # Function definitions                        #
@@ -88,8 +130,32 @@ function valid_ip()
   return $stat
 }
 
+# Calculate kilobytes to bytes
+function kb2b()
+{
+  echo $(expr $1 \* 1024)
+}
+
+# Calculate mb2bytes to bytes
+function mb2b()
+{
+  echo $(expr $1 \* 1024 \* 1024)
+}
+
+# Calculate gigabytes to MB
+function gb2mb()
+{
+  echo $(expr $1 \* 1024 \* 1024 \* 1024)
+}
+
+# Calculate kilobytes to MB
+function kb2mb()
+{
+  echo $(expr $1 / 1024)
+}
+
 # Calculate bytes to MB
-function bytes2mb()
+function b2mb()
 {
   echo $(expr $1 / 1024 / 1024)
 }
@@ -128,47 +194,98 @@ function templates2output()
   disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
 
   # Copy ${disks[0]} to ${size}
-  local size="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[2]}')"
+  local size=$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[2]}')
 
-  # If ${disk} size > 100GB & ${BUILDTYPE} = physical; assume physical
-  if [ ${size} -gt ${gbytes} ]; then
+  # Make a copy of ${size} for evaluating paritition scheme
+  local evalsize=${size}
 
-    echo "incomplete 1"
+  # First remove 500 (/boot) from ${size}
+  size=$(expr ${size} - $(mb2b 500))
+
+  # Now remove ${swap} from ${size}
+  size=$(expr ${size} - ${swap})
+
+  # If ${evaldisk} size > 100GB & ${BUILDTYPE} = physical; assume physical
+  if [ ${evalsize} -gt ${gbytes} ]; then
+
+    # 100GB / LVM
+    root_size=$(gb2mb 100)
+
+    # 40GB /var LVM
+    var_size=$(gb2mb 40)
+
+    # 10GB /export/home LVM
+    home_size=$(gb2mb 10)
+
+    # 2GB /tmp LVM
+    tmp_size=$(gb2mb 2)
   fi
 
-  # If ${disk} size == 100GB & ${BUILDTYPE} = vm; assume vm
-  if [ ${size} -eq ${gbytes} ]; then
+  # If ${evalsize} size == 100GB & ${BUILDTYPE} = vm; assume vm
+  if [ ${evalsize} -eq ${gbytes} ]; then
 
-    echo "incomplete 2"
+    # 40GB / LVM
+    root_size=$(gb2mb 40)
+
+    # 20GB /var LVM
+    var_size=$(gb2mb 20)
+
+    # 10GB /export/home LVM
+    home_size=$(gb2mb 10)
+
+    # 2GB /tmp LVM
+    tmp_size=$(gb2mb 2)
   fi
 
-  # If ${disk} size < 100GB regardless of ${BUILDTYPE}; split disk into percentages
-  if [ ${size} -lt ${gbytes} ]; then
-
-    # First remove ${swap} from ${size}
-    size=$(expr ${size} - ${swap})
+  # If ${evaldisk} size < 100GB regardless of ${BUILDTYPE}; split disk into percentages
+  if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
-    root_size=$(bytes2mb $(percent ${size} 40))
+    root_size=$(b2mb $(percent ${size} 40))
 
     # Allocate 20% of ${size} for /var (varlv)
-    var_size=$(bytes2mb $(precent ${size} 20))
+    var_size=$(b2mb $(percent ${size} 20))
 
     # Allocate 10% of ${size} for /export/home (homelv)
-    home_size=$(bytes2mb $(percent ${size} 10))
+    home_size=$(b2mb $(percent ${size} 10))
 
-    # Allocate 10% of ${size} for /tmp (tmplv)
-    tmp_size=$(bytes2mb $(percent ${size} 10))
-
-    # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
-    # to allocate for ${optapp_size} (if ${optapp} != 1)
-    optapp_size=$((${root_size} - ${var_size} - ${home_size} - ${tmp_size} - ${size}))
+    # Allocate 3% of ${size} for /tmp (tmplv)
+    tmp_size=$(b2mb $(percent ${size} 3))
   fi
+
+  # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
+  # to allocate for ${optapp_size} (if ${optapp} != 1)
+  optapp_size=$(expr $(b2mb ${size}) - $(expr ${root_size} + ${var_size} + ${home_size} + ${tmp_size}))
 
   # If /opt/app isn't defined go ahead and create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
     echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|rootvg|g" -e "s|{SIZE}|${optapp_size}|g")" >> /tmp/ks-diskconfig-extra
+
+    # Also generate a report
+    echo "${vm_disk_report}" |
+      sed -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
   fi
+
+  # Write out /tmp/ks-diskconfig using ${disk_template}
+  echo "${disk_template}" |
+    sed -e "s|{DISKS}|${disk}|g" \
+    -e "s|{SWAP}|$(b2mb ${swap})|g" \
+    -e "s|{SIZE}|$(b2mb ${size})|g" \
+    -e "s|{PRIMARY}|${disk}|g" \
+    -e "s|{ROOTLVSIZE}|${root_size}|g" \
+    -e "s|{VARLVSIZE}|${var_size}|g" \
+    -e "s|{HOMELVSIZE}|${home_size}|g" \
+    -e "s|{TMPLVSIZE}|${tmp_size}|g" >> /tmp/ks-diskconfig
+
+  # Write a report of the disk configuration
+  echo "${disk_report}" |
+    sed -e "s|{disk}|${disk}|g" \
+    -e "s|{swap}|$(b2mb ${swap})|g" \
+    -e "s|{size}|$(b2mb ${size})|g" \
+    -e "s|{root_size}|${root_size}|g" \
+    -e "s|{var_size}|${var_size}|g" \
+    -e "s|{home_size}|${home_size}|g" \
+    -e "s|{tmp_size}|${tmp_size}|g" >> /tmp/ks-report-disks
 
 }
 
@@ -184,10 +301,10 @@ function multipledisks()
   local primary="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
 
   # Get the size of our primary volumegroup (converting from bytes to mb)
-  local size=$(bytes2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
+  local size=$(b2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
 
   # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${pv_tmpl}"|sed -e "s|{ID}|optapppv|g" -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
+  echo "$(echo "${pv_tmpl}"|sed -e "s|{ID}|pv.optapp|g" -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
@@ -209,7 +326,7 @@ function multipledisks()
       fi
 
       # Get size in mb & add to ${size}
-      size=$(expr ${size} + $(bytes2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}')))
+      size=$(expr ${size} + $(b2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}')))
     done
   fi
 
@@ -218,6 +335,10 @@ function multipledisks()
 
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|optappvg|g" -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
+
+  # Generate report for 'extra' disks
+  echo "${extra_disk_report}" | 
+    sed -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
 }
 
 
@@ -240,32 +361,8 @@ if [ ${#opts[@]} -gt 1 ]; then
   done
 
 
-# Clear the terminal
-clear
-
-# Print out the list of arguments
-cat <<EOF
-Specified argument list:
-  General options:
-    INSTALL:       ${INSTALL}
-    ROOTPW:        ${ROOTPW}
-
-  Location options:
-    LOCATION:      ${LOCATION}
-
-  Disk options:
-    BUILDTYPE:     ${BUILDTYPE}
-
-  Networking options:
-    HOSTNAME:      ${HOSTNAME}
-    IPADDR:        ${IPADDR}
-    NETMASK:       ${NETMASK}
-    GATEWAY:       ${GATEWAY}
-EOF
-
-
-# Write arguments to /tmp/ks-arguments
-cat <<EOF > /tmp/ks-arguments
+  # Write arguments to /tmp/ks-arguments
+  cat <<EOF > /tmp/ks-arguments
 DEBUG ${DEBUG}
 INSTALL ${INSTALL}
 LOCATION ${LOCATION}
@@ -277,13 +374,8 @@ EOF
 
 fi
 
-sleep 3
-
-# If ${DEBUG} = true, pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
-
+# Clear the terminal
+clear
 
 ###############################################
 # If ${INSTALL} != true, require confirmation #
@@ -338,14 +430,8 @@ while [ "${pass}" == "" ]; do
   echo ""
 done
 
-# Write ${pass} to roopw 
-echo "Wrote root password to /tmp/ks-rootpw"
+# Write ${pass} to rootpw 
 echo "rootpw ${pass}" > /tmp/ks-rootpw
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -359,12 +445,6 @@ if [ "${HOSTNAME}" == "" ]; then
   hostname="$(uname -n|awk '{print toupper($0)}')"
 else
   hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
-fi
-echo "Set hostname to ${hostname}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
 fi
 
 
@@ -389,12 +469,6 @@ while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
   read -p "Physical location? [PDX|SLC] " location
   echo ""
 done
-echo "Set location to ${location}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -420,20 +494,41 @@ if [ "${zone}" == "" ]; then
 fi
 
 # Write out /tmp/timezone
-echo "Wrote timezone data to /tmp/ks-timezone"
 echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 # Mount point for NFS share
 path="unixshr"
 
 # Write out /tmp/nfsshare file
-echo "Wrote NFS share for installation to /tmp/ks-nfsshare"
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
+
+
+###############################################
+# Print out a general configuration report    #
+###############################################
+
+# Generate a report of general configuration
+cat <<EOF > /tmp/ks-report-general
+General options:
+  DEBUG:         ${DEBUG}
+  INSTALL:       ${INSTALL}
+  ROOTPW:        ${pass}
+  BUILDTYPE:     ${BUILDTYPE}
+
+Location options:
+  COUNTRY:       ${country}
+  TIMEZONE:      ${zone}
+  LOCATION:      ${location}
+
+NFS server:
+  SERVER:        ${nfs_server}
+  SHARE:         ${path}
+
+EOF
+
+# Clear the terminal
+clear
+cat /tmp/ks-report-general
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
@@ -453,12 +548,6 @@ if [ ! ${#disks[@]} -gt 0 ]; then
   echo "No physical disks present! Cannot create necessary disk configuration"
   exit 1
 fi
-echo "Aquired array of disks to assemble; #${#disks[@]} found"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 # Iterate ${disks[@]} to determine if disk size will not allow for a 100GB
 # primary (in the case of a virtual guest)
@@ -470,47 +559,59 @@ for disk in ${disks[@]}; do
   # Get the disk bytes
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
-  # Convert ${bytes} to human readable for ouptut values
-  hbytes="$(bytes2mb ${bytes})GB"
-
-  echo "Evaluating ${dsk} (${hbytes}) with specified buildtype (${BUILDTYPE})"
-
   # Compare ${bytes} with static ${gbytes} if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
   if [[ ${#disks[@]} -eq 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
-    echo "Physical build type specified but ${dsk} is less than 100GB (${hbytes})"
-    echo "Using VM build disk specifications"
     BUILDTYPE="vm"
   fi
-
-  # If ${DEBUG} is set to true; pause
-  if [ "${DEBUG}" == "true" ]; then
-    pause
-  fi
-
 done
 
 # Determine the amount of memory on the system, used for our swap partition
-swap="$(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}')"
-hswap="$(bytes2mb ${swap})GB"
-echo "Setting swap disk space to ${hswap}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
+swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
 # If ${#disks[@]} > 1 combine as a comma seperated list
 if [ ${#disks[@]} -gt 1 ]; then
   disks="$(echo "${disks[@]}"|sed 's/ /,/g')"
 fi
 
-echo "Calling templates2output()"
+# Create disk configuration files /tmp/ks-diskconfig & /tmp/ks-diskconfig-extra
 templates2output "${disks}" "${swap}"
+
+###############################################
+# Print out the disk configuration report     #
+###############################################
+
+# Make sure our disk configuration file exist
+if [[ ! -f /tmp/ks-diskconfig ]] || [[ ! -f /tmp/ks-diskconfig-extra ]]; then
+  echo "Disk configuration files were not created"
+  exit 1
+fi
+
+# Combine disk configuration files & remove temporary
+cat /tmp/ks-diskconfig-extra >> /tmp/ks-diskconfig
+rm /tmp/ks-diskconfig-extra
+
+# Make sure our disk report files exist
+if [[ ! -f /tmp/ks-report-disks ]] || [[ ! -f /tmp/ks-report-disks-extra ]]; then
+  echo "Disk report files were not created"
+  exit 1
+fi
+
+# Combine disk report files & remove temporary
+cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
+rm /tmp/ks-report-disks-extra
+
+# Clear the terminal
+clear
+
+# Print the disk configuration report
+cat /tmp/ks-report-disks
+echo ""
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 ###############################################
 # Configuration for the networking            #
@@ -564,13 +665,31 @@ else
 fi
 
 # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network configuration
-echo "Wrote network configuration data to /tmp/ks-networking"
 echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+
+###############################################
+# Print out the network configuration report  #
+###############################################
+
+# Generate a report of general configuration
+cat <<EOF > /tmp/ks-report-network
+Network configuration:
+  HOSTNAME:      ${hostname}
+  IPADDR:        ${IPADDR}
+  NETMASK:       ${NETMASK}
+  GATEWAY:       ${GATEWAY}
+
+EOF
+
+# Clear the terminal
+clear
+cat /tmp/ks-report-network
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 %end
 ###############################################
@@ -604,7 +723,7 @@ reboot
 %include /tmp/ks-nfsshare
 
 # Include disk configuration
-#%include /tmp/ks-diskconfig
+%include /tmp/ks-diskconfig
 
 # Install GRUB
 bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
@@ -664,7 +783,6 @@ function pause() {
   done
 }
 
-
 # Set our env variables from /tmp/ks-arguments
 DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
 INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
@@ -672,20 +790,6 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
-
-
-###############################################
-# Expose /tmp/ks* files to chroot env         #
-###############################################
-
-# Copy all of our configuration files from %pre to /mnt/sysimage/tmp
-cp /tmp/ks* /mnt/sysimage/tmp
-echo "Copied all temporary scripts to chroot env."
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -705,12 +809,6 @@ nfs_server="$(cat /tmp/ks-nfsshare|awk '$0 ~ /^nfs/{split($2, obj, "=");print ob
 if [ "${nfs_server}" == "" ]; then
   echo "Could not get the NFS server"
   exit 1
-fi
-echo "Set our NFS server to ${nfs_server}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
 fi
 
 
@@ -737,12 +835,6 @@ if [ $? -ne 0 ]; then
   echo "Could not contact the ${nfs_server}, check routing table (gateway)"
   exit 1
 fi
-echo "NFS server; ${nfs_server} responding to ICMP requests"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -755,12 +847,40 @@ if [ $? -ne 0 ]; then
   echo "An error occured mount ${nfs_server} @ ${path}, exiting"
   exit 1
 fi
-echo "Mounted ${nfs_server} @ ${path}"
+
+# Generate a %pre (non-chroot) configuration report
+cat <<EOF > /tmp/ks-report-post
+Post installation: (pre-chroot)
+  ENV:
+    - Copied configurations to chroot environment
+  NFS:
+    - Created NFS mount points
+    - Verified NFS server responding to ICMP requests
+    - Mounted NFS server in chroot environment
+
+EOF
+
+
+###############################################
+# Expose /tmp/ks* files to chroot env         #
+###############################################
+
+# Copy all of our configuration files from %pre to /mnt/sysimage/tmp
+cp /tmp/ks* /mnt/sysimage/tmp
+
+###############################################
+# Print %post (non-chroot) report             #
+###############################################
+
+# Clear the terminal
+clear
+cat /tmp/ks-report-post
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 %end
 ###############################################
@@ -820,12 +940,6 @@ if [ ! -d "${build_tools}" ]; then
   echo "Unable to open ${build_tools}"
   exit 1
 fi
-echo "Our NFS share is mounted @ ${build_tools}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -836,12 +950,6 @@ fi
 if [ ! -f "${build_tools}/rhel-builder" ]; then
   echo "RHEL build tool doesn't seem to exist @ ${build_tools}/rhel-builder"
   exit 1
-fi
-echo "Our build tools exist!"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
 fi
 
 
@@ -860,15 +968,11 @@ if [ ! -d "${folder}" ]; then
   mkdir -p ${folder}/build
   mkdir -p ${folder}/post
 fi
-echo "Created ${folder}"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 # Go to ${build_tools}
 cd ${build_tools}
+
+echo "Please wait; auto-configuring system according to build standards"
 
 
 ###############################################
@@ -876,13 +980,7 @@ cd ${build_tools}
 ###############################################
 
 # Run ${build_tools} to validate current configuration with logging
-echo "Performing initial state validation"
 ./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -890,13 +988,7 @@ fi
 ###############################################
 
 # Run ${build_tools} to make changes according to RHEL build guide standards
-echo "Performing OS build"
 ./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -904,27 +996,37 @@ fi
 ###############################################
 
 # Run ${build_tools} to validate changes
-echo "Performing post build state validation"
 ./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
 # Examine post build log for errors           #
 ###############################################
 
-# Examine 'post' build log for errors and make attempts to run each tool again?
+# Get an array of configuration scripts that were run
+tools=($(awk '$0 ~ /^Executing:/{print $2}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+
+# Provide the total number of scripts run
+total_tools=${#tools[@]}
+
+# Get an array of configuration scripts that failed
+failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+
+# Provide the total number of failed scripts run
+total_failed_tools=${#failed_tools[@]}
+
+# Get an array of configuration scripts that succeeded
+successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){print "."obj[1]}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+
+# Provide the total number of failed scripts run
+total_successful_tools=${#successful_tools[@]}
 
 
 ###############################################
 # Re-run failed jobs individually             #
 ###############################################
 
-# Not complete
+# Should this be implemented? Or just force review of the logs?
 
 
 ###############################################
@@ -944,12 +1046,6 @@ if [ ! -f ${build_tools}/scripts/config-network ]; then
   fi
 
   exit 1
-fi
-echo "Found ${build_tools}/scripts/config-network"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
 fi
 
 # Change into scripts/ subfolder if scripts/config-network exists
@@ -971,12 +1067,6 @@ net="$(cat /tmp/ks-networking)"
 IPADDR="$(echo "${net}"|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 NETMASK="$(echo "${net}"|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-echo "Read network configuration from /tmp/ks-networking"
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -986,12 +1076,38 @@ fi
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
-echo "Created static networking configuration"
 
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
+
+###############################################
+# Generate a %post (chroot) report            #
+###############################################
+
+# Generate a %post (chroot) configuration report
+cat <<EOF > /tmp/ks-report-post-chroot
+Post installation: (chroot)
+  ENV:
+    - Verification of NFS mount
+    - Validation of build tools from NFS mount
+    - Creation of reporting structure for build process
+  BUILD:
+    - Logs for each stage of configuration created
+    - Statistical information for build:
+      - Total tools run:         ${total_tools}
+      - Total failed tools:      ${total_failed_tools}
+      - Total successful tools:  ${total_successful_tools}
+  BACKUP:
+    - Backup of kickstart configurations:
+      - Location & timezone configuration
+      - Default root user configuration
+      - NFS installation configuration
+      - Physical disk configuration
+    - Backup of build logs:
+      - Pre RHEL build configuration validation
+      - RHEL build configuration results
+      - Post RHEL build configuration validation
+    - Secured reports & configurations @ /root/$(hostname)-$(date +%Y%m%d)
+
+EOF
 
 
 ###############################################
@@ -999,7 +1115,6 @@ fi
 ###############################################
 
 # Make a backup of /tmp/ks* to ${folder}/kickstart
-echo "Created backup of configuration & kickstart files"
 rm /tmp/ks-script-*
 cp /tmp/ks* ${folder}/kickstart
 
@@ -1012,6 +1127,15 @@ cp /tmp/ks* ${folder}/kickstart
 chown -R root:root ${folder}
 chmod -R 600 ${folder}
 
+###############################################
+# Print %post (non-chroot) report             #
+###############################################
+
+# Clear the terminal
+clear
+cat /tmp/ks-report-post-chroot
+
+# If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
