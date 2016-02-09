@@ -106,10 +106,10 @@ function percent()
 # Function to handle disk template creation for dynamic disks
 function templates2output()
 {
-  local disk="${1}"       # comma seperated list of disks; i.e. sda:size,sdb:size etc
-  local swap="${2}"       # swap disk space (physical memory x 1)
+  local disk="${1}"  # comma seperated list of disks; i.e. sda:size,sdb:size etc
+  local swap="${2}"  # swap disk space (physical memory x 1)
 
-  local optapp=0          # Is set to 1 when multiple disks are used for /opt/app
+  local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
 
   # Convert ${disks} into an array (${disks[@]})
   IFS=',' read -a disk <<< ${disks}
@@ -128,7 +128,7 @@ function templates2output()
   disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
 
   # Copy ${disks[0]} to ${size}
-  local size="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+  local size="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[2]}')"
 
   # If ${disk} size > 100GB & ${BUILDTYPE} = physical; assume physical
   if [ ${size} -gt ${gbytes} ]; then
