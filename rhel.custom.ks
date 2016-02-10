@@ -61,26 +61,9 @@ GATEWAY=
 # General configuration variables             #
 ###############################################
 
-# The confirmation banner when INSTALL=false
-read -d '' confirmation <<"EOF"
-
-***********************************************************************
-*  __________               .__  _____.__                             *
-*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *
-*   |     ___/\__  \ _/ ___\|  \   __\|  |/ ___\/  _ \_  __ \____ \   *
-*   |    |     / __ \\  \___|  ||  |  |  \  \__(  <_> )  | \/  |_> >  *
-*   |____|    (____  /\___  >__||__|  |__|\___  >____/|__|  |   __/   *
-*                  \/     \/                  \/            |__|      *
-*                                                                     *
-*                            W A R N I N G                            *
-*                                                                     *
-*  This process will install a completely new operating system.       *
-*                                                                     *
-*  Do you wish to continue?  Type "yes" to proceed                    *
-*                                                                     *
-***********************************************************************
-
-EOF
+# Set ${country} to geographic location (echo "Hostname: ${hostname}"
+# no way to auto-determine unless geoIP functionality exists in initramfs)
+country="America"
 
 
 ###############################################
@@ -228,6 +211,57 @@ function confirminstall()
     echo '***********************************************************************'
     echo
     read -p "Proceed with install? " install
+  done
+}
+
+# Configures the root user
+function configureroot()
+{
+
+  # If ${ROOTPW} preset copy to ${pass}
+  if [ "${ROOTPW}" != "" ]; then
+    pass="${ROOTPW}"
+  fi
+
+  # Prompt for root password, hash and write it out
+  while [ "${pass}" == "" ]; do
+    echo "No root password specified; use ROOTPW=<pass> as boot arg to skip"
+    read -sp "Enter root user password: " pass
+    echo ""
+  done
+
+  # Write ${pass} to rootpw 
+  echo "rootpw ${pass}" > /tmp/ks-rootpw
+}
+
+# Configure the hostname (either arg or dhcp)
+function configurehostname()
+{
+  # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
+  if [ "${HOSTNAME}" == "" ]; then
+
+    # If static DHCP enabled option 12 *might* contain the appropriate hostname
+    hostname="$(uname -n|awk '{print toupper($0)}')"
+  else
+    hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
+  fi
+}
+
+# Configure the location
+function configurelocation()
+{
+  # Set location to ${LOCATION} or first 3 characters of ${hostname}
+  if [ "${LOCATION}" == "" ]; then
+    location="$(echo "${hostname:0:3}"|awk '{print toupper($0)}')"
+  else
+    location="$(echo "${LOCATION}"|awk '{print toupper($0)}')"
+  fi
+
+  # Prompt for ${location} if it doesn't match the list
+  while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
+    echo "Could not determine server physical location; use LOCATION=<PDX|SLC> as boot arg"
+    read -p "Physical location? [PDX|SLC] " location
+    echo ""
   done
 }
 
@@ -506,57 +540,33 @@ clear
 # Configuration for the root password         #
 ###############################################
 
-# If ${ROOTPW} preset copy to ${pass}
-if [ "${ROOTPW}" != "" ]; then
-  pass="${ROOTPW}"
-fi
+# Handle root password
+configureroot
 
-# Prompt for root password, hash and write it out
-while [ "${pass}" == "" ]; do
-  echo "No root password specified; use ROOTPW=<pass> as boot arg to skip"
-  read -sp "Enter root user password: " pass
-  echo ""
-done
-
-# Write ${pass} to rootpw 
-echo "rootpw ${pass}" > /tmp/ks-rootpw
+# Clear the terminal
+clear
 
 
 ###############################################
 # Configuration for the hostname              #
 ###############################################
 
-# Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
-if [ "${HOSTNAME}" == "" ]; then
+# Configure the hostname
+configurehostname
 
-  # If static DHCP enabled option 12 *might* contain the appropriate hostname
-  hostname="$(uname -n|awk '{print toupper($0)}')"
-else
-  hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
-fi
+# Clear the terminal
+clear
 
 
 ###############################################
 # Configuration for the physical location     #
 ###############################################
 
-# Set ${country} to geographic location (echo "Hostname: ${hostname}"
-# no way to auto-determine unless geoIP functionality exists in initramfs)
-country="America"
+# Configure the physical location
+configurelocation
 
-# Set location to ${LOCATION} or first 3 characters of ${hostname}
-if [ "${LOCATION}" == "" ]; then
-  location="$(echo "${hostname:0:3}"|awk '{print toupper($0)}')"
-else
-  location="$(echo "${LOCATION}"|awk '{print toupper($0)}')"
-fi
-
-# Prompt for ${location} if it doesn't match the list
-while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
-  echo "Could not determine server physical location; use LOCATION=<PDX|SLC> as boot arg"
-  read -p "Physical location? [PDX|SLC] " location
-  echo ""
-done
+# Clear the terminal
+clear
 
 
 ###############################################
