@@ -15,15 +15,50 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+###############################################
+# Default API arguments                       #
+###############################################
+
+# Set a default ${BUILDTYPE} (available are 'physical' or 'vm')
+BUILDTYPE="physical"
+
+# Set DEBUG = false, pauses occur at each report
+DEBUG=false
+
+# Set INSTALL = false; if not user is prompted to wipe system
+# This will not prevent prompts if ROOTPW &/or LOCATION cannot be determined
+INSTALL=false
+
+# ROOTPW is empty but should be provided as command line arg to facilitate
+# automation (no user interaction)
+ROOTPW=
+
+# LOCATION is empty but can be provided as command line arg to facilitate
+# automation (no user interaction). If the HOSTNAME parameter first three
+# characters match PDX or SLC this is not required for automation
+LOCATION=
+
+# HOSTNAME is empty but if provided & conforms to naming standard will be used
+# to set LOCATION. Also, if HOSTNAME is not provided every attempt is made to
+# use a DHCP provided hostname
+HOSTNAME=
+
+# IPADDR can be used to setup the network. If it is not provided the tool will
+# attempt to obtain the value from anything provided by DHCP. It will take
+# precedence over anything provided by DHCP as well
+IPADDR=
+
+# NETMASK like IPADDR can be used to setup the network. DHCP settings will be
+# used in the event is not present.
+NETMASK=
+
+# GATEWAY can also be specified or the DHCP provided gateway will be used
+GATEWAY=
+
 
 ###############################################
 # Disk specific variables & templates         #
 ###############################################
-
-# Set a default ${BUILDTYPE} (available are 'physical' or 'vm')
-# If ${BUILDTYPE} is default (physical), only one physical disk present
-# and is less than 100GB ${BUILTYPE} gets set to 'vm'
-BUILDTYPE="physical"
 
 # 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
 gbytes=107374182400
@@ -104,7 +139,8 @@ EOF
 ###############################################
 
 # Pause function handle pausing if ${DEBUG} = true
-function pause() {
+function pause()
+{
   local continue=
   while [ "${continue}" != "yes" ]; do
     read -p "Paused; Continue? " continue
@@ -214,7 +250,7 @@ function templates2output()
   size=$(expr ${size} - ${swap})
 
   # If ${evaldisk} size > 100GB & ${BUILDTYPE} = physical; assume physical
-  if [ ${evalsize} -gt ${gbytes} ]; then
+  if [[ ${evalsize} -gt ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
 
     # 100GB / LVM
     root_size=$(gb2mb 100)
@@ -230,7 +266,7 @@ function templates2output()
   fi
 
   # If ${evalsize} size == 100GB & ${BUILDTYPE} = vm; assume vm
-  if [ ${evalsize} -eq ${gbytes} ]; then
+  if [[ ${evalsize} -eq ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
 
     # 40GB / LVM
     root_size=$(gb2mb 40)
