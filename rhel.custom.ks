@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash #--erroronfail
+%pre --interpreter=/bin/bash --erroronfail
 
 
 ###############################################
@@ -1147,6 +1147,11 @@ successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){pr
 # Provide the total number of failed scripts run
 total_successful_tools=${#successful_tools[@]}
 
+# Obtain a percentage of failures from total
+failed_percentage=$(percent ${total_tools} ${total_failed_tools})
+
+# Obtain a percentage of successes from total
+succeeded_percentage=$(percent ${total_tools} ${total_successful_tools})
 
 ###############################################
 # Re-run failed jobs individually             #
@@ -1219,8 +1224,8 @@ Post installation: (chroot)
     - Logs for each stage of configuration created
     - Statistical information for build:
       - Total tools run:         ${total_tools}
-      - Total failed tools:      ${total_failed_tools}
-      - Total successful tools:  ${total_successful_tools}
+      - Total failed tools:      ${total_failed_tools}      (${failed_percentage}%)
+      - Total successful tools:  ${total_successful_tools}  (${succeeded_percentage}%)
   BACKUP:
     - Backup of kickstart configurations:
       - Location & timezone configuration
