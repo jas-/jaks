@@ -189,10 +189,9 @@ function bootparams()
   if [ ${#opts[@]} -gt 1 ]; then
     for opt in "${opts[@]}"; do
       i=$((i+1))
-        key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
-        value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
-        eval ${key}=${value}
-      fi
+      key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
+      value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
+      eval ${key}=${value}
     done
   fi
 }
