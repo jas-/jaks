@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash --erroronfail
+%pre --interpreter=/bin/bash #--erroronfail
 
 
 ###############################################
