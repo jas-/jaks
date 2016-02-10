@@ -366,6 +366,15 @@ function percent()
   echo $((${total} / 100 * ${percent}))
 }
 
+# Return decimal as percentage
+function percent_real()
+{
+  total=${1}
+  percent=${2}
+
+  awk -v total=${total} -v percent=${percent} 'BEGIN{print total / 100 * percent}'
+}
+
 
 ###############################################
 # Function definitions - disks                #
@@ -1148,10 +1157,10 @@ successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){pr
 total_successful_tools=${#successful_tools[@]}
 
 # Obtain a percentage of failures from total
-failed_percentage=$(percent ${total_tools} ${total_failed_tools})
+failed_percentage=$(percent_real ${total_tools} ${total_failed_tools})
 
 # Obtain a percentage of successes from total
-succeeded_percentage=$(percent ${total_tools} ${total_successful_tools})
+succeeded_percentage=$(percent_real ${total_tools} ${total_successful_tools})
 
 ###############################################
 # Re-run failed jobs individually             #
