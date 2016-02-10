@@ -112,6 +112,7 @@ function pause() {
   done
 }
 
+
 # IPv4 validation function
 function valid_ip()
 {
@@ -130,11 +131,13 @@ function valid_ip()
   return $stat
 }
 
+
 # Calculate kilobytes to bytes
 function kb2b()
 {
   echo $(expr $1 \* 1024)
 }
+
 
 # Calculate mb2bytes to bytes
 function mb2b()
@@ -142,11 +145,13 @@ function mb2b()
   echo $(expr $1 \* 1024 \* 1024)
 }
 
+
 # Calculate gigabytes to MB
 function gb2mb()
 {
   echo $(expr $1 \* 1024 \* 1024 \* 1024)
 }
+
 
 # Calculate kilobytes to MB
 function kb2mb()
@@ -154,11 +159,13 @@ function kb2mb()
   echo $(expr $1 / 1024)
 }
 
+
 # Calculate bytes to MB
 function b2mb()
 {
   echo $(expr $1 / 1024 / 1024)
 }
+
 
 # Return bytes based on % of total
 function percent()
@@ -168,6 +175,7 @@ function percent()
 
   echo $((${total} / 100 * ${percent}))
 }
+
 
 # Function to handle disk template creation for dynamic disks
 function templates2output()
@@ -289,6 +297,7 @@ function templates2output()
 
 }
 
+
 # Function to handle extending /opt/app with multiple disks
 function multipledisks()
 {
@@ -359,19 +368,6 @@ if [ ${#opts[@]} -gt 1 ]; then
       eval ${key}=${value}
     fi
   done
-
-
-  # Write arguments to /tmp/ks-arguments
-  cat <<EOF > /tmp/ks-arguments
-DEBUG ${DEBUG}
-INSTALL ${INSTALL}
-LOCATION ${LOCATION}
-HOSTNAME ${HOSTNAME}
-IPADDR ${IPADDR}
-GATEWAY ${GATEWAY}
-BUILDTYPE ${BUILDTYPE}
-EOF
-
 fi
 
 # Clear the terminal
@@ -501,6 +497,21 @@ path="unixshr"
 
 # Write out /tmp/nfsshare file
 echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
+
+###############################################
+# Create a simple to parse file of options    #
+###############################################
+
+# Write arguments to /tmp/ks-arguments
+cat <<EOF > /tmp/ks-arguments
+DEBUG ${DEBUG}
+INSTALL ${INSTALL}
+LOCATION ${LOCATION}
+HOSTNAME ${HOSTNAME}
+IPADDR ${IPADDR}
+GATEWAY ${GATEWAY}
+BUILDTYPE ${BUILDTYPE}
+EOF
 
 
 ###############################################
