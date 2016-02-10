@@ -15,6 +15,7 @@ exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+
 ###############################################
 # Default API arguments                       #
 ###############################################
@@ -135,7 +136,7 @@ Primary:
 EOF
 
 ###############################################
-# Function definitions                        #
+# Function definitions - general              #
 ###############################################
 
 # Pause function handle pausing if ${DEBUG} = true
@@ -148,6 +149,29 @@ function pause()
   done
 }
 
+# Function to handle API boot params
+function bootparams()
+{
+  # Capture array of arguments
+  local opts=($(cat /proc/cmdline))
+
+  # Iterate ${opts[@]} & extract args key/values
+  if [ ${#opts[@]} -gt 1 ]; then
+    for opt in "${opts[@]}"; do
+      i=$((i+1))
+      if [[ "${opt}" =~ = ]]; then
+        key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
+        value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
+        eval ${key}=${value}
+      fi
+    done
+  fi
+}
+
+
+###############################################
+# Function definitions - networking           #
+###############################################
 
 # IPv4 validation function
 function valid_ip()
@@ -167,6 +191,10 @@ function valid_ip()
   return $stat
 }
 
+
+###############################################
+# Function definitions - math                 #
+###############################################
 
 # Calculate kilobytes to bytes
 function kb2b()
@@ -212,6 +240,10 @@ function percent()
   echo $((${total} / 100 * ${percent}))
 }
 
+
+###############################################
+# Function definitions - disks                #
+###############################################
 
 # Function to handle disk template creation for dynamic disks
 function templates2output()
@@ -391,20 +423,8 @@ function multipledisks()
 # Handling boot parameters                    #
 ###############################################
 
-# Capture array of arguments
-opts=($(cat /proc/cmdline))
-
-# Iterate ${opts[@]} & extract args key/values
-if [ ${#opts[@]} -gt 1 ]; then
-  for opt in "${opts[@]}"; do
-    i=$((i+1))
-    if [[ "${opt}" =~ = ]]; then
-      key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
-      value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
-      eval ${key}=${value}
-    fi
-  done
-fi
+# Set up the API defaults provided from /proc/cmdline
+bootparams
 
 # Clear the terminal
 clear
