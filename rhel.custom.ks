@@ -61,9 +61,20 @@ GATEWAY=
 # General configuration variables             #
 ###############################################
 
+# Mount point for NFS share
+path="/unixshr/linux/kickstart"
+
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
 country="America"
+
+# PDX specific options
+pdx_nfsserver="131.219.220.48"  # pdxnfsc01p
+pdx_timezone="Los_Angeles"
+
+# SLC specific options
+slc_nfsserver="131.219.218.226" # slcnfsc01p
+slc_timezone="Denver"
 
 
 ###############################################
@@ -172,7 +183,6 @@ function bootparams()
   if [ ${#opts[@]} -gt 1 ]; then
     for opt in "${opts[@]}"; do
       i=$((i+1))
-      if [[ "${opt}" =~ = ]]; then
         key="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[1]}')"
         value="$(echo "${opt}"|awk '{split($0, obj, "=");print obj[2]}')"
         eval ${key}=${value}
@@ -263,6 +273,25 @@ function configurelocation()
     read -p "Physical location? [PDX|SLC] " location
     echo ""
   done
+}
+
+# Setup NFS & timezone configurations
+function configurenfszones()
+{
+  # Use ${location} to determine NFS server (don't count on DNS)
+  if [ "${location}" == "SLC" ]; then
+    zone="${slc_timezone}"
+    nfs_server="${slc_nfsserver}"
+  else
+    zone="${pdx_timezone}"
+    nfs_server="${pdx_nfsserver}"
+  fi
+
+  # Write out /tmp/timezone
+  echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
+
+  # Write out /tmp/nfsshare file
+  echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
 }
 
 
@@ -573,32 +602,11 @@ clear
 # Configuration for the NFS share & zone      #
 ###############################################
 
-# Use ${location} to determine NFS server (don't count on DNS)
-if [ "${location}" == "SLC" ]; then
-  zone="Denver"
-  nfs_server="131.219.218.226" # slcnfsc01p
-fi
+# Setup timezone & NFS specific configurations
+configurenfszones
 
-# Handle PDX types
-if [ "${location}" == "PDX" ]; then
-  zone="Los_Angeles"
-  nfs_server="131.219.220.48" # pdxnfsc01p
-fi
-
-# If ${zone} still not defined setup a default
-if [ "${zone}" == "" ]; then
-  zone="Los_Angeles"
-  nfs_server="131.219.220.48" # pdxnfsc01p
-fi
-
-# Write out /tmp/timezone
-echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
-
-# Mount point for NFS share
-path="unixshr"
-
-# Write out /tmp/nfsshare file
-echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
+# Clear the terminal
+clear
 
 ###############################################
 # Create a simple to parse file of options    #
