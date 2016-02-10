@@ -211,7 +211,22 @@ function confirminstall()
   # Ensure user knows they are going to wipe out the machine
   while [ "${install}" != "yes" ]; do
     clear
-    printf "%q\s" "${confirmation}"
+    echo '***********************************************************************'
+    echo '*  __________               .__  _____.__                             *'
+    echo '*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *'
+    echo '*   |     ___/\__  \ _/ ___\|  \   __\|  |/ ___\/  _ \_  __ \____ \   *' 
+    echo '*   |    |     / __ \\  \___|  ||  |  |  \  \__(  <_> )  | \/  |_> >  *'
+    echo '*   |____|    (____  /\___  >__||__|  |__|\___  >____/|__|  |   __/   *'
+    echo '*                  \/     \/                  \/            |__|      *'
+    echo '*                                                                     *'
+    echo '*                            W A R N I N G                            *'
+    echo '*                                                                     *'
+    echo '*  This process will install a completely new operating system.       *'
+    echo '*                                                                     *'
+    echo '*  Do you wish to continue?  Type "yes" to proceed                    *'
+    echo '*                                                                     *'
+    echo '***********************************************************************'
+    echo
     read -p "Proceed with install? " install
   done
 }
