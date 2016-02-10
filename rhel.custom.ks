@@ -211,7 +211,7 @@ function confirminstall()
   # Ensure user knows they are going to wipe out the machine
   while [ "${install}" != "yes" ]; do
     clear
-    echo "${confirmation}"
+    echo -e "${confirmation}"
     read -p "Proceed with install? " install
   done
 }
