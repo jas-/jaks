@@ -61,6 +61,12 @@ GATEWAY=
 # General configuration variables             #
 ###############################################
 
+# Global variable for hostname
+hostname=
+
+# Global variable for location
+location=
+
 # Mount point for NFS share
 path="/unixshr/linux/kickstart"
 
