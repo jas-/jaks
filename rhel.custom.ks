@@ -58,6 +58,32 @@ GATEWAY=
 
 
 ###############################################
+# General configuration variables             #
+###############################################
+
+# The confirmation banner when INSTALL=false
+read -d '' confirmation <<"EOF"
+
+'***********************************************************************'
+'*  __________               .__  _____.__                             *'
+'*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *'
+'*   |     ___/\__  \ _/ ___\|  \   __\|  |/ ___\/  _ \_  __ \____ \   *'
+'*   |    |     / __ \\  \___|  ||  |  |  \  \__(  <_> )  | \/  |_> >  *'
+'*   |____|    (____  /\___  >__||__|  |__|\___  >____/|__|  |   __/   *'
+'*                  \/     \/                  \/            |__|      *'
+'*                                                                     *'
+'*                            W A R N I N G                            *'
+'*                                                                     *'
+'*  This process will install a completely new operating system.       *'
+'*                                                                     *'
+'*  Do you wish to continue?  Type "yes" to proceed                    *'
+'*                                                                     *'
+'***********************************************************************'
+
+EOF
+
+
+###############################################
 # Disk specific variables & templates         #
 ###############################################
 
@@ -71,7 +97,8 @@ pv_tpml="part {ID} --grow --ondisk={DISK}"
 vg_tmpl="volgroup optappvg {DISK}"
 
 # 'optapplv' variable for logical volume creation
-lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname=rootvg --maxsize={SIZE} --grow --percent=90"
+lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname=rootvg \
+--maxsize={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -100,10 +127,12 @@ logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
 logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
 
 # Create logical volume for the /export/home mount point
-logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
+logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" \
+--size={HOMELVSIZE}
 
 # Create logical volume for the /tmp mount point
-logvol /tmp --fstype="ext4" --fsoptions=nosuid,nodev,noexec --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
+logvol /tmp --fstype="ext4" --fsoptions=nosuid,nodev,noexec --name="tmplv" \
+--vgname="rootvg" --size={TMPLVSIZE}
 
 EOF
 
@@ -134,6 +163,7 @@ Primary:
     |   |_ homelv:    /export/home  {home_size}MB
     |   |_ tmplv:     /tmp          {tmp_size}MB
 EOF
+
 
 ###############################################
 # Function definitions - general              #
@@ -166,6 +196,24 @@ function bootparams()
       fi
     done
   fi
+}
+
+# Confirmation of installation function
+function confirminstall()
+{
+  # Force prompt if ${INSTALL} not present
+  if [ "${INSTALL}" != "true" ]; then
+    install="no"
+  else
+    install="yes"
+  fi
+
+  # Ensure user knows they are going to wipe out the machine
+  while [ "${install}" != "yes" ]; do
+    clear
+    echo ${confirmation}
+    read -p "Proceed with install? " install
+  done
 }
 
 
@@ -202,13 +250,11 @@ function kb2b()
   echo $(expr $1 \* 1024)
 }
 
-
 # Calculate mb2bytes to bytes
 function mb2b()
 {
   echo $(expr $1 \* 1024 \* 1024)
 }
-
 
 # Calculate gigabytes to MB
 function gb2mb()
@@ -216,20 +262,17 @@ function gb2mb()
   echo $(expr $1 \* 1024 \* 1024 \* 1024)
 }
 
-
 # Calculate kilobytes to MB
 function kb2mb()
 {
   echo $(expr $1 / 1024)
 }
 
-
 # Calculate bytes to MB
 function b2mb()
 {
   echo $(expr $1 / 1024 / 1024)
 }
-
 
 # Return bytes based on % of total
 function percent()
@@ -248,7 +291,7 @@ function percent()
 # Function to handle disk template creation for dynamic disks
 function templates2output()
 {
-  local disk="${1}"  # comma seperated list of disks; i.e. sda:size,sdb:size etc
+  local disk="${1}"  # comma seperated list; i.e. sda:size,sdb:size etc
   local swap="${2}"  # swap disk space (physical memory x 1)
 
   local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
@@ -313,7 +356,7 @@ function templates2output()
     tmp_size=$(gb2mb 2)
   fi
 
-  # If ${evaldisk} size < 100GB regardless of ${BUILDTYPE}; split disk into percentages
+  # If ${evaldisk} size < 100GB regardless of ${BUILDTYPE}; split disk 
   if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
@@ -335,7 +378,9 @@ function templates2output()
 
   # If /opt/app isn't defined go ahead and create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
-    echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|rootvg|g" -e "s|{SIZE}|${optapp_size}|g")" >> /tmp/ks-diskconfig-extra
+    echo "$(echo "${lv_tmpl}" |
+      sed -e "s|{VOLGROUP}|rootvg|g" \
+          -e "s|{SIZE}|${optapp_size}|g")" >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
@@ -375,13 +420,15 @@ function multipledisks()
   local copy=(${disks[@]:1})
 
   # Get the first element as our primary volumegroup
-  local primary="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+  local primary="$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[1]}')"
 
   # Get the size of our primary volumegroup (converting from bytes to mb)
-  local size=$(b2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
+  local size=$(b2mb $(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}'))
 
   # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${pv_tmpl}"|sed -e "s|{ID}|pv.optapp|g" -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
+  echo "$(echo "${pv_tmpl}" |
+    sed -e "s|{ID}|pv.optapp|g" \
+        -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
@@ -433,34 +480,8 @@ clear
 # If ${INSTALL} != true, require confirmation #
 ###############################################
 
-# Force prompt if ${INSTALL} not present
-if [ "${INSTALL}" != "true" ]; then
-  install="no"
-else
-  install="yes"
-fi
-
-# Ensure user knows they are going to wipe out the machine
-while [ "${install}" != "yes" ]; do
-  clear
-  echo '***********************************************************************'
-  echo '*  __________               .__  _____.__                             *'
-  echo '*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *'
-  echo '*   |     ___/\__  \ _/ ___\|  \   __\|  |/ ___\/  _ \_  __ \____ \   *' 
-  echo '*   |    |     / __ \\  \___|  ||  |  |  \  \__(  <_> )  | \/  |_> >  *'
-  echo '*   |____|    (____  /\___  >__||__|  |__|\___  >____/|__|  |   __/   *'
-  echo '*                  \/     \/                  \/            |__|      *'
-  echo '*                                                                     *'
-  echo '*                            W A R N I N G                            *'
-  echo '*                                                                     *'
-  echo '*  This process will install a completely new operating system.       *'
-  echo '*                                                                     *'
-  echo '*  Do you wish to continue?  Type "yes" to proceed                    *'
-  echo '*                                                                     *'
-  echo '***********************************************************************'
-  echo
-  read -p "Proceed with install? " install
-done
+# Make sure user knows it will wipe out the system
+confirminstall
 
 # Clear the terminal
 clear
