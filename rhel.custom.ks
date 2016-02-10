@@ -67,7 +67,7 @@ logvol /var --fstype="ext4" --name="varlv" --vgname="rootvg" --size={VARLVSIZE}
 logvol /export/home --fstype="ext4" --name="homelv" --vgname="rootvg" --size={HOMELVSIZE}
 
 # Create logical volume for the /tmp mount point
-logvol /tmp --fstype="ext4" --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
+logvol /tmp --fstype="ext4" --fsoptions=nosuid,nodev,noexec --name="tmplv" --vgname="rootvg" --size={TMPLVSIZE}
 
 EOF
 
