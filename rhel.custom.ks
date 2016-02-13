@@ -24,7 +24,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 BUILDTYPE="physical"
 
 # Set DEBUG = false, pauses occur at each report
-DEBUG=false
+DEBUG=true
 
 # Set INSTALL = false; if not user is prompted to wipe system
 # This will not prevent prompts if ROOTPW &/or LOCATION cannot be determined
@@ -75,7 +75,7 @@ path="/unixshr/linux/kickstart"
 country="America"
 
 # PDX specific options
-pdx_nfsserver="131.219.220.48"  # pdxnfsc01p
+pdx_nfsserver="131.219.230.48"  # pdxnfsc01p
 pdx_timezone="Los_Angeles"
 
 # SLC specific options
@@ -274,7 +274,7 @@ function configurelocation()
 
   # Prompt for ${location} if it doesn't match the list
   while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
-    echo "Could not determine server physical location; use LOCATION=<PDX|SLC> as boot arg"
+    echo "Could not determine location; use LOCATION=<PDX|SLC> as boot arg"
     read -p "Physical location? [PDX|SLC] " location
     echo ""
   done
@@ -315,7 +315,8 @@ function valid_ip()
     IFS='.'
     ip=($ip)
     IFS=$OIFS
-    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
+      ${ip[3]} -le 255 ]]
       stat=$?
   fi
 
@@ -345,6 +346,18 @@ function gb2mb()
   echo $(expr $1 \* 1024 \* 1024 \* 1024)
 }
 
+# Calculate gigabytes to KB
+function gb2kb()
+{
+  echo $(expr $1 \* 1024 \* 1024 \* 1024 \* 1024)
+}
+
+# Calculate gigabytes to bytes
+function gb2b()
+{
+  echo $(expr $1 \* 1024 \* 1024 \* 1024 \* 1024 \* 1024)
+}
+
 # Calculate kilobytes to MB
 function kb2mb()
 {
@@ -366,13 +379,10 @@ function percent()
   echo $((${total} / 100 * ${percent}))
 }
 
-# Return decimal as percentage
+# Return decimal as percentage (since bash doesn't handle precision)
 function percent_real()
 {
-  total=${1}
-  percent=${2}
-
-  awk -v total=${total} -v percent=${percent} 'BEGIN{print total / 100 * percent}'
+  awk -v t=${1} -v p=${2} 'BEGIN{print t / 100 * p}'
 }
 
 
@@ -420,32 +430,32 @@ function templates2output()
   if [[ ${evalsize} -gt ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
 
     # 100GB / LVM
-    root_size=$(gb2mb 100)
+    root_size=$(gb2b 100)
 
     # 40GB /var LVM
-    var_size=$(gb2mb 40)
+    var_size=$(gb2b 40)
 
     # 10GB /export/home LVM
-    home_size=$(gb2mb 10)
+    home_size=$(gb2b 10)
 
     # 2GB /tmp LVM
-    tmp_size=$(gb2mb 2)
+    tmp_size=$(gb2b 2)
   fi
 
   # If ${evalsize} size == 100GB & ${BUILDTYPE} = vm; assume vm
   if [[ ${evalsize} -eq ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
 
     # 40GB / LVM
-    root_size=$(gb2mb 40)
+    root_size=$(gb2b 40)
 
     # 20GB /var LVM
-    var_size=$(gb2mb 20)
+    var_size=$(gb2b 20)
 
     # 10GB /export/home LVM
-    home_size=$(gb2mb 10)
+    home_size=$(gb2b 10)
 
     # 2GB /tmp LVM
-    tmp_size=$(gb2mb 2)
+    tmp_size=$(gb2b 2)
   fi
 
   # If ${evaldisk} size < 100GB regardless of ${BUILDTYPE}; split disk 
@@ -464,11 +474,18 @@ function templates2output()
     tmp_size=$(b2mb $(percent ${size} 3))
   fi
 
+  # Add ${root_size}, ${var_size}, ${home_size} & ${tmp_size}
+  total_parts=$(expr ${root_size} + ${var_size} + ${home_size} + ${tmp_size})
+
+  # Calculate ${optapp_size} based on ${size} - ${total_parts}
+  total_size=$(expr ${size} - ${total_parts})
+
   # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
   # to allocate for ${optapp_size} (if ${optapp} != 1)
-  optapp_size=$(expr $(b2mb ${size}) - $(expr ${root_size} + ${var_size} + ${home_size} + ${tmp_size}))
+  optapp_size=$(expr $(b2mb ${size}) - $(expr ${root_size} + ${var_size} + \
+                ${home_size} + ${tmp_size}))
 
-  # If /opt/app isn't defined go ahead and create it in /tmp/ks-diskconfig-extra
+  # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
@@ -489,6 +506,28 @@ function templates2output()
     -e "s|{VARLVSIZE}|${var_size}|g" \
     -e "s|{HOMELVSIZE}|${home_size}|g" \
     -e "s|{TMPLVSIZE}|${tmp_size}|g" >> /tmp/ks-diskconfig
+
+  echo "Everything should be in bytes"
+  echo "Disk Size: ${size}"
+  echo "Swap Size: ${swap}"
+  echo ""
+  echo "LVM root: ${root_size}"
+  echo "LVM var: ${var_size}"
+  echo "LVM home: ${home_size}"
+  echo "LVM tmp: ${tmp_size}"
+  echo ""
+  echo "Total partitions size: ${total_parts}"
+  echo "Total size minus partitions: ${total_size}"
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
+cat /tmp/ks-diskconfig
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
 
   # Write a report of the disk configuration
   echo "${disk_report}" |
@@ -754,6 +793,21 @@ fi
 
 # Set /tmp/ks-networking to prevent failures
 echo "" > /tmp/ks-networking
+
+# Use ${ip}, ${netmask} & ${gateway} if present from command line args
+# Only copy these values if ${IPADDR}, ${NETMASK} & ${GATEWAY} don't exist
+# to ensure ability to set network to something other than possible build net
+if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
+    [[ "${gateway}" != "" ]] && [[ "${IPADDR}" == "" ]] && \
+    [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
+
+  # Make sure they are valid
+  if [[ $(valid_ip "${ip}") -ne 0 ]] || [[ $(valid_ip "${netmask}") -ne 0 ]] || [[ $(valid_ip "${gateway}") -ne 0 ]]; then
+    IPADDR=${ip}
+    NETMASK=${netmask}
+    GATEWAY=${gateway}
+  fi
+fi
 
 # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
 if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" ]]; then
