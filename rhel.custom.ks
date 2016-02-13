@@ -462,16 +462,20 @@ function templates2output()
   if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
-    root_size=$(b2mb $(percent ${size} 40))
+    #root_size=$(b2mb $(percent ${size} 40))
+    root_size=$(percent ${size} 40)
 
     # Allocate 20% of ${size} for /var (varlv)
-    var_size=$(b2mb $(percent ${size} 20))
+    #var_size=$(b2mb $(percent ${size} 20))
+    var_size=$(percent ${size} 20)
 
     # Allocate 10% of ${size} for /export/home (homelv)
-    home_size=$(b2mb $(percent ${size} 10))
+    #home_size=$(b2mb $(percent ${size} 10))
+    home_size=$(percent ${size} 10)
 
     # Allocate 3% of ${size} for /tmp (tmplv)
-    tmp_size=$(b2mb $(percent ${size} 3))
+    #tmp_size=$(b2mb $(percent ${size} 3))
+    tmp_size=$(percent ${size} 3)
   fi
 
   # Add ${root_size}, ${var_size}, ${home_size} & ${tmp_size}
