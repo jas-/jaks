@@ -20,9 +20,6 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 # Default API arguments                       #
 ###############################################
 
-# Set a default ${BUILDTYPE} (available are 'physical' or 'vm')
-BUILDTYPE="physical"
-
 # Set DEBUG = false, pauses occur at each report
 DEBUG=true
 
@@ -87,7 +84,7 @@ slc_timezone="Denver"
 # Disk specific variables & templates         #
 ###############################################
 
-# 100GB in bytes; definitively determines ${BUILDTYPE} [vm | physical]
+# 100GB in bytes; definitively determines vm or physical installation
 gbytes=107374182400
 
 # Physical group creation variable
@@ -331,43 +328,43 @@ function valid_ip()
 # Calculate kilobytes to bytes
 function kb2b()
 {
-  echo $(expr $1 \* 1024)
+  echo $(expr ${1} \* 1024)
 }
 
 # Calculate mb2bytes to bytes
 function mb2b()
 {
-  echo $(expr $1 \* 1024 \* 1024)
+  echo $(expr ${1} \* 1024 \* 1024)
 }
 
 # Calculate gigabytes to MB
 function gb2mb()
 {
-  echo $(expr $1 \* 1024)
+  echo $(expr ${1} \* 1024)
 }
 
 # Calculate gigabytes to KB
 function gb2kb()
 {
-  echo $(expr $1 \* 1024 \* 1024)
+  echo $(expr ${1} \* 1024 \* 1024)
 }
 
 # Calculate gigabytes to bytes
 function gb2b()
 {
-  echo $(expr $1 \* 1024 \* 1024 \* 1024)
+  echo $(expr ${1} \* 1024 \* 1024 \* 1024)
 }
 
 # Calculate kilobytes to MB
 function kb2mb()
 {
-  echo $(expr $1 / 1024)
+  echo $(expr ${1} / 1024)
 }
 
 # Calculate bytes to MB
 function b2mb()
 {
-  echo $(expr $1 / 1024 / 1024)
+  echo $(expr ${1} / 1024 / 1024)
 }
 
 # Return bytes based on % of total
@@ -426,8 +423,8 @@ function templates2output()
   # Now remove ${swap} from ${size}
   size=$(expr ${size} - ${swap})
 
-  # If ${evaldisk} size > 100GB & ${BUILDTYPE} = physical; assume physical
-  if [[ ${evalsize} -gt ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
+  # If ${evaldisk} size > 100GB; assume physical
+  if [ ${evalsize} -gt ${gbytes} ]; then
 
     # 100GB / LVM
     root_size=$(gb2b 100)
@@ -442,8 +439,8 @@ function templates2output()
     tmp_size=$(gb2b 2)
   fi
 
-  # If ${evalsize} size == 100GB & ${BUILDTYPE} = vm; assume vm
-  if [[ ${evalsize} -eq ${gbytes} ]] && [[ ${BUILDTYPE} == "vm" ]]; then
+  # If ${evalsize} size == 100GB; assume vm
+  if [ ${evalsize} -eq ${gbytes} ]; then
 
     # 40GB / LVM
     root_size=$(gb2b 40)
@@ -458,7 +455,7 @@ function templates2output()
     tmp_size=$(gb2b 2)
   fi
 
-  # If ${evaldisk} size < 100GB regardless of ${BUILDTYPE}; split disk 
+  # If ${evaldisk} size < 100GB; split disk 
   if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
@@ -478,6 +475,12 @@ function templates2output()
     tmp_size=$(percent ${size} 3)
   fi
 
+  # Validate that we have some partition sizes
+  if [[ -z ${root_size} ]] || [[ -z ${var_size} ]] || [[ -z ${home_size} ]] || \
+      [[ -z ${tmp_size} ]]; then
+    echo "Partition sizes were not determined, exiting"
+  fi
+
   # Add ${root_size}, ${var_size}, ${home_size} & ${tmp_size}
   total_parts=$(expr ${root_size} + ${var_size} + ${home_size} + ${tmp_size})
 
@@ -486,64 +489,39 @@ function templates2output()
 
   # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
   # to allocate for ${optapp_size} (if ${optapp} != 1)
-  optapp_size=$(expr ${total_parts} - ${total_size})
+  optapp_size=$(expr ${total_size} - ${total_parts})
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
-          -e "s|{SIZE}|${optapp_size}|g")" >> /tmp/ks-diskconfig-extra
+          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
-      sed -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
+      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" > /tmp/ks-report-disks-extra
   fi
 
   # Write out /tmp/ks-diskconfig using ${disk_template}
   echo "${disk_template}" |
     sed -e "s|{DISKS}|${disk}|g" \
     -e "s|{SWAP}|$(b2mb ${swap})|g" \
-    -e "s|{SIZE}|$(b2mb ${evalsize})|g" \
+    -e "s|{SIZE}|$(b2mb $total_size})|g" \
     -e "s|{PRIMARY}|${disk}|g" \
-    -e "s|{ROOTLVSIZE}|${root_size}|g" \
-    -e "s|{VARLVSIZE}|${var_size}|g" \
-    -e "s|{HOMELVSIZE}|${home_size}|g" \
-    -e "s|{TMPLVSIZE}|${tmp_size}|g" >> /tmp/ks-diskconfig
-
-#  echo "Everything should be in bytes"
-#  echo "Disk Size: ${size} ($(b2mb ${size})MB)"
-#  echo "Swap Size: ${swap} ($(b2mb ${swap})MB)"
-#  echo ""
-#  echo "LVM root: ${root_size} ($(b2mb ${root_size})MB)"
-#  echo "LVM var: ${var_size} ($(b2mb ${var_size})MB)"
-#  echo "LVM home: ${home_size} ($(b2mb ${home_size})MB)"
-#  echo "LVM tmp: ${tmp_size} ($(b2mb ${tmp_size})MB)"
-#  echo "LVM opt: ${tmp_optapp} ($(b2mb ${tmp_optapp})MB)"
-#  echo "LVM opt (legacy): ${optapp_size} ($(b2mb ${optapp_size})MB)"
-#  echo ""
-#  echo "Total partitions size: ${total_parts} ($(b2mb ${total_parts})MB)"
-#  echo "Total size minus partitions: ${total_size} ($(b2mb ${total_size})MB)"
-
-# If ${DEBUG} is set to true; pause
-#if [ "${DEBUG}" == "true" ]; then
-#  pause
-#fi
-
-#cat /tmp/ks-diskconfig
-# If ${DEBUG} is set to true; pause
-#if [ "${DEBUG}" == "true" ]; then
-#  pause
-#fi
+    -e "s|{ROOTLVSIZE}|$(b2mb ${root_size})|g" \
+    -e "s|{VARLVSIZE}|$(b2mb ${var_size})|g" \
+    -e "s|{HOMELVSIZE}|$(b2mb ${home_size})|g" \
+    -e "s|{TMPLVSIZE}|$(b2mb ${tmp_size})|g" >> /tmp/ks-diskconfig
 
   # Write a report of the disk configuration
   echo "${disk_report}" |
     sed -e "s|{disk}|${disk}|g" \
     -e "s|{swap}|$(b2mb ${swap})|g" \
     -e "s|{size}|$(b2mb ${size})|g" \
-    -e "s|{root_size}|${root_size}|g" \
-    -e "s|{var_size}|${var_size}|g" \
-    -e "s|{home_size}|${home_size}|g" \
-    -e "s|{tmp_size}|${tmp_size}|g" >> /tmp/ks-report-disks
+    -e "s|{root_size}|$(b2mb ${root_size})|g" \
+    -e "s|{var_size}|$(b2mb ${var_size})|g" \
+    -e "s|{home_size}|$(b2mb ${home_size})|g" \
+    -e "s|{tmp_size}|$(b2mb ${tmp_size})|g" >> /tmp/ks-report-disks
 
 }
 
@@ -679,7 +657,6 @@ LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
 GATEWAY ${GATEWAY}
-BUILDTYPE ${BUILDTYPE}
 EOF
 
 
@@ -693,7 +670,6 @@ General options:
   DEBUG:         ${DEBUG}
   INSTALL:       ${INSTALL}
   ROOTPW:        ${pass}
-  BUILDTYPE:     ${BUILDTYPE}
 
 Location options:
   COUNTRY:       ${country}
@@ -738,12 +714,6 @@ for disk in ${disks[@]}; do
 
   # Get the disk bytes
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
-
-  # Compare ${bytes} with ${gbytes}; if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
-  if [[ ${#disks[@]} -eq 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && \
-      [[ "${BUILDTYPE}" != "vm" ]]; then
-    BUILDTYPE="vm"
-  fi
 done
 
 # Determine the amount of memory on the system, used for our swap partition
