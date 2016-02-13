@@ -484,13 +484,9 @@ function templates2output()
   # Calculate ${optapp_size} based on ${size} - ${total_parts}
   total_size=$(expr ${size} - ${total_parts})
 
-  # Set maxsize for /opt/app based on partitions - total size
-  tmp_optapp=$(expr ${total_parts} - ${total_size})
-
   # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
   # to allocate for ${optapp_size} (if ${optapp} != 1)
-  optapp_size=$(expr $(b2mb ${size}) - $(expr ${root_size} + ${var_size} + \
-                ${home_size} + ${tmp_size}))
+  optapp_size=$(expr ${total_parts} - ${total_size})
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
@@ -507,37 +503,37 @@ function templates2output()
   echo "${disk_template}" |
     sed -e "s|{DISKS}|${disk}|g" \
     -e "s|{SWAP}|$(b2mb ${swap})|g" \
-    -e "s|{SIZE}|$(b2mb ${size})|g" \
+    -e "s|{SIZE}|$(b2mb ${evalsize})|g" \
     -e "s|{PRIMARY}|${disk}|g" \
     -e "s|{ROOTLVSIZE}|${root_size}|g" \
     -e "s|{VARLVSIZE}|${var_size}|g" \
     -e "s|{HOMELVSIZE}|${home_size}|g" \
     -e "s|{TMPLVSIZE}|${tmp_size}|g" >> /tmp/ks-diskconfig
 
-  echo "Everything should be in bytes"
-  echo "Disk Size: ${size} ($(b2mb ${size})MB)"
-  echo "Swap Size: ${swap} ($(b2mb ${swap})MB)"
-  echo ""
-  echo "LVM root: ${root_size} ($(b2mb ${root_size})MB)"
-  echo "LVM var: ${var_size} ($(b2mb ${var_size})MB)"
-  echo "LVM home: ${home_size} ($(b2mb ${home_size})MB)"
-  echo "LVM tmp: ${tmp_size} ($(b2mb ${tmp_size})MB)"
-  echo "LVM opt: ${tmp_optapp} ($(b2mb ${tmp_optapp})MB)"
-  echo "LVM opt (legacy): ${optapp_size} ($(b2mb ${optapp_size})MB)"
-  echo ""
-  echo "Total partitions size: ${total_parts} ($(b2mb ${total_parts})MB)"
-  echo "Total size minus partitions: ${total_size} ($(b2mb ${total_size})MB)"
+#  echo "Everything should be in bytes"
+#  echo "Disk Size: ${size} ($(b2mb ${size})MB)"
+#  echo "Swap Size: ${swap} ($(b2mb ${swap})MB)"
+#  echo ""
+#  echo "LVM root: ${root_size} ($(b2mb ${root_size})MB)"
+#  echo "LVM var: ${var_size} ($(b2mb ${var_size})MB)"
+#  echo "LVM home: ${home_size} ($(b2mb ${home_size})MB)"
+#  echo "LVM tmp: ${tmp_size} ($(b2mb ${tmp_size})MB)"
+#  echo "LVM opt: ${tmp_optapp} ($(b2mb ${tmp_optapp})MB)"
+#  echo "LVM opt (legacy): ${optapp_size} ($(b2mb ${optapp_size})MB)"
+#  echo ""
+#  echo "Total partitions size: ${total_parts} ($(b2mb ${total_parts})MB)"
+#  echo "Total size minus partitions: ${total_size} ($(b2mb ${total_size})MB)"
 
 # If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
+#if [ "${DEBUG}" == "true" ]; then
+#  pause
+#fi
 
-cat /tmp/ks-diskconfig
+#cat /tmp/ks-diskconfig
 # If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
+#if [ "${DEBUG}" == "true" ]; then
+#  pause
+#fi
 
   # Write a report of the disk configuration
   echo "${disk_report}" |
