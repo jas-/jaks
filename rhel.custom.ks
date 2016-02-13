@@ -343,19 +343,19 @@ function mb2b()
 # Calculate gigabytes to MB
 function gb2mb()
 {
-  echo $(expr $1 \* 1024 \* 1024 \* 1024)
+  echo $(expr $1 \* 1024)
 }
 
 # Calculate gigabytes to KB
 function gb2kb()
 {
-  echo $(expr $1 \* 1024 \* 1024 \* 1024 \* 1024)
+  echo $(expr $1 \* 1024 \* 1024)
 }
 
 # Calculate gigabytes to bytes
 function gb2b()
 {
-  echo $(expr $1 \* 1024 \* 1024 \* 1024 \* 1024 \* 1024)
+  echo $(expr $1 \* 1024 \* 1024 \* 1024)
 }
 
 # Calculate kilobytes to MB
@@ -443,7 +443,7 @@ function templates2output()
   fi
 
   # If ${evalsize} size == 100GB & ${BUILDTYPE} = vm; assume vm
-  if [[ ${evalsize} -eq ${gbytes} ]] && [[ ${BUILDTYPE} == "physical" ]]; then
+  if [[ ${evalsize} -eq ${gbytes} ]] && [[ ${BUILDTYPE} == "vm" ]]; then
 
     # 40GB / LVM
     root_size=$(gb2b 40)
@@ -733,8 +733,9 @@ for disk in ${disks[@]}; do
   # Get the disk bytes
   bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
 
-  # Compare ${bytes} with static ${gbytes} if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
-  if [[ ${#disks[@]} -eq 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && [[ "${BUILDTYPE}" != "vm" ]]; then
+  # Compare ${bytes} with ${gbytes}; if ${#disks[@]} > 1 & ${BUILDTYPE} != 'vm'
+  if [[ ${#disks[@]} -eq 1 ]] && [[ ${bytes} -gt ${gbtyes} ]] && \
+      [[ "${BUILDTYPE}" != "vm" ]]; then
     BUILDTYPE="vm"
   fi
 done
@@ -765,7 +766,8 @@ cat /tmp/ks-diskconfig-extra >> /tmp/ks-diskconfig
 rm /tmp/ks-diskconfig-extra
 
 # Make sure our disk report files exist
-if [[ ! -f /tmp/ks-report-disks ]] || [[ ! -f /tmp/ks-report-disks-extra ]]; then
+if [[ ! -f /tmp/ks-report-disks ]] || \
+    [[ ! -f /tmp/ks-report-disks-extra ]]; then
   echo "Disk report files were not created"
   exit 1
 fi
@@ -802,7 +804,8 @@ if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
     [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
 
   # Make sure they are valid
-  if [[ $(valid_ip "${ip}") -ne 0 ]] || [[ $(valid_ip "${netmask}") -ne 0 ]] || [[ $(valid_ip "${gateway}") -ne 0 ]]; then
+  if [[ $(valid_ip "${ip}") -ne 0 ]] || [[ $(valid_ip "${netmask}") -ne 0 ]] || \
+      [[ $(valid_ip "${gateway}") -ne 0 ]]; then
     IPADDR=${ip}
     NETMASK=${netmask}
     GATEWAY=${gateway}
@@ -810,12 +813,15 @@ if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
 fi
 
 # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
-if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" ]]; then
+if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
+    [[ "${GATEWAY}" != "" ]]; then
 
   echo "IP, Netmask & Gateway specified as boot params"
 
   # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || [[ $(valid_ip "${NETMASK}") -ne 0 ]] || [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
 
     # Be informative about the failure
     [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
@@ -830,15 +836,15 @@ if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" 
   sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
 else
 
-  echo "Attempting to gather network configuration data from previous DHCP request"
-
   # Check to see if anything was applied via DHCP
   IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
   NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
   GATEWAY="$(route | grep default | cut -b 17-32 | cut -d " " -f 1)"
 
   # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || [[ $(valid_ip "${NETMASK}") -ne 0 ]] || [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
 
     # Be informative about the failure
     [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
@@ -854,7 +860,8 @@ else
 fi
 
 # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network configuration
-echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
+  --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
 
 ###############################################
 # Print out the network configuration report  #
