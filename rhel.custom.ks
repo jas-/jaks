@@ -489,7 +489,7 @@ function templates2output()
 
   # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
   # to allocate for ${optapp_size} (if ${optapp} != 1)
-  optapp_size=$(expr ${total_size} - ${total_parts})
+  optapp_size=$(expr ${total_parts} - ${total_size})
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
