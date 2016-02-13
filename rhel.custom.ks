@@ -506,7 +506,7 @@ function templates2output()
   echo "${disk_template}" |
     sed -e "s|{DISKS}|${disk}|g" \
     -e "s|{SWAP}|$(b2mb ${swap})|g" \
-    -e "s|{SIZE}|$(b2mb $total_size})|g" \
+    -e "s|{SIZE}|$(b2mb ${total_size})|g" \
     -e "s|{PRIMARY}|${disk}|g" \
     -e "s|{ROOTLVSIZE}|$(b2mb ${root_size})|g" \
     -e "s|{VARLVSIZE}|$(b2mb ${var_size})|g" \
