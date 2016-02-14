@@ -1238,6 +1238,26 @@ failed_percentage=$(percent_real ${total_tools} ${total_failed_tools})
 # Obtain a percentage of successes from total
 succeeded_percentage=$(percent_real ${total_tools} ${total_successful_tools})
 
+echo "Totals:
+echo "  Tools allocated: ${total}"
+echo "  Tools run: ${total_tools}"
+echo "  Percentage: ${total_ran}"
+echo ""
+echo "Failed:
+echo "  Tools failed: ${total_failed_tools}"
+echo "  Percentage: ${failed_percentage}"
+echo ""
+echo "Success:
+echo "  Tools succeeded: ${total_successful_tools}"
+echo "  Percentage: ${succeeded_percentage}"
+
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
+
 ###############################################
 # Re-run failed jobs individually             #
 ###############################################
@@ -1255,12 +1275,6 @@ succeeded_percentage=$(percent_real ${total_tools} ${total_successful_tools})
 # Exit if config-network tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-network ]; then
   echo "${build_tools}/scripts/config-network missing"
-  pwd
-  # If ${DEBUG} is set to true; pause
-  if [ "${DEBUG}" == "true" ]; then
-    pause
-  fi
-
   exit 1
 fi
 
