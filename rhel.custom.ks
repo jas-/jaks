@@ -1209,7 +1209,7 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Get total number of tools configured to run
-total=$(awk '$0 ~ /^\[/{print} rhel-builder|wc -l)
+total=$(awk '$0 ~ /^\[/{print}' rhel-builder|wc -l)
 
 # Get an array of configuration scripts that were run
 tools=($(awk '$0 ~ /^Executing:/{print $2}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
