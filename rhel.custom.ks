@@ -420,6 +420,12 @@ function templates2output()
   # First remove 500 (/boot) & ${swap} from ${size}
   size=$(expr ${size} - $(expr $(mb2b 500) + ${swap}))
 
+  # If the system is booted as UEFI vs. legacy BIOS we need to remove 200MB
+  # because kickstart allocates 200MB as /boot/efi
+  if [ -d /sys/firmware/efi ]; then
+    size=$(expr ${size} - $(mb2b 200))
+  fi
+
   # If ${evaldisk} size > 100GB; assume physical
   if [ ${evalsize} -gt ${gbytes} ]; then
 
@@ -780,7 +786,7 @@ cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
 rm /tmp/ks-report-disks-extra
 
 # Clear the terminal
-#clear
+clear
 
 # Print the disk configuration report
 cat /tmp/ks-report-disks
