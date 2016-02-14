@@ -376,12 +376,6 @@ function percent()
   echo $((${total} / 100 * ${percent}))
 }
 
-# Return decimal as percentage (since bash doesn't handle precision)
-function percent_real()
-{
-  awk -v t=${1} -v p=${2} 'BEGIN{print t / 100 * p}'
-}
-
 
 ###############################################
 # Function definitions - disks                #
@@ -1135,6 +1129,12 @@ path="/var/tmp/unixbuild"
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
 
+# Return decimal as percentage (since bash doesn't handle precision)
+function percent_real()
+{
+  awk -v t=${1} -v p=${2} 'BEGIN{print t / 100 * p}'
+}
+
 
 ###############################################
 # Validate build-tools location (NFS mount)   #
@@ -1247,7 +1247,7 @@ echo "Failed:
 echo "  Tools failed: ${total_failed_tools}"
 echo "  Percentage: ${failed_percentage}"
 echo ""
-echo "Success:
+echo "Success:"
 echo "  Tools succeeded: ${total_successful_tools}"
 echo "  Percentage: ${succeeded_percentage}"
 
