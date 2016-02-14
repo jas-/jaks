@@ -1208,11 +1208,17 @@ echo "Please wait; auto-configuring system according to build standards"
 # Examine post build log for errors           #
 ###############################################
 
+# Get total number of tools configured to run
+total=$(awk '$0 ~ /^\[/{print} rhel-builder|wc -l)
+
 # Get an array of configuration scripts that were run
 tools=($(awk '$0 ~ /^Executing:/{print $2}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
 
 # Provide the total number of scripts run
 total_tools=${#tools[@]}
+
+# Get percentage of ${total} vs. ${total_tools}
+total_ran=$(percent_real ${total_tools} ${total})
 
 # Get an array of configuration scripts that failed
 failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
@@ -1302,8 +1308,8 @@ Post installation: (chroot)
   BUILD:
     - Logs for each stage of configuration created
     - Statistical information for build:
-      - Total tools run:         ${total_tools}
-      - Total failed tools:      ${total_failed_tools}      (${failed_percentage}%)
+      - Total tools run:         ${total_tools}  (${total_ran}%)
+      - Total failed tools:      ${total_failed_tools}  (${failed_percentage}%)
       - Total successful tools:  ${total_successful_tools}  (${succeeded_percentage}%)
   BACKUP:
     - Backup of kickstart configurations:
