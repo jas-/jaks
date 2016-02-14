@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash --erroronfail
+%pre --interpreter=/bin/bash #--erroronfail
 
 
 ###############################################
@@ -88,13 +88,13 @@ slc_timezone="Denver"
 gbytes=107374182400
 
 # Physical group creation variable
-pv_tpml="part {ID} --grow --ondisk={DISK}"
+pv_tmpl="part {ID} --grow --ondisk={DISK}"
 
 # 'optappvg' volgroup variable; used when phsyical disks > 1
 vg_tmpl="volgroup optappvg {DISK}"
 
 # 'optapplv' variable for logical volume creation
-lv_tmpl="logvol /optapp --fstype=ext4 --name=optapplv --vgname=rootvg \
+lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname=rootvg \
 --maxsize={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
@@ -137,7 +137,7 @@ EOF
 read -d '' extra_disk_report <<"EOF"
 Extended:
   Logical Volume Configuration:
-    |_ optapppv       {disks}       {size}
+    |_ optapppv                     {size}MB
     | |_ optappvg
     |___|_ optapplv:  /opt/app      {optapp_size}MB
 EOF
@@ -396,12 +396,12 @@ function templates2output()
   local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
 
   # Convert ${disks} into an array (${disks[@]})
-  IFS=',' read -a disk <<< ${disks}
+  IFS=',' read -a disks <<< "${disk}"
 
   # If ${#disks[@]} > 1 send to 'multipledisks()' function
   if [ ${#disks[@]} -gt 1 ]; then
 
-    # Call multipledisks() which creates a complex entry to handle /opt/app
+     # Call multipledisks() which creates a complex entry to handle /opt/app
     multipledisks "${disk}"
 
     # Set ${optapp} = 1 to prevent duplication on primary disk
@@ -409,7 +409,7 @@ function templates2output()
   fi
 
   # Copy ${disks[0]} to ${disk}
-  disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+  local disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
 
   # Copy ${disks[0]} to ${size}
   local size=$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[2]}')
@@ -417,11 +417,8 @@ function templates2output()
   # Make a copy of ${size} for evaluating paritition scheme
   local evalsize=${size}
 
-  # First remove 500 (/boot) from ${size}
-  size=$(expr ${size} - $(mb2b 500))
-
-  # Now remove ${swap} from ${size}
-  size=$(expr ${size} - ${swap})
+  # First remove 500 (/boot) & ${swap} from ${size}
+  size=$(expr ${size} - $(expr $(mb2b 500) + ${swap}))
 
   # If ${evaldisk} size > 100GB; assume physical
   if [ ${evalsize} -gt ${gbytes} ]; then
@@ -459,19 +456,15 @@ function templates2output()
   if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
-    #root_size=$(b2mb $(percent ${size} 40))
     root_size=$(percent ${size} 40)
 
     # Allocate 20% of ${size} for /var (varlv)
-    #var_size=$(b2mb $(percent ${size} 20))
     var_size=$(percent ${size} 20)
 
     # Allocate 10% of ${size} for /export/home (homelv)
-    #home_size=$(b2mb $(percent ${size} 10))
     home_size=$(percent ${size} 10)
 
     # Allocate 3% of ${size} for /tmp (tmplv)
-    #tmp_size=$(b2mb $(percent ${size} 3))
     tmp_size=$(percent ${size} 3)
   fi
 
@@ -491,15 +484,20 @@ function templates2output()
   # to allocate for ${optapp_size} (if ${optapp} != 1)
   optapp_size=$(expr ${total_parts} - ${total_size})
 
+  # Apply fix for a negative numbers
+  optapp_size=$(echo "${optapp_size}"|awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
+
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
-          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" >> /tmp/ks-diskconfig-extra
+          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" \
+            >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
-      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" > /tmp/ks-report-disks-extra
+      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" \
+        > /tmp/ks-report-disks-extra
   fi
 
   # Write out /tmp/ks-diskconfig using ${disk_template}
@@ -529,7 +527,10 @@ function templates2output()
 # Function to handle extending /opt/app with multiple disks
 function multipledisks()
 {
-  local disks="${1}"
+  local disk="${1}"
+
+  # Convert ${disks} into an array (${disks[@]})
+  IFS=',' read -a disks <<< "${disk}"
 
   # Make copy of ${disks[@]:1}
   local copy=(${disks[@]:1})
@@ -540,10 +541,15 @@ function multipledisks()
   # Get the size of our primary volumegroup (converting from bytes to mb)
   local size=$(b2mb $(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}'))
 
+  # Make ks-diskconfig-extra with comment
+  echo "" > /tmp/ks-diskconfig-extra
+  echo "# Create new physical volume on ${primary} as pv.optapp" \
+    >> /tmp/ks-diskconfig-extra
+
   # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${pv_tmpl}" |
     sed -e "s|{ID}|pv.optapp|g" \
-        -e "s|{DISK}|${disk}|g")" > /tmp/ks-diskconfig-extra
+        -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
@@ -569,15 +575,29 @@ function multipledisks()
     done
   fi
 
+  # Create a header for our volume group
+  echo "" >> /tmp/ks-diskconfig-extra
+  echo "# Create new volume group with all physical volumes" \
+    >> /tmp/ks-diskconfig-extra
+
   # Generate changes for ${vg_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${vg_tmpl}"|sed -e "s|{DISK}|${dsks}|g")" >> /tmp/ks-diskconfig-extra
+  echo "$(echo "${vg_tmpl}" | \
+          sed -e "s|{DISK}|${dsks}|g")" >> /tmp/ks-diskconfig-extra
+
+  # Create a header for our the logical volume
+  echo "" >> /tmp/ks-diskconfig-extra
+  echo "# Create new logical volume for optapp" \
+    >> /tmp/ks-diskconfig-extra
 
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${lv_tmpl}"|sed -e "s|{VOLGROUP}|optappvg|g" -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
+  echo "$(echo "${lv_tmpl}" | \
+          sed -e "s|{VOLGROUP}|optappvg|g" \
+              -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
 
   # Generate report for 'extra' disks
-  echo "${extra_disk_report}" | 
-    sed -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
+  echo "${extra_disk_report}" |
+    sed -e "s|{size}|${size}|g" \
+        -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
 }
 
 
@@ -696,32 +716,39 @@ fi
 # Configuration for physical disks            #
 ###############################################
 
+# Determine the amount of memory on the system, used for our swap partition
+swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
+
 # Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-disks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'))
+dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'))
 
 # Make sure ${disks[@]} is > 0
-if [ ! ${#disks[@]} -gt 0 ]; then
+if [ ! ${#dsks[@]} -gt 0 ]; then
   echo "No physical disks present! Cannot create necessary disk configuration"
   exit 1
 fi
 
-# Iterate ${disks[@]} to determine if disk size will not allow for a 100GB
-# primary (in the case of a virtual guest)
-for disk in ${disks[@]}; do
+# Iterate ${disks[@]} & remove USB devices
+for item in ${dsks[@]}; do
 
-  # Get the disk name
-  dsk=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[1]}')
+  # Extract the disk
+  disk="$(echo "${item}"|awk '{split($0, o, ":");print o[1]}')"
 
-  # Get the disk bytes
-  bytes=$(echo "${disk}"|awk '{split($0, obj, ":"); print obj[2]}')
+  # Extract the disk size
+  size="$(echo "${item}"|awk '{split($0, o, ":");print o[2]}')"
+
+  # Skip ${disk} if it is a USB device
+  link="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
+
+  if [ "${link}" == "" ]; then
+    disks+=("${disk}:${size}")
+  fi
 done
-
-# Determine the amount of memory on the system, used for our swap partition
-swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
 # If ${#disks[@]} > 1 combine as a comma seperated list
 if [ ${#disks[@]} -gt 1 ]; then
-  disks="$(echo "${disks[@]}"|sed 's/ /,/g')"
+  dsk="${disks[@]}"
+  disks="${dsk// /,}"
 fi
 
 # Create disk configuration files /tmp/ks-diskconfig & /tmp/ks-diskconfig-extra
@@ -753,7 +780,7 @@ cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
 rm /tmp/ks-report-disks-extra
 
 # Clear the terminal
-clear
+#clear
 
 # Print the disk configuration report
 cat /tmp/ks-report-disks
