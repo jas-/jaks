@@ -1129,12 +1129,6 @@ path="/var/tmp/unixbuild"
 # Define a location for the RHEL build tool
 build_tools="${path}/linux/build-tools"
 
-# Return decimal as percentage (since bash doesn't handle precision)
-function percent_real()
-{
-  awk -v t=${1} -v p=${2} 'BEGIN{print t / 100 * p}'
-}
-
 
 ###############################################
 # Validate build-tools location (NFS mount)   #
@@ -1217,9 +1211,6 @@ tools=($(awk '$0 ~ /^Executing:/{print $2}' ${folder}/build/$(hostname)-$(date +
 # Provide the total number of scripts run
 total_tools=${#tools[@]}
 
-# Get percentage of ${total} vs. ${total_tools}
-total_ran=$(percent_real ${total_tools} ${total})
-
 # Get an array of configuration scripts that failed
 failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
 
@@ -1231,31 +1222,6 @@ successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){pr
 
 # Provide the total number of failed scripts run
 total_successful_tools=${#successful_tools[@]}
-
-# Obtain a percentage of failures from total
-failed_percentage=$(percent_real ${total_tools} ${total_failed_tools})
-
-# Obtain a percentage of successes from total
-succeeded_percentage=$(percent_real ${total_tools} ${total_successful_tools})
-
-echo "Totals:
-echo "  Tools allocated: ${total}"
-echo "  Tools run: ${total_tools}"
-echo "  Percentage: ${total_ran}"
-echo ""
-echo "Failed:
-echo "  Tools failed: ${total_failed_tools}"
-echo "  Percentage: ${failed_percentage}"
-echo ""
-echo "Success:"
-echo "  Tools succeeded: ${total_successful_tools}"
-echo "  Percentage: ${succeeded_percentage}"
-
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 
 ###############################################
@@ -1322,9 +1288,9 @@ Post installation: (chroot)
   BUILD:
     - Logs for each stage of configuration created
     - Statistical information for build:
-      - Total tools run:         ${total_tools}  (${total_ran}%)
-      - Total failed tools:      ${total_failed_tools}  (${failed_percentage}%)
-      - Total successful tools:  ${total_successful_tools}  (${succeeded_percentage}%)
+      - Total tools run:         ${total_tools}
+      - Total failed tools:      ${total_failed_tools}
+      - Total successful tools:  ${total_successful_tools}
   BACKUP:
     - Backup of kickstart configurations:
       - Location & timezone configuration
