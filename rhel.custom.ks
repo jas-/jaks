@@ -1334,7 +1334,7 @@ rm ${folder}/kickstart/ks-report*
 mv ${folder}/kickstart/ks-* ${folder}/kickstart/configs
 
 # Move the ks.cfg to the current hostname.ks
-mv ${folder}/ks.cfg ${folder}/$(hostname).ks
+mv ${folder}/kickstart/ks.cfg ${folder}/kickstart/$(hostname).ks
 
 # Remove everything else
 rm ${folder}/ks-*
