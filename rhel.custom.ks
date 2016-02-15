@@ -21,7 +21,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 ###############################################
 
 # Set DEBUG = false, pauses occur at each report
-DEBUG=true
+DEBUG=false
 
 # Set INSTALL = false; if not user is prompted to wipe system
 # This will not prevent prompts if ROOTPW &/or LOCATION cannot be determined
@@ -1314,6 +1314,30 @@ EOF
 rm /tmp/ks-script-*
 cp /tmp/ks* ${folder}/kickstart
 
+# Organize the files
+mkdir ${folder}/kickstart/configs
+
+# Create a timestamped filename
+filename=$(hostname)-$(date +%Y%m%d)-report.log
+
+# Combine the reports
+cat ${folder}/kickstart/ks-report-general > ${filename}
+cat ${folder}/kickstart/ks-report-network >> ${filename}
+cat ${folder}/kickstart/ks-report-disks >> ${filename}
+cat ${folder}/kickstart/ks-report-post >> ${filename}
+cat ${folder}/kickstart/ks-report-post-chroot >> ${filename}
+
+# Remove the old reports
+rm ${folder}/kickstart/ks-report*
+
+# Move the configuration files used
+mv ${folder}/kickstart/ks-* ${folder}/kickstart/configs
+
+# Move the ks.cfg to the current hostname.ks
+mv ${folder}/ks.cfg ${folder}/$(hostname).ks
+
+# Remove everything else
+rm ${folder}/ks-*
 
 ###############################################
 # Setup appropriate permissions on backup     #
