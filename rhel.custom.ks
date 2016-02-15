@@ -1318,7 +1318,7 @@ cp /tmp/ks* ${folder}/kickstart
 mkdir ${folder}/kickstart/configs
 
 # Create a timestamped filename
-filename=$(hostname)-$(date +%Y%m%d)-report.log
+filename=${folder}/kickstart/$(hostname)-$(date +%Y%m%d).log
 
 # Combine the reports
 cat ${folder}/kickstart/ks-report-general > ${filename}
