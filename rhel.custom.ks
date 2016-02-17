@@ -1343,9 +1343,9 @@ rm ${folder}/ks-*
 
 # Move build logs into their own folder
 mkdir -p ${folder}/build-logs
-mv -fr ${folder}/pre ${folder}/build-logs
-mv -fr ${folder}/build ${folder}/build-logs
-mv -fr ${folder}/post ${folder}/build-logs
+mv -f ${folder}/pre ${folder}/build-logs
+mv -f ${folder}/build ${folder}/build-logs
+mv -f ${folder}/post ${folder}/build-logs
 
 ###############################################
 # Setup appropriate permissions on backup     #
