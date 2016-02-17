@@ -1289,8 +1289,10 @@ Post installation: (chroot)
     - Logs for each stage of configuration created
     - Statistical information for build:
       - Total tools run:         ${total_tools}
-      - Total failed tools:      ${total_failed_tools}
       - Total successful tools:  ${total_successful_tools}
+      - Total failed tools:      ${total_failed_tools}
+    - Build validation log:
+      - ${folder}/build-logs/post/$(hostname)-$(date +%Y%m%d-%H%M).log
   BACKUP:
     - Backup of kickstart configurations:
       - Location & timezone configuration
@@ -1318,7 +1320,7 @@ cp /tmp/ks* ${folder}/kickstart
 mkdir ${folder}/kickstart/configs
 
 # Create a timestamped filename
-filename=${folder}/kickstart/$(hostname)-$(date +%Y%m%d).log
+filename=${folder}/$(hostname)-$(date +%Y%m%d).log
 
 # Combine the reports
 cat ${folder}/kickstart/ks-report-general > ${filename}
@@ -1338,6 +1340,12 @@ mv ${folder}/kickstart/ks.cfg ${folder}/kickstart/$(hostname).ks
 
 # Remove everything else
 rm ${folder}/ks-*
+
+# Move build logs into their own folder
+mkdir -p ${folder}/build-logs
+mv -fr ${folder}/pre ${folder}/build-logs
+mv -fr ${folder}/build ${folder}/build-logs
+mv -fr ${folder}/post ${folder}/build-logs
 
 ###############################################
 # Setup appropriate permissions on backup     #
