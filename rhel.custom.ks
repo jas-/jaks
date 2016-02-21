@@ -21,7 +21,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 ###############################################
 
 # Set DEBUG = false, pauses occur at each report
-DEBUG=true
+DEBUG=false
 
 # Set INSTALL = false; if not user is prompted to wipe system
 # This will not prevent prompts if ROOTPW &/or LOCATION cannot be determined
@@ -567,7 +567,7 @@ function multipledisks()
   fi
 
   # Remove 1GB from ${size} to account for physical extent overhead
-  size=$(expr ${size} - $(gb2b 1))
+  size=$(expr ${size} - $(gb2b 2))
 
   # Make ks-diskconfig-extra with comment
   echo "" > /tmp/ks-diskconfig-extra
