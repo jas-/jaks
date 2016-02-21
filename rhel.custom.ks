@@ -465,7 +465,7 @@ function templates2output()
     home_size=$(percent ${size} 10)
 
     # Allocate 3% of ${size} for /tmp (tmplv)
-    tmp_size=$(percent ${size} 3)
+    tmp_size=$(percent ${size} 2)
   fi
 
   # Validate that we have some partition sizes
