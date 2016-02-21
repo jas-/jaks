@@ -540,7 +540,7 @@ function multipledisks()
   local primary="$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[1]}')"
 
   # Get the size of our primary volumegroup (converting from bytes to mb)
-  local size=$(b2mb $(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}'))
+  local size=$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}')
 
   # Make ks-diskconfig-extra with comment
   echo "" > /tmp/ks-diskconfig-extra
@@ -550,7 +550,7 @@ function multipledisks()
   # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${pv_tmpl}" |
     sed -e "s|{ID}|pv.optapp|g" \
-        -e "s|{SIZE}|${size}|g" \
+        -e "s|{SIZE}|$(b2mb ${size})|g" \
         -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
@@ -573,7 +573,7 @@ function multipledisks()
       fi
 
       # Get size in mb & add to ${size}
-      size=$(expr ${size} + $(b2mb $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}')))
+      size=$(expr ${size} + $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
     done
   fi
 
@@ -584,7 +584,7 @@ function multipledisks()
 
   # Generate changes for ${vg_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${vg_tmpl}" |
-          sed -e "s|{ID}|pv.optapp|g")" >> /tmp/ks-diskconfig-extra
+    sed -e "s|{ID}|pv.optapp|g")" >> /tmp/ks-diskconfig-extra
 
   # Create a header for our the logical volume
   echo "" >> /tmp/ks-diskconfig-extra
@@ -594,12 +594,12 @@ function multipledisks()
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${lv_tmpl}" |
     sed -e "s|{VOLGROUP}|optappvg|g" \
-        -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
+        -e "s|{SIZE}|$(b2mb ${size})|g")" >> /tmp/ks-diskconfig-extra
 
   # Generate report for 'extra' disks
   echo "${extra_disk_report}" |
-    sed -e "s|{size}|${size}|g" \
-        -e "s|{optapp_size}|${size}|g" > /tmp/ks-report-disks-extra
+    sed -e "s|{size}|$(b2mb ${size})|g" \
+        -e "s|{optapp_size}|$(b2mb ${size})|g" > /tmp/ks-report-disks-extra
 }
 
 
