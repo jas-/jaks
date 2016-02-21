@@ -722,7 +722,7 @@ fi
 swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
 # Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'))
+dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k2))
 
 # Make sure ${disks[@]} is > 0
 if [ ! ${#dsks[@]} -gt 0 ]; then
