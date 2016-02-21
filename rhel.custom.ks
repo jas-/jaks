@@ -577,8 +577,8 @@ function multipledisks()
     done
   fi
 
-  # Remove 500MB from ${size} to account for physical extent overhead
-  size=$(expr $(mb2b 500) - ${size})
+  # Remove 1GB from ${size} to account for physical extent overhead
+  size=$(expr ${size} - $(gb2b 1))
 
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
