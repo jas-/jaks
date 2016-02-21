@@ -94,7 +94,7 @@ pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 vg_tmpl="volgroup optappvg {ID}"
 
 # 'optapplv' variable for logical volume creation
-lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname=rootvg \
+lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 --maxsize={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
