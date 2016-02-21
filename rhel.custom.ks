@@ -464,7 +464,7 @@ function templates2output()
     # Allocate 10% of ${size} for /export/home (homelv)
     home_size=$(percent ${size} 10)
 
-    # Allocate 3% of ${size} for /tmp (tmplv)
+    # Allocate 2% of ${size} for /tmp (tmplv)
     tmp_size=$(percent ${size} 2)
   fi
 
@@ -472,6 +472,7 @@ function templates2output()
   if [[ -z ${root_size} ]] || [[ -z ${var_size} ]] || [[ -z ${home_size} ]] || \
       [[ -z ${tmp_size} ]]; then
     echo "Partition sizes were not determined, exiting"
+    exit 1
   fi
 
   # Add ${root_size}, ${var_size}, ${home_size} & ${tmp_size}
