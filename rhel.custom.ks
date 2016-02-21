@@ -539,7 +539,7 @@ function multipledisks()
   # Get the first element as our primary volumegroup
   local primary="$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[1]}')"
 
-  # Get the size of our primary volumegroup (converting from bytes to mb)
+  # Get the size (in bytes) of our primary volumegroup
   local size=$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}')
 
   # Make ks-diskconfig-extra with comment
@@ -572,10 +572,13 @@ function multipledisks()
         dsks="${dsks} $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
       fi
 
-      # Get size in mb & add to ${size}
+      # Get size in bytes & add to ${size}
       size=$(expr ${size} + $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
     done
   fi
+
+  # Remove 500MB from ${size} to account for physical extent overhead
+  size=$(expr $(mb2b 500) - ${size})
 
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
