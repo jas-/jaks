@@ -542,17 +542,6 @@ function multipledisks()
   # Get the size (in bytes) of our primary volumegroup
   local size=$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}')
 
-  # Make ks-diskconfig-extra with comment
-  echo "" > /tmp/ks-diskconfig-extra
-  echo "# Create new physical volume on ${primary} as pv.optapp" \
-    >> /tmp/ks-diskconfig-extra
-
-  # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${pv_tmpl}" |
-    sed -e "s|{ID}|pv.optapp|g" \
-        -e "s|{SIZE}|$(b2mb ${size})|g" \
-        -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
-
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
 
@@ -579,6 +568,17 @@ function multipledisks()
 
   # Remove 1GB from ${size} to account for physical extent overhead
   size=$(expr ${size} - $(gb2b 1))
+
+  # Make ks-diskconfig-extra with comment
+  echo "" > /tmp/ks-diskconfig-extra
+  echo "# Create new physical volume on ${primary} as pv.optapp" \
+    >> /tmp/ks-diskconfig-extra
+
+  # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
+  echo "$(echo "${pv_tmpl}" |
+    sed -e "s|{ID}|pv.optapp|g" \
+        -e "s|{SIZE}|$(b2mb ${size})|g" \
+        -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
 
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
