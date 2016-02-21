@@ -842,7 +842,7 @@ else
   # Check to see if anything was applied via DHCP
   IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
   NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
-  GATEWAY="$(route -n | grep default | cut -b 17-32 | cut -d " " -f 1)"
+  GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
 
   # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
   if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
