@@ -21,7 +21,7 @@ PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 ###############################################
 
 # Set DEBUG = false, pauses occur at each report
-DEBUG=false
+DEBUG=true
 
 # Set INSTALL = false; if not user is prompted to wipe system
 # This will not prevent prompts if ROOTPW &/or LOCATION cannot be determined
@@ -88,10 +88,10 @@ slc_timezone="Denver"
 gbytes=107374182400
 
 # Physical group creation variable
-pv_tmpl="part {ID} --grow --ondisk={DISK}"
+pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 
 # 'optappvg' volgroup variable; used when phsyical disks > 1
-vg_tmpl="volgroup optappvg {DISK}"
+vg_tmpl="volgroup optappvg {ID}"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname=rootvg \
@@ -549,6 +549,7 @@ function multipledisks()
   # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${pv_tmpl}" |
     sed -e "s|{ID}|pv.optapp|g" \
+        -e "s|{SIZE}|${size}|g" \
         -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
@@ -567,7 +568,7 @@ function multipledisks()
       if [ "${dsks}" == "" ]; then
         dsks="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
       else
-        dsks="${placeholder} $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+        dsks="${dsks} $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
       fi
 
       # Get size in mb & add to ${size}
@@ -581,8 +582,8 @@ function multipledisks()
     >> /tmp/ks-diskconfig-extra
 
   # Generate changes for ${vg_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${vg_tmpl}" | \
-          sed -e "s|{DISK}|${dsks}|g")" >> /tmp/ks-diskconfig-extra
+  echo "$(echo "${vg_tmpl}" |
+          sed -e "s|{ID}|pv.optapp|g")" >> /tmp/ks-diskconfig-extra
 
   # Create a header for our the logical volume
   echo "" >> /tmp/ks-diskconfig-extra
@@ -590,14 +591,14 @@ function multipledisks()
     >> /tmp/ks-diskconfig-extra
 
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${lv_tmpl}" | \
-          sed -e "s|{VOLGROUP}|optappvg|g" \
-              -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
+  echo "$(echo "${lv_tmpl}" |
+    sed -e "s|{VOLGROUP}|optappvg|g" \
+        -e "s|{SIZE}|${size}|g")" >> /tmp/ks-diskconfig-extra
 
   # Generate report for 'extra' disks
   echo "${extra_disk_report}" |
     sed -e "s|{size}|${size}|g" \
-        -e "s|{optapp_size}|${optapp_size}|g" > /tmp/ks-report-disks-extra
+        -e "s|{optapp_size}|${size}|g" > /tmp/ks-report-disks-extra
 }
 
 
