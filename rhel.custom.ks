@@ -566,8 +566,8 @@ function multipledisks()
     done
   fi
 
-  # Remove 1GB from ${size} to account for physical extent overhead
-  size=$(expr ${size} - $(gb2b 2))
+  # Remove 3GB from ${size} to account for physical extent overhead
+  size=$(expr ${size} - $(gb2b 3))
 
   # Make ks-diskconfig-extra with comment
   echo "" > /tmp/ks-diskconfig-extra
