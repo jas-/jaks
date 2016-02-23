@@ -53,6 +53,9 @@ NETMASK=
 # GATEWAY can also be specified or the DHCP provided gateway will be used
 GATEWAY=
 
+# DVD is used for DVD or no network based installations
+DVD=false
+
 
 ###############################################
 # General configuration variables             #
@@ -91,7 +94,7 @@ gbytes=107374182400
 pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 
 # 'optappvg' volgroup variable; used when phsyical disks > 1
-vg_tmpl="volgroup optappvg {ID}"
+vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
@@ -531,9 +534,10 @@ function multipledisks()
   local disk="${1}"
 
   # Convert ${disks} into an array (${disks[@]})
-  IFS=',' read -a disks <<< "${disk}"
+  #IFS=',' read -a disks <<< "${disk}"
+  disks=($(echo "${disk}"|awk 'BEGIN{RS=","}{print $1}'|sort -t: -k1))
 
-  # Make copy of ${disks[@]:1}
+  # Make copy of ${disks[@]:1}yes
   local copy=(${disks[@]:1})
 
   # Get the first element as our primary volumegroup
@@ -545,40 +549,53 @@ function multipledisks()
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
 
-    # Make another copy without the primary in order to extend optappvg
-    local disk_members=(${copy[@]:1})
+    # Set our counter to 0
+    local i=0
 
-    # Place holder for space seperated list of disks to add to volgroup
-    local dsks=
+    # Set total volume group size to 0
+    local vsize=0
 
-    # Iterate ${disk_members[@]} & split into disk & size
-    for dsk in ${disk_members[@]}; do
+    # Placeholder for the volume group list
+    local vgrplst=
 
-      # Get the disk name from ${dsk}
-      if [ "${dsks}" == "" ]; then
-        dsks="$(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+    # Iterate ${copy[@]} & split into disk & size
+    for dsk in ${copy[@]}; do
+
+      # Increment each iteration
+      i=$((i+1))
+
+      # Create a new physical group name
+      local dname="pv.optapp.${i}"
+
+      # Concatinate ${dname} for the volume group creation
+      if [ "${vgrplst}" == "" ]; then
+        vgrplst="${dname}"
       else
-        dsks="${dsks} $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
+        vgrplst="${vgrplst} ${dname}"
       fi
 
-      # Get size in bytes & add to ${size}
-      size=$(expr ${size} + $(echo "${copy[0]}"|awk '{split($0, obj, ":");print obj[2]}'))
+      # Get the disk name from ${dsk}
+      dskname="$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[1]}')"
+
+      # Get the ${dsize}
+      size=$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[2]}')
+
+      # Add ${size} to ${vsize}
+      vsize=$(expr ${size} + ${vsize})
+
+      # Make ks-diskconfig-extra with comment
+      echo "" >> /tmp/ks-diskconfig-extra
+      echo "# Create new physical volume on ${dskname} as ${dname}" \
+        >> /tmp/ks-diskconfig-extra
+
+      # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
+      echo "$(echo "${pv_tmpl}" |
+        sed -e "s|{ID}|${dname}|g" \
+            -e "s|{SIZE}|$(b2mb ${size})|g" \
+            -e "s|{DISK}|${dskname}|g")" >> /tmp/ks-diskconfig-extra
+
     done
   fi
-
-  # Remove 3GB from ${size} to account for physical extent overhead
-  size=$(expr ${size} - $(gb2b 3))
-
-  # Make ks-diskconfig-extra with comment
-  echo "" > /tmp/ks-diskconfig-extra
-  echo "# Create new physical volume on ${primary} as pv.optapp" \
-    >> /tmp/ks-diskconfig-extra
-
-  # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
-  echo "$(echo "${pv_tmpl}" |
-    sed -e "s|{ID}|pv.optapp|g" \
-        -e "s|{SIZE}|$(b2mb ${size})|g" \
-        -e "s|{DISK}|${primary}|g")" >> /tmp/ks-diskconfig-extra
 
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
@@ -587,7 +604,7 @@ function multipledisks()
 
   # Generate changes for ${vg_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${vg_tmpl}" |
-    sed -e "s|{ID}|pv.optapp|g")" >> /tmp/ks-diskconfig-extra
+    sed -e "s|{ID}|${vgrplst}|g")" >> /tmp/ks-diskconfig-extra
 
   # Create a header for our the logical volume
   echo "" >> /tmp/ks-diskconfig-extra
@@ -597,12 +614,12 @@ function multipledisks()
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${lv_tmpl}" |
     sed -e "s|{VOLGROUP}|optappvg|g" \
-        -e "s|{SIZE}|$(b2mb ${size})|g")" >> /tmp/ks-diskconfig-extra
+        -e "s|{SIZE}|$(b2mb ${vsize})|g")" >> /tmp/ks-diskconfig-extra
 
   # Generate report for 'extra' disks
   echo "${extra_disk_report}" |
     sed -e "s|{size}|$(b2mb ${size})|g" \
-        -e "s|{optapp_size}|$(b2mb ${size})|g" > /tmp/ks-report-disks-extra
+        -e "s|{optapp_size}|$(b2mb ${vsize})|g" > /tmp/ks-report-disks-extra
 }
 
 
@@ -716,6 +733,17 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+###############################################
+# Configuration for DVD installations         #
+###############################################
+
+# If ${DVD} set to true write out a config
+if [ "${DVD}" == "true" ]; then
+  echo "cdrom" > /tmp/ks-installation
+else
+  touch /tmp/ks-installation
+fi
+
 
 ###############################################
 # Configuration for physical disks            #
@@ -725,7 +753,7 @@ fi
 swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
 # Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k2))
+dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
 
 # Make sure ${disks[@]} is > 0
 if [ ! ${#dsks[@]} -gt 0 ]; then
@@ -746,6 +774,10 @@ for item in ${dsks[@]}; do
   link="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
 
   if [ "${link}" == "" ]; then
+
+    # Wipe the MBR of each disk to account for 'clearpart' deficiencies
+    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512)
+
     disks+=("${disk}:${size}")
   fi
 done
@@ -904,7 +936,10 @@ fi
 ###############################################
 # Begin kick start automation procedures      #
 ###############################################
-text
+#text
+
+# Setup the installation media (if any)
+%include /tmp/ks-installation
 
 # Default language
 lang en_US
@@ -923,7 +958,7 @@ keyboard us
 # Restart system after kicked
 reboot
 
-# Use NFS share for installation media
+# Use NFS or DVD for installation media
 %include /tmp/ks-nfsshare
 
 # Include disk configuration
@@ -949,6 +984,9 @@ firewall --disabled
 skipx
 
 firstboot --disable
+
+# Provide a local REPO
+repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
 
 # Handle package installation
 %packages
@@ -1017,6 +1055,18 @@ fi
 
 
 ###############################################
+# Make sure the NFS server is accessible      #
+###############################################
+
+# Make sure we can connect to ${nfs_server}
+ping=$(ping -c1 ${nfs_server})
+if [ $? -ne 0 ]; then
+  echo "Could not contact the ${nfs_server}, check routing table (gateway)"
+  exit 1
+fi
+
+
+###############################################
 # Create mount point for NFS share in chroot  #
 ###############################################
 
@@ -1026,18 +1076,6 @@ path="/mnt/sysimage/var/tmp/unixbuild"
 # Make sure the ${path} exists, make if not
 if [ ! -d "${path}" ] ; then
   mkdir -p "${path}"
-fi
-
-
-###############################################
-# Make sure the NFS server is accessible      #
-###############################################
-
-# Make sure we can connect to ${nfs_server}
-ping=$(ping -c1 ${nfs_server})
-if [ $? -ne 0 ]; then
-  echo "Could not contact the ${nfs_server}, check routing table (gateway)"
-  exit 1
 fi
 
 
