@@ -597,6 +597,9 @@ function multipledisks()
     done
   fi
 
+  # Account for 2% ext4 LVM overhead in ${vsize}
+  vsize=$(expr ${vsize} - $(percent ${vsize} 2))
+
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
   echo "# Create new volume group with all physical volumes" \
@@ -618,7 +621,7 @@ function multipledisks()
 
   # Generate report for 'extra' disks
   echo "${extra_disk_report}" |
-    sed -e "s|{size}|$(b2mb ${size})|g" \
+    sed -e "s|{size}|$(b2mb ${vsize})|g" \
         -e "s|{optapp_size}|$(b2mb ${vsize})|g" > /tmp/ks-report-disks-extra
 }
 
