@@ -56,6 +56,9 @@ GATEWAY=
 # DVD is used for DVD or no network based installations
 DVD=false
 
+# Set VDEBUG = false, provides a little more output than DEBUG
+VDEBUG=false
+
 
 ###############################################
 # General configuration variables             #
@@ -179,6 +182,7 @@ function pause()
   done
 }
 
+
 # Function to handle API boot params
 function bootparams()
 {
@@ -195,6 +199,7 @@ function bootparams()
     done
   fi
 }
+
 
 # Confirmation of installation function
 function confirminstall()
@@ -229,6 +234,7 @@ function confirminstall()
   done
 }
 
+
 # Configures the root user
 function configureroot()
 {
@@ -249,6 +255,7 @@ function configureroot()
   echo "rootpw ${pass}" > /tmp/ks-rootpw
 }
 
+
 # Configure the hostname (either arg or dhcp)
 function configurehostname()
 {
@@ -261,6 +268,7 @@ function configurehostname()
     hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
   fi
 }
+
 
 # Configure the location
 function configurelocation()
@@ -279,6 +287,7 @@ function configurelocation()
     echo ""
   done
 }
+
 
 # Setup NFS & timezone configurations
 function configurenfszones()
@@ -334,11 +343,13 @@ function kb2b()
   echo $(expr ${1} \* 1024)
 }
 
+
 # Calculate mb2bytes to bytes
 function mb2b()
 {
   echo $(expr ${1} \* 1024 \* 1024)
 }
+
 
 # Calculate gigabytes to MB
 function gb2mb()
@@ -346,11 +357,13 @@ function gb2mb()
   echo $(expr ${1} \* 1024)
 }
 
+
 # Calculate gigabytes to KB
 function gb2kb()
 {
   echo $(expr ${1} \* 1024 \* 1024)
 }
+
 
 # Calculate gigabytes to bytes
 function gb2b()
@@ -358,17 +371,20 @@ function gb2b()
   echo $(expr ${1} \* 1024 \* 1024 \* 1024)
 }
 
+
 # Calculate kilobytes to MB
 function kb2mb()
 {
   echo $(expr ${1} / 1024)
 }
 
+
 # Calculate bytes to MB
 function b2mb()
 {
   echo $(expr ${1} / 1024 / 1024)
 }
+
 
 # Return bytes based on % of total
 function percent()
@@ -385,7 +401,7 @@ function percent()
 ###############################################
 
 # Function to handle disk template creation for dynamic disks
-function templates2output()
+function configuredisks()
 {
   local disk="${1}"  # comma seperated list; i.e. sda:size,sdb:size etc
   local swap="${2}"  # swap disk space (physical memory x 1)
@@ -489,41 +505,41 @@ function templates2output()
   optapp_size=$(expr ${total_parts} - ${total_size})
 
   # Apply fix for a negative numbers
-  optapp_size=$(echo "${optapp_size}"|awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
+  optapp_size=$(echo "${optapp_size}"|
+    awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} == 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
-          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" \
-            >> /tmp/ks-diskconfig-extra
+          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
-      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" \
+      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g"
         > /tmp/ks-report-disks-extra
   fi
 
   # Write out /tmp/ks-diskconfig using ${disk_template}
   echo "${disk_template}" |
     sed -e "s|{DISKS}|${disk}|g" \
-    -e "s|{SWAP}|$(b2mb ${swap})|g" \
-    -e "s|{SIZE}|$(b2mb ${size})|g" \
-    -e "s|{PRIMARY}|${disk}|g" \
-    -e "s|{ROOTLVSIZE}|$(b2mb ${root_size})|g" \
-    -e "s|{VARLVSIZE}|$(b2mb ${var_size})|g" \
-    -e "s|{HOMELVSIZE}|$(b2mb ${home_size})|g" \
-    -e "s|{TMPLVSIZE}|$(b2mb ${tmp_size})|g" >> /tmp/ks-diskconfig
+        -e "s|{SWAP}|$(b2mb ${swap})|g" \
+        -e "s|{SIZE}|$(b2mb ${size})|g" \
+        -e "s|{PRIMARY}|${disk}|g" \
+        -e "s|{ROOTLVSIZE}|$(b2mb ${root_size})|g" \
+        -e "s|{VARLVSIZE}|$(b2mb ${var_size})|g" \
+        -e "s|{HOMELVSIZE}|$(b2mb ${home_size})|g" \
+        -e "s|{TMPLVSIZE}|$(b2mb ${tmp_size})|g" >> /tmp/ks-diskconfig
 
   # Write a report of the disk configuration
   echo "${disk_report}" |
     sed -e "s|{disk}|${disk}|g" \
-    -e "s|{swap}|$(b2mb ${swap})|g" \
-    -e "s|{size}|$(b2mb ${size})|g" \
-    -e "s|{root_size}|$(b2mb ${root_size})|g" \
-    -e "s|{var_size}|$(b2mb ${var_size})|g" \
-    -e "s|{home_size}|$(b2mb ${home_size})|g" \
-    -e "s|{tmp_size}|$(b2mb ${tmp_size})|g" >> /tmp/ks-report-disks
+        -e "s|{swap}|$(b2mb ${swap})|g" \
+        -e "s|{size}|$(b2mb ${size})|g" \
+        -e "s|{root_size}|$(b2mb ${root_size})|g" \
+        -e "s|{var_size}|$(b2mb ${var_size})|g" \
+        -e "s|{home_size}|$(b2mb ${home_size})|g" \
+        -e "s|{tmp_size}|$(b2mb ${tmp_size})|g" >> /tmp/ks-report-disks
 
 }
 
@@ -541,16 +557,27 @@ function multipledisks()
   local copy=(${disks[@]:1})
 
   # Get the first element as our primary volumegroup
-  local primary="$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[1]}')"
+  local primary="$(echo "${disks[0]}"|awk '{split($0, o, ":");print o[1]}')"
 
   # Get the size (in bytes) of our primary volumegroup
-  local size=$(echo "${copy[0]}"|awk '{split($0, o, ":");print o[2]}')
+  local size=$(echo "${disks[0]}"|awk '{split($0, o, ":");print o[2]}')
+
+  # If ${VDEBUG} is set to true; pause
+  if [ "${VDEBUG}" == "true" ]; then
+    clear
+    echo "Primary disk: ${primary} (${size})"
+    echo "Additional disks: ${copy[*]}"
+    pause
+  fi
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
 
     # Set our counter to 0
     local i=0
+
+    # Set iteration disk size to 0
+    local msize=0
 
     # Set total volume group size to 0
     local vsize=0
@@ -578,10 +605,13 @@ function multipledisks()
       dskname="$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[1]}')"
 
       # Get the ${dsize}
-      size=$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[2]}')
+      msize=$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[2]}')
+
+      # Remove 2% overhead from ${msize}
+      tsize=$(expr ${msize} - $(percent ${msize} 2))
 
       # Add ${size} to ${vsize}
-      vsize=$(expr ${size} + ${vsize})
+      vsize=$(expr ${msize} + ${vsize})
 
       # Make ks-diskconfig-extra with comment
       echo "" >> /tmp/ks-diskconfig-extra
@@ -591,14 +621,21 @@ function multipledisks()
       # Generate changes for ${pv_tmpl} and write to /tmp/ks-diskconfig-extra
       echo "$(echo "${pv_tmpl}" |
         sed -e "s|{ID}|${dname}|g" \
-            -e "s|{SIZE}|$(b2mb ${size})|g" \
+            -e "s|{SIZE}|$(b2mb ${tsize})|g" \
             -e "s|{DISK}|${dskname}|g")" >> /tmp/ks-diskconfig-extra
+
+      # If ${VDEBUG} is set to true; pause
+      if [ "${VDEBUG}" == "true" ]; then
+        echo "Iteration: ${i}"
+        echo "VG Name: ${dname}"
+        echo "Disk: ${dskname} (${msize})"
+        echo "Size after metadata overhead: ${tsize}"
+        echo "Total size: ${vsize}"
+        pause
+      fi
 
     done
   fi
-
-  # Account for 2% ext4 LVM overhead in ${vsize}
-  vsize=$(expr ${vsize} - $(percent ${vsize} 2))
 
   # Create a header for our volume group
   echo "" >> /tmp/ks-diskconfig-extra
@@ -698,6 +735,7 @@ clear
 cat <<EOF > /tmp/ks-arguments
 DEBUG ${DEBUG}
 INSTALL ${INSTALL}
+DVD ${DVD}
 LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
@@ -736,6 +774,7 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
+
 ###############################################
 # Configuration for DVD installations         #
 ###############################################
@@ -745,90 +784,6 @@ if [ "${DVD}" == "true" ]; then
   echo "cdrom" > /tmp/ks-installation
 else
   touch /tmp/ks-installation
-fi
-
-
-###############################################
-# Configuration for physical disks            #
-###############################################
-
-# Determine the amount of memory on the system, used for our swap partition
-swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
-
-# Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
-
-# Make sure ${disks[@]} is > 0
-if [ ! ${#dsks[@]} -gt 0 ]; then
-  echo "No physical disks present! Cannot create necessary disk configuration"
-  exit 1
-fi
-
-# Iterate ${disks[@]} & remove USB devices
-for item in ${dsks[@]}; do
-
-  # Extract the disk
-  disk="$(echo "${item}"|awk '{split($0, o, ":");print o[1]}')"
-
-  # Extract the disk size
-  size="$(echo "${item}"|awk '{split($0, o, ":");print o[2]}')"
-
-  # Skip ${disk} if it is a USB device
-  link="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
-
-  if [ "${link}" == "" ]; then
-
-    # Wipe the MBR of each disk to account for 'clearpart' deficiencies
-    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512)
-
-    disks+=("${disk}:${size}")
-  fi
-done
-
-# If ${#disks[@]} > 1 combine as a comma seperated list
-if [ ${#disks[@]} -gt 1 ]; then
-  dsk="${disks[@]}"
-  disks="${dsk// /,}"
-fi
-
-# Create disk configuration files /tmp/ks-diskconfig & /tmp/ks-diskconfig-extra
-templates2output "${disks}" "${swap}"
-
-###############################################
-# Print out the disk configuration report     #
-###############################################
-
-# Make sure our disk configuration file exist
-if [[ ! -f /tmp/ks-diskconfig ]] || [[ ! -f /tmp/ks-diskconfig-extra ]]; then
-  echo "Disk configuration files were not created"
-  exit 1
-fi
-
-# Combine disk configuration files & remove temporary
-cat /tmp/ks-diskconfig-extra >> /tmp/ks-diskconfig
-rm /tmp/ks-diskconfig-extra
-
-# Make sure our disk report files exist
-if [[ ! -f /tmp/ks-report-disks ]] || \
-    [[ ! -f /tmp/ks-report-disks-extra ]]; then
-  echo "Disk report files were not created"
-  exit 1
-fi
-
-# Combine disk report files & remove temporary
-cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
-rm /tmp/ks-report-disks-extra
-
-# Clear the terminal
-clear
-
-# Print the disk configuration report
-cat /tmp/ks-report-disks
-echo ""
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
 fi
 
 
@@ -906,6 +861,7 @@ fi
 echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
   --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
 
+
 ###############################################
 # Print out the network configuration report  #
 ###############################################
@@ -923,6 +879,97 @@ EOF
 # Clear the terminal
 clear
 cat /tmp/ks-report-network
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
+
+###############################################
+# Configuration for physical disks            #
+###############################################
+
+# Determine the amount of memory on the system, used for our swap partition
+swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
+
+# Get a collection of physical disks (filter out partitions & convert blocks to bytes)
+dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
+
+# Make sure ${disks[@]} is > 0
+if [ ! ${#dsks[@]} -gt 0 ]; then
+  echo "No physical disks present! Cannot create necessary disk configuration"
+  exit 1
+fi
+
+# Iterate ${disks[@]} & remove USB devices
+for item in ${dsks[@]}; do
+
+  # Extract the disk
+  disk="$(echo "${item}"|awk '{split($0, o, ":");print o[1]}')"
+
+  # Extract the disk size
+  size="$(echo "${item}"|awk '{split($0, o, ":");print o[2]}')"
+
+  # Skip ${disk} if it is a USB device
+  link="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
+
+  if [ "${link}" == "" ]; then
+
+    # Wipe the MBR of each disk to account for 'clearpart' deficiencies
+    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512)
+
+    disks+=("${disk}:${size}")
+  fi
+done
+
+# If ${#disks[@]} > 1 combine as a comma seperated list
+if [ ${#disks[@]} -gt 1 ]; then
+  dsk="${disks[@]}"
+  disks="${dsk// /,}"
+fi
+
+# Create disk configuration files /tmp/ks-diskconfig & /tmp/ks-diskconfig-extra
+configuredisks "${disks}" "${swap}"
+
+
+###############################################
+# Print out the disk configuration report     #
+###############################################
+
+# Make sure our disk configuration file exist
+if [[ ! -f /tmp/ks-diskconfig ]] || [[ ! -f /tmp/ks-diskconfig-extra ]]; then
+  echo "Disk configuration files were not created"
+  exit 1
+fi
+
+# Combine disk configuration files & remove temporary
+cat /tmp/ks-diskconfig-extra >> /tmp/ks-diskconfig
+rm /tmp/ks-diskconfig-extra
+
+# Make sure our disk report files exist
+if [[ ! -f /tmp/ks-report-disks ]] || \
+    [[ ! -f /tmp/ks-report-disks-extra ]]; then
+  echo "Disk report files were not created"
+  exit 1
+fi
+
+# Combine disk report files & remove temporary
+cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
+rm /tmp/ks-report-disks-extra
+
+# If ${VDEBUG} is set to true; pause
+if [ "${VDEBUG}" == "true" ]; then
+  echo "%pre: Created disk configuration report"
+  sleep 2
+fi
+
+# Clear the terminal
+clear
+
+# Print the disk configuration report
+cat /tmp/ks-report-disks
+echo ""
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
@@ -1031,11 +1078,46 @@ function pause() {
 # Set our env variables from /tmp/ks-arguments
 DEBUG="$(cat /tmp/ks-arguments|awk '$0 ~ /^DEBUG/{print $2}')"
 INSTALL="$(cat /tmp/ks-arguments|awk '$0 ~ /^INSTALL/{print $2}')"
+DVD="$(cat /tmp/ks-arguments|awk '$0 ~ /^DVD/{print $2}')"
 HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 
+
+###############################################
+# Create mount point for NFS share in chroot  #
+###############################################
+
+# Mount point for NFS share or DVD build-tool configuration
+path="/mnt/sysimage/var/tmp/unixbuild"
+
+# Make sure the ${path} exists, make if not
+if [ ! -d "${path}" ] ; then
+  mkdir -p "${path}"
+fi
+
+
+###############################################
+# If ${DVD} is true copy tools from DVD       #
+###############################################
+
+# If ${DVD} set is false get NFS mounts ready
+if [ "${DVD}" == "true" ]; then
+
+  # Copy the local DVD build-tools to the local chroot env
+  cp -fr /mnt/sysimage/ks/build-tools ${path}/linux/
+
+  # Generate a %pre (non-chroot) configuration report
+  cat <<EOF > /tmp/ks-report-post
+Post installation: (pre-chroot)
+  ENV:
+    - Copied configurations to chroot environment
+    - Copied RHEL build tools to chroot environment
+
+EOF
+
+fi
 
 ###############################################
 # Aquire NFS server settings for chroot env   #
@@ -1044,16 +1126,17 @@ GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 # Attempt to get our previously written ${nfs_share} from /tmp/ks-nfsshare
 if [ ! -f /tmp/ks-nfsshare ]; then
   echo "/tmp/ks-nfsshare file is missing, exiting"
-  exit 1
-fi
+  do_mount=false
+else
 
-# Split up /tmp/ks-nfsshare to get our nfs server
-nfs_server="$(cat /tmp/ks-nfsshare|awk '$0 ~ /^nfs/{split($2, obj, "=");print obj[2]}')"
+  # Split up /tmp/ks-nfsshare to get our nfs server
+  nfs_server="$(cat /tmp/ks-nfsshare|awk '$0 ~ /^nfs/{split($2, obj, "=");print obj[2]}')"
+fi
 
 # Make sure we have something for ${nfs_server}
 if [ "${nfs_server}" == "" ]; then
   echo "Could not get the NFS server"
-  exit 1
+  do_mount=false
 fi
 
 
@@ -1065,20 +1148,7 @@ fi
 ping=$(ping -c1 ${nfs_server})
 if [ $? -ne 0 ]; then
   echo "Could not contact the ${nfs_server}, check routing table (gateway)"
-  exit 1
-fi
-
-
-###############################################
-# Create mount point for NFS share in chroot  #
-###############################################
-
-# Mount point for NFS share
-path="/mnt/sysimage/var/tmp/unixbuild"
-
-# Make sure the ${path} exists, make if not
-if [ ! -d "${path}" ] ; then
-  mkdir -p "${path}"
+  do_mount=false
 fi
 
 
@@ -1086,15 +1156,18 @@ fi
 # Setup NFS mount in chroot @ /mnt/sysimage   #
 ###############################################
 
-# Mount NFS share for %post processing
-nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
-if [ $? -ne 0 ]; then
-  echo "An error occured mount ${nfs_server} @ ${path}, exiting"
-  exit 1
-fi
+# IF ${do_mount} != false (NFS server online) ignore ${DVD} & mount NFS share
+# to ensure we are using the latest build configuration tools
+if [ "${do_mount}" != "false" ]; then
 
-# Generate a %pre (non-chroot) configuration report
-cat <<EOF > /tmp/ks-report-post
+  # Mount NFS share for %post processing
+  nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
+  if [ $? -ne 0 ]; then
+    echo "An error occured mount ${nfs_server} @ ${path}, exiting"
+  fi
+
+  # Generate a %pre (non-chroot) configuration report
+  cat <<EOF > /tmp/ks-report-post
 Post installation: (pre-chroot)
   ENV:
     - Copied configurations to chroot environment
@@ -1105,6 +1178,7 @@ Post installation: (pre-chroot)
 
 EOF
 
+fi
 
 ###############################################
 # Expose /tmp/ks* files to chroot env         #
