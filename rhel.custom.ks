@@ -59,6 +59,18 @@ DVD=false
 # Set VDEBUG = false, provides a little more output than DEBUG
 VDEBUG=false
 
+# Please see document for available server prefixes per timezone
+# http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/Server%20Naming%20Standard%20PPW.docx
+
+# Naming standard prefix array for Pacific Standard Time systems
+pst_prefix=(ALB AST BND COG COO CRC ENT GPS HDR KFL LIN MAD MED MER PBC PCC PDX
+PEN PFO PMO POR ROS STA TER TOK WAL WIL)
+
+# Naming standard prefix array for Mountain Standard Time systems
+mst_prefix=(AMF BLU CAR CDC COD COT CUR DJP DEL DOG EDM EVA EWM GAD GRA GRC HNG
+HTR HUR IDF JBP JOV LAK LAR LAV LAY MOA MON NAU OGD PAC PGA PIO PRC PRE RAW RCH
+REX RIG RIV ROC SAN SAT SCC SHE SLC SMI TOO TRE UTB VER WBC)
+
 
 ###############################################
 # General configuration variables             #
@@ -77,13 +89,13 @@ path="/unixshr/linux/kickstart"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
 country="America"
 
-# PDX specific options
-pdx_nfsserver="131.219.230.48"  # pdxnfsc01p
-pdx_timezone="Los_Angeles"
+# Pacific Standard Time specific options
+pst_nfsserver="131.219.230.48"  # pdxnfsc01p
+pst_timezone="Los_Angeles"
 
-# SLC specific options
-slc_nfsserver="131.219.218.226" # slcnfsc01p
-slc_timezone="Denver"
+# Mountain Standard Time specific options
+mst_nfsserver="131.219.218.226" # slcnfsc01p
+mst_timezone="Denver"
 
 
 ###############################################
@@ -182,6 +194,21 @@ function pause()
   done
 }
 
+# Search array
+in_array()
+{
+  local haystack=${1}[@]
+  local needle=${2}
+
+  for i in ${!haystack}; do
+    if [[ ${i} == ${needle} ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+
 
 # Function to handle API boot params
 function bootparams()
@@ -273,17 +300,31 @@ function configurehostname()
 # Configure the location
 function configurelocation()
 {
-  # Set location to ${LOCATION} or first 3 characters of ${hostname}
+  # Set ${location} to ${LOCATION} or first 3 characters of ${hostname}
   if [ "${LOCATION}" == "" ]; then
     location="$(echo "${hostname:0:3}"|awk '{print toupper($0)}')"
   else
     location="$(echo "${LOCATION}"|awk '{print toupper($0)}')"
   fi
 
+  # If ${location} != MST || PST then search 
+  if [[ ! "${location}" =~ PST ]] && [[ ! "${location}" =~ MST ]]; then
+
+    # Search for ${location} in ${mst_prefix}
+    if [ $(in_array ${mst_prefix} ${location}) == 1 ]; then
+      location="MST"
+    fi
+
+    # Search for ${location} in ${pst_prefix}
+    if [ $(in_array ${pst_prefix} ${location}) == 1 ]; then
+      location="PST"
+    fi
+  fi
+
   # Prompt for ${location} if it doesn't match the list
-  while [[ ! "${location}" =~ PDX ]] && [[ ! "${location}" =~ SLC ]]; do
-    echo "Could not determine location; use LOCATION=<PDX|SLC> as boot arg"
-    read -p "Physical location? [PDX|SLC] " location
+  while [[ ! "${location}" =~ PST ]] && [[ ! "${location}" =~ MST ]]; do
+    echo "Could not determine location. Options: MST|PST"
+    read -p "Physical location? " location
     echo ""
   done
 }
@@ -1106,7 +1147,7 @@ fi
 if [ "${DVD}" == "true" ]; then
 
   # Copy the local DVD build-tools to the local chroot env
-  cp -fr /mnt/sysimage/ks/build-tools ${path}/linux/
+  cp -fr /mnt/sysimage/build-tools ${path}/linux/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
