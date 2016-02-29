@@ -33,7 +33,7 @@ ROOTPW=
 
 # LOCATION is empty but can be provided as command line arg to facilitate
 # automation (no user interaction). If the HOSTNAME parameter first three
-# characters match PDX or SLC this is not required for automation
+# characters match MST or PST this is not required for automation
 LOCATION=
 
 # HOSTNAME is empty but if provided & conforms to naming standard will be used
@@ -195,19 +195,20 @@ function pause()
 }
 
 # Search array
-in_array()
+function in_array()
 {
-  local haystack=${1}[@]
-  local needle=${2}
+  local args=("${@}")
+  local needle="${args[0]}"
+  local haystack=("${args[@]:1}")
 
-  for i in ${!haystack}; do
+  for i in ${haystack[@]}; do
     if [[ ${i} == ${needle} ]]; then
       return 0
     fi
   done
+
   return 1
 }
-
 
 
 # Function to handle API boot params
@@ -308,23 +309,27 @@ function configurelocation()
   fi
 
   # If ${location} != MST || PST then search 
-  if [[ ! "${location}" =~ PST ]] && [[ ! "${location}" =~ MST ]]; then
+  if [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; then
 
     # Search for ${location} in ${mst_prefix}
-    if [ $(in_array ${mst_prefix} ${location}) == 1 ]; then
+    mst_res=$(in_array ${location} ${mst_prefix[@]})
+    if [ $? -eq 0 ]; then
       location="MST"
+      echo "Found MST as location"
     fi
 
     # Search for ${location} in ${pst_prefix}
-    if [ $(in_array ${pst_prefix} ${location}) == 1 ]; then
+    pst_res=$(in_array ${location} ${pst_prefix[@]})
+    if [ $? -eq 0 ]; then
       location="PST"
+      echo "Found PST as location"
     fi
   fi
 
   # Prompt for ${location} if it doesn't match the list
-  while [[ ! "${location}" =~ PST ]] && [[ ! "${location}" =~ MST ]]; do
-    echo "Could not determine location. Options: MST|PST"
-    read -p "Physical location? " location
+  while [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; do
+    echo "Could not determine location from hostname provided."
+    read -p "Physical location? [MST|PST] " location
     echo ""
   done
 }
@@ -333,13 +338,16 @@ function configurelocation()
 # Setup NFS & timezone configurations
 function configurenfszones()
 {
-  # Use ${location} to determine NFS server (don't count on DNS)
-  if [ "${location}" == "SLC" ]; then
-    zone="${slc_timezone}"
-    nfs_server="${slc_nfsserver}"
-  else
-    zone="${pdx_timezone}"
-    nfs_server="${pdx_nfsserver}"
+  # Setup NFS & timezone for MST location
+  if [ "${location}" == "MST" ]; then
+    zone="${mst_timezone}"
+    nfs_server="${mst_nfsserver}"
+  fi
+
+  # Setup NFS & timezone for PST location
+  if [ "${location}" == "PST" ]; then
+    zone="${pst_timezone}"
+    nfs_server="${pst_nfsserver}"
   fi
 
   # Write out /tmp/timezone
@@ -550,14 +558,14 @@ function configuredisks()
     awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
-  if [ ${optapp} == 0 ]; then
+  if [ ${optapp} -eq 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
           -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
-      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g"
+      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" \
         > /tmp/ks-report-disks-extra
   fi
 
@@ -843,7 +851,8 @@ if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
     [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
 
   # Make sure they are valid
-  if [[ $(valid_ip "${ip}") -ne 0 ]] || [[ $(valid_ip "${netmask}") -ne 0 ]] || \
+  if [[ $(valid_ip "${ip}") -ne 0 ]] || \
+      [[ $(valid_ip "${netmask}") -ne 0 ]] || \
       [[ $(valid_ip "${gateway}") -ne 0 ]]; then
     IPADDR=${ip}
     NETMASK=${netmask}
@@ -898,7 +907,7 @@ else
   sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
 fi
 
-# Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network configuration
+# Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
 echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
   --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
 
@@ -934,8 +943,10 @@ fi
 # Determine the amount of memory on the system, used for our swap partition
 swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
-# Get a collection of physical disks (filter out partitions & convert blocks to bytes)
-dsks=($(cat -n /proc/partitions|awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
+# Get a collection of physical disks
+#  Filters disk partitions & converts blocks to bytes
+dsks=($(cat -n /proc/partitions |
+        awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
 
 # Make sure ${disks[@]} is > 0
 if [ ! ${#dsks[@]} -gt 0 ]; then
@@ -986,6 +997,8 @@ fi
 
 # Combine disk configuration files & remove temporary
 cat /tmp/ks-diskconfig-extra >> /tmp/ks-diskconfig
+
+# Remove the combined disk configuration
 rm /tmp/ks-diskconfig-extra
 
 # Make sure our disk report files exist
@@ -1171,7 +1184,8 @@ if [ ! -f /tmp/ks-nfsshare ]; then
 else
 
   # Split up /tmp/ks-nfsshare to get our nfs server
-  nfs_server="$(cat /tmp/ks-nfsshare|awk '$0 ~ /^nfs/{split($2, obj, "=");print obj[2]}')"
+  nfs_server="$(cat /tmp/ks-nfsshare |
+    awk '$0 ~ /^nfs/{split($2, obj, "=");print obj[2]}')"
 fi
 
 # Make sure we have something for ${nfs_server}
@@ -1340,7 +1354,8 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Run ${build_tools} to validate current configuration with logging
-./rhel-builder -vc > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+./rhel-builder -vc \
+  > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
@@ -1348,7 +1363,8 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Run ${build_tools} to make changes according to RHEL build guide standards
-./rhel-builder -va kickstart > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+./rhel-builder -va kickstart \
+  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
@@ -1356,30 +1372,34 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Run ${build_tools} to validate changes
-./rhel-builder -vc > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+./rhel-builder -vc \
+  > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
 # Examine post build log for errors           #
 ###############################################
 
+# log file name
+log_file="${folder}/build/$(hostname)-$(date +%Y%m%d)*.log"
+
 # Get total number of tools configured to run
 total=$(awk '$0 ~ /^\[/{print}' rhel-builder|wc -l)
 
 # Get an array of configuration scripts that were run
-tools=($(awk '$0 ~ /^Executing:/{print $2}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+tools=($(awk '$0 ~ /^Executing:/{print $2}' ${log_file}))
 
 # Provide the total number of scripts run
 total_tools=${#tools[@]}
 
 # Get an array of configuration scripts that failed
-failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${log_file}))
 
 # Provide the total number of failed scripts run
 total_failed_tools=${#failed_tools[@]}
 
 # Get an array of configuration scripts that succeeded
-successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){print "."obj[1]}}' ${folder}/build/$(hostname)-$(date +%Y%m%d)*.log))
+successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){print "."obj[1]}}' ${log_file}))
 
 # Provide the total number of failed scripts run
 total_successful_tools=${#successful_tools[@]}
@@ -1421,9 +1441,12 @@ fi
 
 # Obtain ${IPADDR}, ${NETMASK} & ${GATEWAY} from /tmp/ks-networking
 net="$(cat /tmp/ks-networking)"
-IPADDR="$(echo "${net}"|awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-NETMASK="$(echo "${net}"|awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+IPADDR="$(echo "${net}" |
+  awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+NETMASK="$(echo "${net}" |
+  awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
+GATEWAY="$(echo "${net}" |
+  awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
 
 
 ###############################################
@@ -1432,7 +1455,8 @@ GATEWAY="$(echo "${net}"|awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.
 
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
-./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" \
+  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
 
 
 ###############################################
