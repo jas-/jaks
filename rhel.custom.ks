@@ -986,6 +986,16 @@ configuredisks "${disks}" "${swap}"
 
 
 ###############################################
+# Copy build tools to temporary memory fs     #
+###############################################
+
+# Copy the build tools to /tmp from /mnt/stage2/build-tools
+if [ -d /mnt/stage2/build-tools ]; then
+  cp -fr /mnt/stage2/build-tools /tmp
+fi
+
+
+###############################################
 # Print out the disk configuration report     #
 ###############################################
 
@@ -1160,7 +1170,7 @@ fi
 if [ "${DVD}" == "true" ]; then
 
   # Copy the local DVD build-tools to the local chroot env
-  cp -fr /mnt/sysimage/build-tools ${path}/linux/
+  cp -fr /tmp/build-tools ${path}/linux/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
@@ -1467,8 +1477,7 @@ GATEWAY="$(echo "${net}" |
 cat <<EOF > /tmp/ks-report-post-chroot
 Post installation: (chroot)
   ENV:
-    - Verification of NFS mount
-    - Validation of build tools from NFS mount
+    - Validation of build tool existence
     - Creation of reporting structure for build process
   BUILD:
     - Logs for each stage of configuration created
@@ -1476,8 +1485,6 @@ Post installation: (chroot)
       - Total tools run:         ${total_tools}
       - Total successful tools:  ${total_successful_tools}
       - Total failed tools:      ${total_failed_tools}
-    - Build validation log:
-      - ${folder}/build-logs/post/$(hostname)-$(date +%Y%m%d-%H%M).log
   BACKUP:
     - Backup of kickstart configurations:
       - Location & timezone configuration
