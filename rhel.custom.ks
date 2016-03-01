@@ -990,6 +990,18 @@ configuredisks "${disks}" "${swap}"
 # Copy the build tools to /tmp from /mnt/stage2/build-tools
 if [ -d /mnt/stage2/build-tools ]; then
   cp -fr /mnt/stage2/build-tools /tmp
+else
+
+  # Try and mount /dev/sda1
+  if [ -b /dev/sda1 ]; then
+    mkdir /tmp/tfs
+    mount /dev/sda1 /tmp/tfs
+
+    # If it mounts try to get our build tools
+    if [ -b /tmp/tfs/build-tools ]; then
+      cp -fr /tmp/tfs/build-tools /tmp
+    fi
+  fi
 fi
 
 
