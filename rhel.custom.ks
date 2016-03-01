@@ -864,8 +864,6 @@ fi
 if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
     [[ "${GATEWAY}" != "" ]]; then
 
-  echo "IP, Netmask & Gateway specified as boot params"
-
   # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
   if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
       [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
@@ -1170,7 +1168,8 @@ fi
 if [ "${DVD}" == "true" ]; then
 
   # Copy the local DVD build-tools to the local chroot env
-  cp -fr /tmp/build-tools ${path}/linux/
+  mkdir -p ${path}/linux/build-tools
+  cp -fr /tmp/build-tools/* ${path}/linux/build-tools/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
