@@ -212,23 +212,34 @@ function in_array()
 
 
 # Function to handle moving build tools in %pre
+# This might be best served as a recursive function
+# to ensure we get the tools copied over
 function copytools()
 {
-  # Copy the build tools to /tmp from /mnt/stage2/build-tools
+  # If /mnt/stage2 exists just get the tools from there
   if [ -d /mnt/stage2/build-tools ]; then
     cp -fr /mnt/stage2/build-tools /tmp
   else
+
+    # Local variable to handle device for mounting
     local point=
 
+    # If /dev/sda1 is a block device use that to look for tools
     if [ -b /dev/sda1 ]; then
       point=/dev/sda1
     fi
 
+    # If ${point} still empty & /dev/sr0 is a block device look there
     if [[ -b /dev/sr0 ]] && [[ "${point}" == "" ]]; then
       point=/dev/sr0
     fi
 
-    mkdir /tmp/tfs
+    # Make our mount point if it doesn't exist
+    if [ ! -d /tmp/tfs ]; then
+      mkdir /tmp/tfs
+    fi
+
+    # Mount ${point}
     mount ${point} /tmp/tfs
 
     # If it mounts try to get our build tools
@@ -236,6 +247,7 @@ function copytools()
       cp -frv /tmp/tfs/build-tools /tmp/
     fi
 
+    # Unmount and cleanup
     umount /tmp/tfs
     rm -f /tmp/tfs
   fi
