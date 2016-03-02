@@ -211,6 +211,37 @@ function in_array()
 }
 
 
+# Function to handle moving build tools in %pre
+function copytools()
+{
+  # Copy the build tools to /tmp from /mnt/stage2/build-tools
+  if [ -d /mnt/stage2/build-tools ]; then
+    cp -fr /mnt/stage2/build-tools /tmp
+  else
+    local point=
+
+    if [ -b /dev/sda1 ]; then
+      point=/dev/sda1
+    fi
+
+    if [[ -b /dev/sr0 ]] && [[ "${point}" == "" ]]; then
+      point=/dev/sr0
+    fi
+
+    mkdir /tmp/tfs
+    mount ${point} /tmp/tfs
+
+    # If it mounts try to get our build tools
+    if [ -d /tmp/tfs/build-tools ]; then
+      cp -frv /tmp/tfs/build-tools /tmp/
+    fi
+
+    umount /tmp/tfs
+    rm -f /tmp/tfs
+  fi
+}
+
+
 # Function to handle API boot params
 function bootparams()
 {
@@ -723,6 +754,17 @@ bootparams
 clear
 
 ###############################################
+# Copy build tools to temporary memory fs     #
+###############################################
+
+# Set up the API defaults provided from /proc/cmdline
+copytools
+
+# Clear the terminal
+clear
+
+
+###############################################
 # If ${INSTALL} != true, require confirmation #
 ###############################################
 
@@ -981,28 +1023,6 @@ fi
 
 # Create disk configuration files /tmp/ks-diskconfig & /tmp/ks-diskconfig-extra
 configuredisks "${disks}" "${swap}"
-
-
-###############################################
-# Copy build tools to temporary memory fs     #
-###############################################
-
-# Copy the build tools to /tmp from /mnt/stage2/build-tools
-if [ -d /mnt/stage2/build-tools ]; then
-  cp -fr /mnt/stage2/build-tools /tmp
-else
-
-  # Try and mount /dev/sda1
-  if [ -b /dev/sda1 ]; then
-    mkdir /tmp/tfs
-    mount /dev/sda1 /tmp/tfs
-
-    # If it mounts try to get our build tools
-    if [ -b /tmp/tfs/build-tools ]; then
-      cp -fr /tmp/tfs/build-tools /tmp
-    fi
-  fi
-fi
 
 
 ###############################################
