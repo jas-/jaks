@@ -218,6 +218,8 @@ function copytools()
 {
   # If /mnt/stage2 exists just get the tools from there
   if [ -d /mnt/stage2/build-tools ]; then
+
+    # Copy tools from /mnt/stage2
     cp -fr /mnt/stage2/build-tools /tmp
   else
 
