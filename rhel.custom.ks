@@ -56,9 +56,6 @@ GATEWAY=
 # DVD is used for DVD or no network based installations
 DVD=false
 
-# Set VDEBUG = false, provides a little more output than DEBUG
-VDEBUG=false
-
 # Please see document for available server prefixes per timezone
 # http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/Server%20Naming%20Standard%20PPW.docx
 
@@ -113,7 +110,7 @@ vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
---maxsize={SIZE} --size={SIZE} --grow --percent=90"
+--size={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -602,6 +599,9 @@ function configuredisks()
   optapp_size=$(echo "${optapp_size}"|
     awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
 
+  # Remove 2% overhead from ${optapp_size}
+  optapp_size=$(expr ${optapp_size} - $(percent ${optapp_size} 2))
+
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} -eq 0 ]; then
     echo "$(echo "${lv_tmpl}" |
@@ -656,14 +656,6 @@ function multipledisks()
   # Get the size (in bytes) of our primary volumegroup
   local size=$(echo "${disks[0]}"|awk '{split($0, o, ":");print o[2]}')
 
-  # If ${VDEBUG} is set to true; pause
-  if [ "${VDEBUG}" == "true" ]; then
-    clear
-    echo "Primary disk: ${primary} (${size})"
-    echo "Additional disks: ${copy[*]}"
-    pause
-  fi
-
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
   if [ ${#copy[@]} -gt 1 ]; then
 
@@ -698,14 +690,14 @@ function multipledisks()
       # Get the disk name from ${dsk}
       dskname="$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[1]}')"
 
-      # Get the ${dsize}
+      # Get the ${msize}
       msize=$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[2]}')
 
       # Remove 2% overhead from ${msize}
       tsize=$(expr ${msize} - $(percent ${msize} 2))
 
-      # Add ${size} to ${vsize}
-      vsize=$(expr ${msize} + ${vsize})
+      # Add ${tsize} to ${vsize}
+      vsize=$(expr ${tsize} + ${vsize})
 
       # Make ks-diskconfig-extra with comment
       echo "" >> /tmp/ks-diskconfig-extra
@@ -717,16 +709,6 @@ function multipledisks()
         sed -e "s|{ID}|${dname}|g" \
             -e "s|{SIZE}|$(b2mb ${tsize})|g" \
             -e "s|{DISK}|${dskname}|g")" >> /tmp/ks-diskconfig-extra
-
-      # If ${VDEBUG} is set to true; pause
-      if [ "${VDEBUG}" == "true" ]; then
-        echo "Iteration: ${i}"
-        echo "VG Name: ${dname}"
-        echo "Disk: ${dskname} (${msize})"
-        echo "Size after metadata overhead: ${tsize}"
-        echo "Total size: ${vsize}"
-        pause
-      fi
 
     done
   fi
@@ -1065,12 +1047,6 @@ fi
 # Combine disk report files & remove temporary
 cat /tmp/ks-report-disks-extra >> /tmp/ks-report-disks
 rm /tmp/ks-report-disks-extra
-
-# If ${VDEBUG} is set to true; pause
-if [ "${VDEBUG}" == "true" ]; then
-  echo "%pre: Created disk configuration report"
-  sleep 2
-fi
 
 # Clear the terminal
 clear
