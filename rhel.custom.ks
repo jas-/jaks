@@ -113,7 +113,7 @@ vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
---size={SIZE} --grow"
+--size={SIZE} --grow --percent=90"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
