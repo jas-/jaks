@@ -94,6 +94,9 @@ pst_timezone="Los_Angeles"
 mst_nfsserver="131.219.218.226" # slcnfsc01p
 mst_timezone="Denver"
 
+# Disk debugging log
+dlog=/tmp/disks.log
+
 
 ###############################################
 # Disk specific variables & templates         #
@@ -110,7 +113,7 @@ vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
---size={SIZE} --grow --percent=90"
+--size={SIZE} --grow"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -591,16 +594,8 @@ function configuredisks()
   # Calculate ${optapp_size} based on ${size} - ${total_parts}
   total_size=$(expr ${size} - ${total_parts})
 
-  # Remove ${root_size}, ${var_size}, ${home_size} & ${tmp_size} from ${size}
-  # to allocate for ${optapp_size} (if ${optapp} != 1)
-  optapp_size=$(expr ${total_parts} - ${total_size})
-
-  # Apply fix for a negative numbers
-  optapp_size=$(echo "${optapp_size}"|
-    awk '{if(match($0, /^-/)){print substr($0, 2, length($0))}else{print $0}}')
-
   # Remove 2% overhead from ${optapp_size}
-  optapp_size=$(expr ${optapp_size} - $(percent ${optapp_size} 2))
+  optapp_size=$(expr ${total_size} - $(percent ${total_size} 2))
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} -eq 0 ]; then
@@ -612,6 +607,22 @@ function configuredisks()
     echo "${vm_disk_report}" |
       sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" \
         > /tmp/ks-report-disks-extra
+  fi
+
+  # If ${DEBUG} is true log
+  if [ "${DEBUG}" == "true" ]; then
+    echo "" >> ${dlog}
+    echo "PV: pv.root ${disk} $(b2mb ${size})MB (${size} bytes)" >> ${dlog}
+    echo "VG Total: $(b2mb ${size})MB (${size} bytes)" >> ${dlog}
+    echo "" >> ${dlog}
+    echo "LV Total: $(b2mb ${total_parts})MB (${total_parts} bytes)" >> ${dlog}
+    echo "  LV root: $(b2mb ${root_size})MB (${root_size} bytes)" >> ${dlog}
+    echo "  LV var: $(b2mb ${var_size})MB (${var_size} bytes)" >> ${dlog}
+    echo "  LV home: $(b2mb ${home_size})MB (${home_size} bytes)" >> ${dlog}
+    echo "  LV tmp: $(b2mb ${tmp_size})MB (${tmp_size} bytes)" >> ${dlog}
+    if [ ${optapp} -eq 0 ]; then
+      echo "  LV optapp: $(b2mb ${optapp_size})MB (${optapp_size} bytes)" >> ${dlog}
+    fi
   fi
 
   # Write out /tmp/ks-diskconfig using ${disk_template}
@@ -649,6 +660,13 @@ function multipledisks()
 
   # Make copy of ${disks[@]:1}yes
   local copy=(${disks[@]:1})
+
+  # If ${DEBUG} is true log
+  if [ "${DEBUG}" == "true" ]; then
+    echo "Disk(s): ${copy[*]}" >> ${dlog}
+  fi
+
+  # Get rid of this ${primary} & ${size} are not used here
 
   # Get the first element as our primary volumegroup
   local primary="$(echo "${disks[0]}"|awk '{split($0, o, ":");print o[1]}')"
@@ -695,6 +713,11 @@ function multipledisks()
 
       # Remove 2% overhead from ${msize}
       tsize=$(expr ${msize} - $(percent ${msize} 2))
+
+      # If ${DEBUG} is true log
+      if [ "${DEBUG}" == "true" ]; then
+        echo "PV: ${dname} [${dskname} $(b2mb ${msize})MB (${msize} bytes)] ${tsize}" >> ${dlog}
+      fi
 
       # Add ${tsize} to ${vsize}
       vsize=$(expr ${tsize} + ${vsize})
@@ -979,10 +1002,22 @@ fi
 # Determine the amount of memory on the system, used for our swap partition
 swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
 
+# If ${DEBUG} is true log
+if [ "${DEBUG}" == "true" ]; then
+  echo "Boot: 500MB ($(mb2b 500) bytes)" >> ${dlog}
+  echo "Swap: $(b2mb ${swap})MB (${swap} bytes)" >> ${dlog}
+fi
+
 # Get a collection of physical disks
 #  Filters disk partitions & converts blocks to bytes
 dsks=($(cat -n /proc/partitions |
         awk '$1 > 1 && $5 ~ /^s[a-z]+$/{print $5":"$4 * 1024}'|sort -t: -k1))
+
+# If ${DEBUG} is true log
+if [ "${DEBUG}" == "true" ]; then
+  echo "Disk(s): ${dsks}" >> ${dlog}
+  echo "" >> ${dlog}
+fi
 
 # Make sure ${disks[@]} is > 0
 if [ ! ${#dsks[@]} -gt 0 ]; then
@@ -1008,6 +1043,12 @@ for item in ${dsks[@]}; do
     bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512)
 
     disks+=("${disk}:${size}")
+
+    # If ${DEBUG} is true log
+    if [ "${DEBUG}" == "true" ]; then
+      echo "Wiped: ${disk} $(b2mb ${size})MB (${size} bytes)" >> ${dlog}
+    fi
+
   fi
 done
 
