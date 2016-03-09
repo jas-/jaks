@@ -113,7 +113,7 @@ vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
---size={SIZE} --grow --percent=90"
+--size={SIZE} --grow --percent=75"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -127,13 +127,16 @@ clearpart --all --initlabel --drives={DISKS}
 part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
 
 # Create a memory partition of {SWAP}MB on {PRIMARY}
-part swap --size={SWAP} --ondisk={PRIMARY}
+#part swap --size={SWAP} --ondisk={PRIMARY}
 
 # Create an LVM partition of {SIZE}MB on {PRIMARY}
 part pv.root --size={SIZE} --ondisk={PRIMARY} --grow --asprimary
 
 # Create the root volume group
 volgroup rootvg pv.root
+
+# Create a memory partition of {SWAP}MB
+logvol swap --fstype="swap" --name="swaplv" --vgname="rootvg" --size={SWAP}
 
 # Create logical volume for the / mount point
 logvol / --fstype="ext4" --name="rootlv" --vgname="rootvg" --size={ROOTLVSIZE}
