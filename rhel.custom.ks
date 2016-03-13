@@ -757,17 +757,18 @@ function multipledisks()
 # IPv4 validation function
 function valid_ip()
 {
-  local  ip=$1
+  local  ip=${1}
   local  stat=1
 
-  if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+  if [[ ${ip} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
     OIFS=$IFS
     IFS='.'
-    ip=($ip)
+    ip=(${ip})
     IFS=$OIFS
-    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
-      ${ip[3]} -le 255 ]]
+    if [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
+      ${ip[3]} -le 255 ]]; then
       stat=$?
+    fi
   fi
 
   echo $stat
