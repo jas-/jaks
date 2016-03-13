@@ -250,7 +250,7 @@ function copytools()
 
     # If it mounts try to get our build tools
     if [ -d /tmp/tfs/build-tools ]; then
-      cp -frv /tmp/tfs/build-tools /tmp/
+      cp -fr /tmp/tfs/build-tools /tmp/
     fi
 
     # Unmount and cleanup
