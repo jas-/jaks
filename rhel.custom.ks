@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash #--erroronfail
+%pre --interpreter=/bin/bash
 
 
 ###############################################
@@ -774,7 +774,7 @@ function valid_ip()
 }
 
 # Configure the network based on argument list
-configurenetwork()
+function configurenetwork()
 {
   # Set /tmp/ks-networking to prevent failures
   echo "" > /tmp/ks-networking
@@ -1132,7 +1132,6 @@ fi
 ###############################################
 # Begin kick start automation procedures      #
 ###############################################
-#text
 
 # Setup the installation media (if any)
 %include /tmp/ks-installation
