@@ -169,11 +169,12 @@ vm_disk_report="    |___|_ optapplv:  /opt/app      {optapp_size}MB"
 # Final disk report
 read -d '' disk_report <<"EOF"
 Disk configuration:
+
 Primary:
   Physical Partitions:
-    |_ {disk}:       /boot         500MB
+    |_ {disk}1:          /boot         500MB
   Logical Volume Configuration:
-    |_ rootpv         {lvm}
+    |_ rootpv         {disk}
     | |_ rootvg                     {size}MB
     |   |_ swaplv:    swap          {swap}MB
     |   |_ rootlv:    /             {root_size}MB
