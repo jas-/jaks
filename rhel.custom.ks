@@ -158,7 +158,7 @@ EOF
 read -d '' extra_disk_report <<"EOF"
 Extended:
   Logical Volume Configuration:
-    |_ optapppv                     {size}MB
+    |_ optapppv       {size}MB      {disks}
     | |_ optappvg
     |___|_ optapplv:  /opt/app      {optapp_size}MB
 EOF
@@ -171,11 +171,11 @@ read -d '' disk_report <<"EOF"
 Disk configuration:
 Primary:
   Physical Partitions:
-    |_ sda1:          /boot         500MB
-    |_ swap:                        {swap}MB
+    |_ {disk}:          /boot         500MB
   Logical Volume Configuration:
-    |_ rootpv                       {size}MB
+    |_ rootpv         {size}MB      {lvm}
     | |_ rootvg
+    |   |_ swaplv:    swap          {swap}MB
     |   |_ rootlv:    /             {root_size}MB
     |   |_ varlv:     /var          {var_size}MB
     |   |_ homelv:    /export/home  {home_size}MB
