@@ -408,30 +408,6 @@ function configurenfszones()
 
 
 ###############################################
-# Function definitions - networking           #
-###############################################
-
-# IPv4 validation function
-function valid_ip()
-{
-  local  ip=$1
-  local  stat=1
-
-  if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-    OIFS=$IFS
-    IFS='.'
-    ip=($ip)
-    IFS=$OIFS
-    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
-      ${ip[3]} -le 255 ]]
-      stat=$?
-  fi
-
-  return $stat
-}
-
-
-###############################################
 # Function definitions - math                 #
 ###############################################
 
@@ -775,6 +751,104 @@ function multipledisks()
 
 
 ###############################################
+# Network configuration functions             #
+###############################################
+
+# IPv4 validation function
+function valid_ip()
+{
+  local  ip=$1
+  local  stat=1
+
+  if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+    OIFS=$IFS
+    IFS='.'
+    ip=($ip)
+    IFS=$OIFS
+    [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
+      ${ip[3]} -le 255 ]]
+      stat=$?
+  fi
+
+  echo $stat
+}
+
+# Configure the network based on argument list
+configurenetwork()
+{
+  # Set /tmp/ks-networking to prevent failures
+  echo "" > /tmp/ks-networking
+
+  # Use ${ip}, ${netmask} & ${gateway} if present from command line args
+  # Only copy these values if ${IPADDR}, ${NETMASK} & ${GATEWAY} don't exist
+  # to ensure ability to set network to something other than possible build net
+  if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
+      [[ "${gateway}" != "" ]] && [[ "${IPADDR}" == "" ]] && \
+      [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
+
+    # Make sure they are valid
+    if [[ $(valid_ip "${ip}") -eq 0 ]] || \
+        [[ $(valid_ip "${netmask}") -eq 0 ]] || \
+        [[ $(valid_ip "${gateway}") -eq 0 ]]; then
+      IPADDR=${ip}
+      NETMASK=${netmask}
+      GATEWAY=${gateway}
+    fi
+  fi
+
+  # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
+  if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
+      [[ "${GATEWAY}" != "" ]]; then
+  
+    # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
+    if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+
+      # Be informative about the failure
+      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
+      exit 1
+    fi
+
+    # Update /tmp/ks-arguments with network information
+    sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+    sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+    sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
+  else
+
+    # Check to see if anything was applied via DHCP
+    IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
+    NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
+    GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
+
+    # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
+    if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+
+      # Be informative about the failure
+      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
+      exit 1
+    fi
+
+    # Update /tmp/ks-arguments with network information
+    sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+    sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+    sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
+  fi
+
+  # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
+  echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
+    --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+
+}
+
+
+###############################################
 # Handling boot parameters                    #
 ###############################################
 
@@ -913,75 +987,11 @@ fi
 # Configuration for the networking            #
 ###############################################
 
-# Set /tmp/ks-networking to prevent failures
-echo "" > /tmp/ks-networking
+# Generate networking configuration
+configurenetwork
 
-# Use ${ip}, ${netmask} & ${gateway} if present from command line args
-# Only copy these values if ${IPADDR}, ${NETMASK} & ${GATEWAY} don't exist
-# to ensure ability to set network to something other than possible build net
-if [[ "${ip}" != "" ]] && [[ "${netmask}" != "" ]] && \
-    [[ "${gateway}" != "" ]] && [[ "${IPADDR}" == "" ]] && \
-    [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
-
-  # Make sure they are valid
-  if [[ $(valid_ip "${ip}") -ne 0 ]] || \
-      [[ $(valid_ip "${netmask}") -ne 0 ]] || \
-      [[ $(valid_ip "${gateway}") -ne 0 ]]; then
-    IPADDR=${ip}
-    NETMASK=${netmask}
-    GATEWAY=${gateway}
-  fi
-fi
-
-# Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
-if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
-    [[ "${GATEWAY}" != "" ]]; then
-
-  # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
-      [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
-      [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
-
-    # Be informative about the failure
-    [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
-    [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
-    [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
-    exit 1
-  fi
-
-  # Update /tmp/ks-arguments with network information
-  sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
-  sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
-else
-
-  # Check to see if anything was applied via DHCP
-  IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
-  NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
-  GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
-
-  # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-  if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
-      [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
-      [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
-
-    # Be informative about the failure
-    [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
-    [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
-    [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
-    exit 1
-  fi
-
-  # Update /tmp/ks-arguments with network information
-  sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
-  sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
-fi
-
-# Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
-echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
-  --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
-
+# Clear the terminal
+clear
 
 ###############################################
 # Print out the network configuration report  #
@@ -997,8 +1007,7 @@ Network configuration:
 
 EOF
 
-# Clear the terminal
-clear
+# Print the report
 cat /tmp/ks-report-network
 
 # If ${DEBUG} is set to true; pause
