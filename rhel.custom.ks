@@ -158,8 +158,8 @@ EOF
 read -d '' extra_disk_report <<"EOF"
 Extended:
   Logical Volume Configuration:
-    |_ optapppv       {size}MB      {disks}
-    | |_ optappvg
+    |_ optapppv       {disks}
+    | |_ optappvg                   {size}MB
     |___|_ optapplv:  /opt/app      {optapp_size}MB
 EOF
 
@@ -171,10 +171,10 @@ read -d '' disk_report <<"EOF"
 Disk configuration:
 Primary:
   Physical Partitions:
-    |_ {disk}:          /boot         500MB
+    |_ {disk}:       /boot         500MB
   Logical Volume Configuration:
-    |_ rootpv         {size}MB      {lvm}
-    | |_ rootvg
+    |_ rootpv         {lvm}
+    | |_ rootvg                     {size}MB
     |   |_ swaplv:    swap          {swap}MB
     |   |_ rootlv:    /             {root_size}MB
     |   |_ varlv:     /var          {var_size}MB
@@ -725,6 +725,13 @@ function multipledisks()
       # Add ${tsize} to ${vsize}
       vsize=$(expr ${tsize} + ${vsize})
 
+      # Combine ${dskname} to ${rdn} create value of disks for disk report
+      if [ "${rdn}" != "" ]; then
+        rdn="${rdn}, ${dskname}"
+      else
+        rdn="${dskname}"
+      fi
+
       # Make ks-diskconfig-extra with comment
       echo "" >> /tmp/ks-diskconfig-extra
       echo "# Create new physical volume on ${dskname} as ${dname}" \
@@ -761,6 +768,7 @@ function multipledisks()
   # Generate report for 'extra' disks
   echo "${extra_disk_report}" |
     sed -e "s|{size}|$(b2mb ${vsize})|g" \
+        -e "s|{disks}|${rdn}|g" \
         -e "s|{optapp_size}|$(b2mb ${vsize})|g" > /tmp/ks-report-disks-extra
 }
 
