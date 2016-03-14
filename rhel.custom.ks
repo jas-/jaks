@@ -115,6 +115,9 @@ vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 --size={SIZE} --grow --percent=75"
 
+# '/boot/efi' partition template
+efi_tmpl="part /boot --size={SIZE} --fstype="ext4" --ondisk={PRIMARY}"
+
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
 # Zero the MBR
@@ -122,6 +125,8 @@ zerombr
 
 # Clear out partitions for {DISKS}
 clearpart --all --initlabel --drives={DISKS}
+
+{EFI}
 
 # Create a /boot partition on {PRIMARY} of 500MB
 part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
@@ -482,6 +487,9 @@ function configuredisks()
 
   local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
 
+  # Set ${efi} to empty
+  local efi=
+
   # Convert ${disks} into an array (${disks[@]})
   IFS=',' read -a disks <<< "${disk}"
 
@@ -507,10 +515,15 @@ function configuredisks()
   # First remove 500 (/boot) & ${swap} from ${size}
   size=$(expr ${size} - $(expr $(mb2b 500) + ${swap}))
 
-  # If the system is booted as UEFI vs. legacy BIOS we need to remove 200MB
-  # because kickstart allocates 200MB as /boot/efi
+  # If EFI boot used create a 500MB partition for /boot/efi
   if [ -d /sys/firmware/efi ]; then
-    size=$(expr ${size} - $(mb2b 200))
+
+    # Remove 500MB from ${size}
+    size=$(expr ${size} - $(mb2b 500))
+
+    # Re-write ${efi_tmpl} with the correct ${disk} & size
+    efi=$(echo "${efi_tmpl}" |
+      sed -e "s|{SIZE}|500|g" -e "s|{PRIMARY}|${disk}|g")
   fi
 
   # If ${evaldisk} size > 100GB; assume physical
@@ -608,6 +621,7 @@ function configuredisks()
   # Write out /tmp/ks-diskconfig using ${disk_template}
   echo "${disk_template}" |
     sed -e "s|{DISKS}|${disk}|g" \
+        -e "s|{EFI}|${efi}|g" \
         -e "s|{SWAP}|$(b2mb ${swap})|g" \
         -e "s|{SIZE}|$(b2mb ${size})|g" \
         -e "s|{PRIMARY}|${disk}|g" \
@@ -787,14 +801,9 @@ function configurenetwork()
       [[ "${gateway}" != "" ]] && [[ "${IPADDR}" == "" ]] && \
       [[ "${NETMASK}" == "" ]] && [[ "${GATEWAY}" == "" ]]; then
 
-    # Make sure they are valid
-    if [[ $(valid_ip "${ip}") -eq 0 ]] || \
-        [[ $(valid_ip "${netmask}") -eq 0 ]] || \
-        [[ $(valid_ip "${gateway}") -eq 0 ]]; then
-      IPADDR=${ip}
-      NETMASK=${netmask}
-      GATEWAY=${gateway}
-    fi
+    IPADDR=${ip}
+    NETMASK=${netmask}
+    GATEWAY=${gateway}
   fi
 
   # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
@@ -819,27 +828,31 @@ function configurenetwork()
     sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
   else
 
-    # Check to see if anything was applied via DHCP
-    IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
-    NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
-    GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
+    # Only do this if ${DVD} is false
+    if [ "${DVD}" == "false" ]; then
 
-    # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-    if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
-        [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
-        [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+      # Check to see if anything was applied via DHCP
+      IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
+      NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
+      GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
 
-      # Be informative about the failure
-      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
-      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
-      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
-      exit 1
+      # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
+      if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+          [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+          [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+
+        # Be informative about the failure
+        [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
+        exit 1
+      fi
+
+      # Update /tmp/ks-arguments with network information
+      sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+      sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+      sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
     fi
-
-    # Update /tmp/ks-arguments with network information
-    sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-    sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
-    sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
   fi
 
   # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
