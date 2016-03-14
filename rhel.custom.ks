@@ -116,7 +116,7 @@ lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 --size={SIZE} --grow --percent=75"
 
 # '/boot/efi' partition template
-efi_tmpl="part /boot --size={SIZE} --fstype="ext4" --ondisk={PRIMARY}"
+efi_tmpl="part /boot/EFI --size={SIZE} --fstype="efi" --ondisk={PRIMARY}"
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -126,10 +126,10 @@ zerombr
 # Clear out partitions for {DISKS}
 clearpart --all --initlabel --drives={DISKS}
 
-{EFI}
-
 # Create a /boot partition on {PRIMARY} of 500MB
 part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
+
+{EFI}
 
 # Create a memory partition of {SWAP}MB on {PRIMARY}
 #part swap --size={SWAP} --ondisk={PRIMARY}
