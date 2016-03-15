@@ -105,6 +105,9 @@ dlog=/tmp/disks.log
 # 100GB in bytes; definitively determines vm or physical installation
 gbytes=107374182400
 
+# Bootloader template
+boot_tmpl='bootloader --location={loader} --append="rhgb quiet crashkernel=512MB audit=1"'
+
 # Physical group creation variable
 pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 
@@ -487,6 +490,9 @@ function configuredisks()
 
   local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
 
+  # Set ${loader} to mbr (default)
+  local loader="mbr"
+
   # Set ${efi} to empty
   local efi=
 
@@ -518,6 +524,9 @@ function configuredisks()
   # If EFI boot used create a 500MB partition for /boot/efi
   if [ -d /sys/firmware/efi ]; then
 
+    # Change ${bootloader} to 'partition'
+    loader="partition"
+
     # Remove 500MB from ${size}
     size=$(expr ${size} - $(mb2b 500))
 
@@ -525,6 +534,9 @@ function configuredisks()
     efi=$(echo "${efi_tmpl}" |
       sed -e "s|{SIZE}|500|g" -e "s|{PRIMARY}|${disk}|g")
   fi
+
+  # Write out /tmp/ks-bootloader to ensure Grub goes to the right place
+  echo "${boot_tmpl}" | sed -e "s|{loader}|${loader}|g" > /tmp/ks-bootloader
 
   # If ${evaldisk} size > 100GB; assume physical
   if [ ${evalsize} -gt ${gbytes} ]; then
@@ -1174,7 +1186,7 @@ reboot
 %include /tmp/ks-diskconfig
 
 # Install GRUB
-bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
+%include /tmp/ks-bootloader
 
 # Include networking configuration
 %include /tmp/ks-networking
