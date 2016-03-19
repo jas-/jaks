@@ -9,10 +9,12 @@
 # /export/unixshr/linux/
 #   |_ build-tools/ - Folder for RHEL build configuration tools
 #   |_ kickstart/ - Folder for kickstarts
-#   |  |_ rhel.custom.ks - Kickstart configuration script
-#   |  |_ isolinux.cfg - syslinux boot menu configuration
-#   |  |_ splash.jpg - Backgroup image for boot menu configuration
-#   |  |_ BOOTX64.conf - Grub2 boot menu configuration for EFI installs
+#   |    |_ rhel.custom.ks - Kickstart configuration script
+#   |    |_ templates/ - Folder for configuration file templates
+#   |    |    |_ isolinux.cfg - syslinux boot menu configuration
+#   |    |    |_ splash.jpg - Backgroup image for boot menu configuration
+#   |    |    |_ BOOTX64.conf - Boot menu configuration for EFI installs
+#   |    |    |_ grub2.conf - Grub2 boot menu configuration for EFI installs
 #
 
 
@@ -28,11 +30,16 @@ nfs_share=/unixshr/linux
 declare -A files
 files[build-tools/]="/build-tools/"
 files[rhel.custom.ks]="/ks.cfg"
-files[templates/isolinux.cfg]="/isolinux/"
-files[templates/splash.jpg]="/isolinux/"
-files[templates/BOOTX64.conf]="/EFI/BOOT/"
-files[templates/grub.cfg]="/EFI/BOOT/"
+files[isolinux.cfg]="/isolinux/isolinux.cfg"
+files[splash.jpg]="/isolinux/splash.jpg"
+files[BOOTX64.conf]="/EFI/BOOT/BOOTX64.conf"
+files[grub.cfg]="/EFI/BOOT/grub.cfg"
 
+# An empty array to handle locations of each required ${files}
+declare -A buildenv
+
+# A final folder for the customized build(s)
+isodir="builds"
 
 # Make directory
 function mdir(){
@@ -83,7 +90,22 @@ function arch(){
 
 # Cleanup build environment on failure & success
 function cleanup(){
-  echo "Cleaner weener"
+  echo -n "Cleaning up build environment ... "
+
+
+  # Find mounted NFS share
+  share=$(mount|grep nfs|grep templates|awk '{print $3}')
+  if [ "${share}" != "" ]; then
+    umount ${share}
+  fi
+
+  # If templates/ folder exists remove it
+  if [ -d templates ]; then
+    rm -fr templates
+  fi
+
+
+  echo "done"
 }
 
 
@@ -109,32 +131,129 @@ function donfs(){
     nfs_server="${nfs[PDT]}"
   fi
 
+
   # Ping ${nfs_server} to make sure it is accessible
   pinger "${nfs_server}"
   if [ $? -ne 0 ]; then
     return $?
   fi
 
+
   # Mount the NFS share @ ${1}
-  mount -t nfs -o cto,nolock ${nfs_server}:${nfs_share} ${1}
+  mount -t nfs -o cto,nolock ${nfs_server}:${nfs_share} ${1} &>/dev/null
   if [ $? -ne 0 ]; then
     return 2
   fi
+
 
   return 0
 }
 
 
+echo -n "Checking for local copy of templates ... "
+
+
+# Check to see if templates folder exists locally
+if [ ! -d templates ]; then
+
+  # Create the NFS mount point
+  mdir "templates"
+fi
+
+
+# Set ${missing} to 0
+missing=0
+
+
+# Iterate ${!files[@]} & test
+for file in ${!files[@]}; do
+
+
+  # Search templates/ for ${file}
+  search=$(ls templates/ | grep ${file})
+
+
+  # If ${file} is not in templates/ set ${missing} to 1
+  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
+    missing=1
+    continue
+  fi
+done
+
+
+echo $([ ${missing} -eq 0 ] && echo "found" || echo "missing")
+
+
+# If ${missing} = 1 mount ${nfs_server}
+if [ ${missing} -eq 1 ]; then
+
+
+  echo -n "Mounting NFS share ... "
+
+
+  # Do the NFS bit
+  donfs "templates/"
+
+
+  if [ $? -eq 1 ]; then
+    echo "error, not responding"
+    cleanup
+    continue
+  fi
+
+
+  if [ $? -eq 2 ]; then
+    echo "error mounting share"
+    cleanup
+    continue
+  fi
+
+
+  echo "done"
+fi
+
+
+# Test ${files[@]} once more
+for file in ${!files[@]}; do
+
+
+  echo -n "Searching for '$(basename ${file})' in 'templates/' ... "
+
+
+  # Search for ${file}
+  search=$(find templates/ -name $(basename ${file})|tail -1)
+
+
+  # If ${file} is not in templates/ set ${missing} to 1
+  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
+    echo "missing; check configuration options"
+    cleanup
+    exit 1
+  fi
+
+
+  # Assign ${search} to ${buildenv} array
+  buildenv["${search}"]="${files[${file}]}"
+
+
+  echo "done"
+done
+
+
 # Search current working directory for RHEL ISO file(s)
-iso=($(find . -mindepth 1 -maxdepth 1 -type f -exec basename {} \;|grep rhel-*.iso))
+iso=($(ls rhel-*.iso))
+
 
 # Error & exit if ${#iso[@]} = 0
 if [ ${#iso[@]} -eq 0 ]; then
   echo "Could not locate any RHEL ISO file(s)"
+  cleanup
   exit 1
 fi
 
+
 echo "Found a total of ${#iso[@]} RHEL ISO file(s)"
+
 
 # Iterate ${iso[@]} and do work
 for img in ${iso[@]}; do
@@ -142,7 +261,9 @@ for img in ${iso[@]}; do
   # Start a counter
   i=$((${i} + 1))
 
+
   echo "Customizing build for ${img}"
+
 
   # Make sure we are working with a valid ISO
   tiso="$(file ${img})"
@@ -152,18 +273,24 @@ for img in ${iso[@]}; do
     continue
   fi
 
+
   # Dice up the name
   filename="$(filename "${img}")"
   ver="$(version "${img}")"
+  altver="$(echo "${ver}"|sed "s|\.||g")"
   arch="$(arch "${img}")"
+
 
   # Concatinate as buildnme
   buildnme="${filename}-${ver}-${arch}"
 
+
   # Build a loop back mount point
   mdir "${buildnme}-loop"
 
+
   echo "Created temporary loopback filesystem"
+
 
   # Mount ${img} @ ${buildnme}-loop
   mtloop "${img}" "${buildnme}-loop"
@@ -173,12 +300,16 @@ for img in ${iso[@]}; do
     continue
   fi
 
+
   echo "Mounted ${img} @ ${buildnme}-loop"
+
 
   # Create a working directory to customize the ISO in
   mdir "${buildnme}"
 
+
   echo -n "Copying ISO contents to ${buildnme} folder ... "
+
 
   # Copy contents of ${buildnme}-loop to ${buildnme}
   copy "${buildnme}-loop/*" "${buildnme}/"
@@ -188,7 +319,9 @@ for img in ${iso[@]}; do
     continue
   fi
 
+
   echo "done"
+
 
   # Unmount the ISO
   umtloop "${buildnme}-loop"
@@ -198,60 +331,74 @@ for img in ${iso[@]}; do
     continue
   fi
 
-  # Create the NFS mount point
-  mdir "nfs"
 
-  # Set ${missing} to 0
-  missing=0
-
-  # Iterate ${!files[@]} & test
-  for file in ${!files[@]}; do
-
-    # Search nfs/ for ${file}
-    search=$(find nfs/ -mindepth 1 -maxdepth 1 -name ${file})
-
-    # If ${file} is not in nfs/ set ${missing} to 1
-    if [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
-      missing=1
-      continue
-    fi
-  done
-
-  # If ${missing} = 0 mount ${nfs_server}
-  if [ ${missing} -eq 0 ]; then
-
-    echo "Mounting NFS share"
-
-    # Do the NFS bit
-    donfs "nfs/"
-    if [ $? -eq 1 ]; then
-      echo "The NFS server is not responding to ICMP requests"
-      cleanup
-      continue
-    fi
-    if [ $? -eq 2 ]; then
-      echo "An error occured mounting the NFS share"
-      cleanup
-      continue
-    fi
-  fi
-
-  # Test ${files[@]} once more
-  for file in ${!files[@]}; do
-
-    # If ${file} is not in nfs/ set ${missing} to 1
-    if [[ ! -f nfs/${file} ]] && [[ ! -d nfs/${file} ]]; then
-      echo "${file}"
-      echo "Configured files missing from NFS share. Check configuration options"
-      cleanup
-      exit 1
-    fi
-  done
+  # Remove the loopback mount point
+  rm -fr ${buildnme}-loop/
 
   
+  # Iterate ${buildenv} for customization of ${buildnme}
+  for item in ${!buildenv[@]}; do
+
+
+    # If ${item} is a folder assume 'build-tools' and copy
+    if [ -d ${item} ]; then
+      echo -n "Copying build tools to build environment ... "
+      cp -fr ${item} ${buildnme}/${buildenv[${item}]}
+      echo "done"
+    fi
+
+    # If ${item} is a file edit and copy into location
+    if [ -f ${item} ]; then
+      echo "Customizing ${item} for build environment ... "
+
+      # Get the type of file
+      type=$(file ${item})
+
+      # It is an image just copy it
+      if [[ "${type}" =~ JPEG|GIF|PNG ]]; then
+        cp ${item} ${buildnme}/${buildenv[${item}]}
+        continue
+      fi
+
+      # Edit the template based on the version etc
+      cat ${item} |
+        sed -e "s|{VER}|${ver}|g" \
+            -e "s|{ALTVER}|${altver}|g" \
+              > ${buildnme}/${buildenv[${item}]}
+    fi
+
+  done
+  
+
+  # Now that the ${buildnme} is customized go ahead and make the ISO
+  mdir ${isodir}
+
+  
+  # Change into the directory
+  cwd=$(pwd)
+  cd ${buildnme}/
+
+
+  # Begin the build
+  mkisofs -U -A "RHEL-${ver}" -V "RHEL-${ver}" -volset "RHEL-${ver}" -J -joliet-long \
+   	-o ../${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
+   	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
+    -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
+    -e images/efiboot.img -no-emul-boot . &>/dev/null
+
+
+  # Change back to ${cwd}
+  cd ${cwd}
+
+
+  # Ensure it is bootable by USB & DVD media types
+  isohybrid ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso
 
 done
 
+
+# Clean up mounts etc
+cleanup
 
   # Use mkisofs to build
   #mkisofs -U -A "RHEL-${ver}" -V "RHEL-${ver}" -volset "RHEL-${ver}" -J -joliet-long \
@@ -259,6 +406,4 @@ done
   # 	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 \
   # 	-boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot .
 
-  # Ensure it is bootable by USB & DVD media types
-  #isohybrid ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso
       
