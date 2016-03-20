@@ -1,0 +1,20 @@
+#debug --graphics
+default=0
+splashimage=/EFI/BOOT/splash.xpm.gz
+timeout 5
+hiddenmenu
+title RHEL {VER} PDX kickstart
+	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel.custom.ks inst.stage2=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
+	initrd /images/pxeboot/initrd.img
+
+title RHEL {VER} SLC kickstart
+	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel.custom.ks inst.stage2=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
+	initrd /images/pxeboot/initrd.img
+
+title RHEL {VER} Local Kickstart
+	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true
+	initrd /images/pxeboot/initrd.img
+
+title Rescue Installed System
+	kernel /images/pxeboot/vmlinuz rescue askmethod
+	initrd /images/pxeboot/initrd.img

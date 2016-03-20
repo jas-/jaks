@@ -42,6 +42,18 @@ declare -A buildenv
 # A final folder for the customized build(s)
 isodir="builds"
 
+
+# Pause function handle pausing if ${DEBUG} = true
+function pause()
+{
+  local continue=
+  while [ "${continue}" != "yes" ]; do
+    read -p "Paused; Continue? " continue
+    echo ""
+  done
+}
+
+
 # Make directory
 function mdir(){
   if [ ! -d "${1}" ]; then
@@ -263,13 +275,13 @@ for img in ${iso[@]}; do
   i=$((${i} + 1))
 
 
-  echo "Customizing build for ${img}"
+  echo "Customizing build for '${img}'"
 
 
   # Make sure we are working with a valid ISO
   tiso="$(file ${img})"
   if [[ ! "${tiso}" =~ 9660 ]]; then
-    echo "${img} is not a valid ISO 9660 file"
+    echo "'${img}' is not a valid ISO 9660 file"
     cleanup
     continue
   fi
@@ -338,6 +350,10 @@ for img in ${iso[@]}; do
   for item in ${!buildenv[@]}; do
 
 
+    # Used to skip non configuration files
+    img=0
+
+
     # If ${item} is a folder assume 'build-tools' and copy
     if [ -d ${item} ]; then
       echo -n "Copying build tools to build environment ... "
@@ -345,27 +361,50 @@ for img in ${iso[@]}; do
       echo "done"
     fi
 
-    # If ${item} is a file edit and copy into location
+
+    # Preserve associative array ${buildenv[${item}]} value as ${path}
+    path="${buildnme}/${buildenv[${item}]}"
+
+
+    # If ${altver} <= 7x set the version of our editable ${item} to 7
+    if [[ ${altver} -ge 70 ]] && [[ "${item}" != "rhel.custom.ks" ]]; then
+
+      # If ${item}.7 exists (only configuration files should), use it as ${file}
+      if [ -f "${item}.7" ]; then
+        item="${item}.7"
+      fi
+    fi
+
+
+    # If ${item} is a file edit and/or copy into location
     if [ -f ${item} ]; then
+
+
       echo -n "Customizing '$(basename ${item})' for build environment ... "
+
 
       # Get the type of file
       type=$(file ${item})
 
+
       # It is an image just copy it
       if [[ "${type}" =~ JPEG|GIF|PNG ]]; then
-        cp ${item} ${buildnme}/${buildenv[${item}]}
+
+        cp ${item} ${path}
+        img=1
         echo "done"
         continue
       fi
 
+
       # Edit the template based on the version etc
       cat ${item} |
         sed -e "s|{VER}|${ver}|g" \
-            -e "s|{ALTVER}|${altver}|g" \
-              > ${buildnme}/${buildenv[${item}]}
+            -e "s|{ALTVER}|${altver}|g" > ${path}
+
       echo "done"
     fi
+
 
   done
   
@@ -407,6 +446,9 @@ for img in ${iso[@]}; do
 
   rm -fr ${buildnme}
 
+
+  echo "Build complete @ '${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso'"
+  echo ""
 
 done
 
