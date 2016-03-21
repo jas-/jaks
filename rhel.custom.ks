@@ -842,9 +842,16 @@ function configurenetwork()
     if [ "${DVD}" == "false" ]; then
 
       # Check to see if anything was applied via DHCP
-      IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 2|cut -d " " -f 1|head -1)"
-      NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 4|head -1)"
-      GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
+
+      # Figure out our structure as 'ifconfig' output changed from 6.7 - 7.0
+      if [ "$(ifconfig|grep inet|grep "inet addr:")" == "" ]; then
+        IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $2}'|head -1)"
+        NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $4}'|head -1)"
+      else
+        IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 2|cut -d " " -f 1|head -1)"
+        NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 4|head -1)"
+      fi
+      GATEWAY="$(route -n|grep ^0.0.0.0|cut -b 17-32|cut -d " " -f 1|head -1)"
 
       # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
       if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
