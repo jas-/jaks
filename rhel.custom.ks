@@ -1085,7 +1085,26 @@ for item in ${dsks[@]}; do
   if [ "${link}" == "" ]; then
 
     # Wipe the MBR of each disk to account for 'clearpart' deficiencies
-    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512)
+    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null)
+
+    # Apparently RHEL > v7 doesn't know how to refresh the LVM info prior
+    # to a new LVM creation & assumes them to be valid despite the MBR
+    # being removed
+
+    # First remove all Logical Volumes
+    for lv in $(lvscan|awk '{print $2}'|sed -e "s|^'||" -e "s|'$||"); do
+      lvremove -f $(basename ${lv}) &>/dev/null
+    done
+
+    # Now remove all Volume Groups
+    for vg in $(vgscan|awk '$0 ~ /Found volume group/{print $4}'|sed -e 's/^"//' -e 's/"$//'); do
+      vgremove -f ${vg} &>/dev/null
+    done
+
+    # Now remove any Physical Volumes
+    for pv in $(pvscan|awk '$0 ~ /PV/{print $2}'); do
+      pvremove -f ${pv} &>/dev/null
+    done
 
     disks+=("${disk}:${size}")
 
