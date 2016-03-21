@@ -593,7 +593,8 @@ function configuredisks()
   #optapp_size=$(expr ${total_size} - $(percent ${total_size} 2))
 
   # Remove 75% and use as ${optapp_size} because RHEL keeps changing the LVM API
-  optapp_size=$(expr ${total_size} - $(percent ${total_size} 75))
+  remove=$(expr ${total_size} - $(percent ${total_size} 75))
+  optapp_size=$(expr ${total_size} - ${remove})
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} -eq 0 ]; then
@@ -757,7 +758,8 @@ function multipledisks()
     >> /tmp/ks-diskconfig-extra
 
   # Remove 75% and use as ${vsize} because RHEL keeps changing the LVM API
-  vsize=$(expr ${vsize} - $(percent ${vsize} 75))
+  remove=$(expr ${vsize} - $(percent ${vsize} 75))
+  vsize=$(expr ${vsize} - ${remove})
 
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${lv_tmpl}" |
