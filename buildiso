@@ -388,7 +388,7 @@ for img in ${iso[@]}; do
 
 
       # It is an image just copy it
-      if [[ "${type}" =~ JPEG|GIF|PNG ]]; then
+      if [[ "${type}" =~ JPEG|GIF|PNG|gzip ]]; then
 
         cp ${item} ${path}
         img=1

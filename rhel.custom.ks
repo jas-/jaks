@@ -105,9 +105,6 @@ dlog=/tmp/disks.log
 # 100GB in bytes; definitively determines vm or physical installation
 gbytes=107374182400
 
-# Bootloader template
-boot_tmpl='bootloader --location={loader} --append="rhgb quiet crashkernel=512MB audit=1"'
-
 # Physical group creation variable
 pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 
@@ -115,8 +112,10 @@ pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
+#lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
+#--size={SIZE} --grow --percent=75"
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
---size={SIZE} --grow --percent=75"
+--size={SIZE}"
 
 # '/boot/efi' partition template
 efi_tmpl="part /boot/EFI --size={SIZE} --fstype="efi" --ondisk={PRIMARY}"
@@ -141,7 +140,7 @@ part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
 part pv.root --size={SIZE} --ondisk={PRIMARY} --grow --asprimary
 
 # Create the root volume group
-volgroup rootvg pv.root
+volgroup rootvg --pesize=4096 pv.root
 
 # Create a memory partition of {SWAP}MB
 logvol swap --fstype="swap" --name="swaplv" --vgname="rootvg" --size={SWAP}
@@ -490,9 +489,6 @@ function configuredisks()
 
   local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
 
-  # Set ${loader} to mbr (default)
-  local loader="mbr"
-
   # Set ${efi} to empty
   local efi=
 
@@ -524,9 +520,6 @@ function configuredisks()
   # If EFI boot used create a 500MB partition for /boot/efi
   if [ -d /sys/firmware/efi ]; then
 
-    # Change ${bootloader} to 'partition'
-    loader="partition"
-
     # Remove 500MB from ${size}
     size=$(expr ${size} - $(mb2b 500))
 
@@ -534,9 +527,6 @@ function configuredisks()
     efi=$(echo "${efi_tmpl}" |
       sed -e "s|{SIZE}|500|g" -e "s|{PRIMARY}|${disk}|g")
   fi
-
-  # Write out /tmp/ks-bootloader to ensure Grub goes to the right place
-  echo "${boot_tmpl}" | sed -e "s|{loader}|${loader}|g" > /tmp/ks-bootloader
 
   # If ${evaldisk} size > 100GB; assume physical
   if [ ${evalsize} -gt ${gbytes} ]; then
@@ -600,7 +590,10 @@ function configuredisks()
   total_size=$(expr ${size} - ${total_parts})
 
   # Remove 2% overhead from ${optapp_size}
-  optapp_size=$(expr ${total_size} - $(percent ${total_size} 2))
+  #optapp_size=$(expr ${total_size} - $(percent ${total_size} 2))
+
+  # Remove 75% and use as ${optapp_size} because RHEL keeps changing the LVM API
+  optapp_size=$(expr ${total_size} - $(percent ${total_size} 75))
 
   # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} -eq 0 ]; then
@@ -763,6 +756,9 @@ function multipledisks()
   echo "# Create new logical volume for optapp" \
     >> /tmp/ks-diskconfig-extra
 
+  # Remove 75% and use as ${vsize} because RHEL keeps changing the LVM API
+  vsize=$(expr ${vsize} - $(percent ${vsize} 75))
+
   # Generate changes for ${lv_tmpl} and write to /tmp/ks-diskconfig-extra
   echo "$(echo "${lv_tmpl}" |
     sed -e "s|{VOLGROUP}|optappvg|g" \
@@ -791,9 +787,9 @@ function valid_ip()
     IFS='.'
     ip=(${ip})
     IFS=$OIFS
-    if [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && \
-      ${ip[3]} -le 255 ]]; then
-      stat=$?
+    if [[ ${ip[0]} -le 255 ]] && [[ ${ip[1]} -le 255 ]] && \
+        [[ ${ip[2]} -le 255 ]] && [[ ${ip[3]} -le 255 ]]; then
+      stat=0
     fi
   fi
 
@@ -828,9 +824,9 @@ function configurenetwork()
         [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
 
       # Be informative about the failure
-      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
-      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
-      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
+      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (user-supplied): ${IPADDR} is invalid"
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (user-supplied): ${NETMASK} is invalid"
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (user-supplied): ${GATEWAY} is invalid"
       exit 1
     fi
 
@@ -844,8 +840,8 @@ function configurenetwork()
     if [ "${DVD}" == "false" ]; then
 
       # Check to see if anything was applied via DHCP
-      IPADDR="$(ifconfig eth0 | grep inet | cut -d : -f 2 | cut -d " " -f 1)"
-      NETMASK="$(ifconfig eth0 | grep inet | cut -d : -f 4 | head -1)"
+      IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 2|cut -d " " -f 1|head -1)"
+      NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 4|head -1)"
       GATEWAY="$(route -n | grep ^0.0.0.0 | cut -b 17-32 | cut -d " " -f 1)"
 
       # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
@@ -854,9 +850,9 @@ function configurenetwork()
           [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
 
         # Be informative about the failure
-        [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "${IPADDR} is invalid"
-        [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "${NETMASK} is invalid"
-        [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "${GATEWAY} is invalid"
+        [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (dhcp): ${IPADDR} is invalid"
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (dhcp): ${NETMASK} is invalid"
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (dhcp): ${GATEWAY} is invalid"
         exit 1
       fi
 
@@ -1186,7 +1182,7 @@ reboot
 %include /tmp/ks-diskconfig
 
 # Install GRUB
-%include /tmp/ks-bootloader
+bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
 
 # Include networking configuration
 %include /tmp/ks-networking
