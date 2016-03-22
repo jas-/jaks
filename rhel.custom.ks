@@ -671,7 +671,7 @@ function multipledisks()
   local size=$(echo "${disks[0]}"|awk '{split($0, o, ":");print o[2]}')
 
   # If ${#copy[@]} > 1 then split & iterate extending the optappvg volume group
-  if [ ${#copy[@]} -gt 1 ]; then
+  if [ ${#copy[@]} -ge 1 ]; then
 
     # Set our counter to 0
     local i=0
