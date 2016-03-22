@@ -112,8 +112,6 @@ pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
 # 'optapplv' variable for logical volume creation
-#lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
-#--size={SIZE} --grow --percent=75"
 lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 --size={SIZE}"
 
@@ -131,10 +129,8 @@ clearpart --all --initlabel --drives={DISKS}
 # Create a /boot partition on {PRIMARY} of 500MB
 part /boot --size=500 --fstype="ext4" --ondisk={PRIMARY}
 
+# If EFI is used, ensure we have a /boot/EFI partition
 {EFI}
-
-# Create a memory partition of {SWAP}MB on {PRIMARY}
-#part swap --size={SWAP} --ondisk={PRIMARY}
 
 # Create an LVM partition of {SIZE}MB on {PRIMARY}
 part pv.root --size={SIZE} --ondisk={PRIMARY} --grow --asprimary
