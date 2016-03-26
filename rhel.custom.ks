@@ -488,6 +488,9 @@ function configuredisks()
   # Set ${efi} to empty
   local efi=
 
+  # Set ${partitions} to empty
+  local partitions=
+
   # Convert ${disks} into an array (${disks[@]})
   IFS=',' read -a disks <<< "${disk}"
 
@@ -500,6 +503,20 @@ function configuredisks()
     # Set ${optapp} = 1 to prevent duplication on primary disk
     optapp=1
   fi
+
+  # Create string of disks to clear out partitons on
+  for dsk in ${disks[@]}; do
+
+    # Get the disk name
+    prt="$(echo "${dsk}"|awk '{split($0, obj, ":");print obj[1]}')"
+
+    # If ${partitons} is empty use ${prt}
+    if [ "${partitions}" == "" ]; then
+      partitions="${prt}"
+    else
+      partitions="${partitions},${prt}"
+    fi
+  done
 
   # Copy ${disks[0]} to ${disk}
   local disk="$(echo "${disks[0]}"|awk '{split($0, obj, ":");print obj[1]}')"
@@ -622,7 +639,7 @@ function configuredisks()
 
   # Write out /tmp/ks-diskconfig using ${disk_template}
   echo "${disk_template}" |
-    sed -e "s|{DISKS}|${disk}|g" \
+    sed -e "s|{DISKS}|${partitions}|g" \
         -e "s|{EFI}|${efi}|g" \
         -e "s|{SWAP}|$(b2mb ${swap})|g" \
         -e "s|{SIZE}|$(b2mb ${size})|g" \
