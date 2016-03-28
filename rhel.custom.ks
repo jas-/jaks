@@ -343,11 +343,12 @@ function configurehostname()
   if [ "${HOSTNAME}" == "" ]; then
 
     # If static DHCP enabled option 12 *might* contain the appropriate hostname
-    #hostname="$(uname -n|awk '{print toupper($0)}')"
     hostname="$(uname -n)"
   else
-    #hostname="$(echo "${HOSTNAME}"|awk '{print toupper($0)}')"
+    # Set ${hostname} to global ${HOSTNAME}
     hostname="${HOSTNAME}"
+
+    # Set the current OS hostname to ${hostname}
     hostname "${hostname}"
   fi
 }
