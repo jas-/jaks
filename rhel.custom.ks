@@ -1,7 +1,70 @@
 ###############################################
+# Begin kick start automation procedures      #
+###############################################
+
+# Setup the installation media (if any)
+%include /tmp/ks-installation
+
+# Default language
+lang en_US
+
+# Default keyboard layout
+keyboard us
+
+# Include timezone
+%include /tmp/ks-timezone
+
+# Include root password configuration
+%include /tmp/ks-rootpw
+
+#platform x86, AMD64, or Intel EM64T
+
+# Restart system after kicked
+reboot
+
+# Use NFS or DVD for installation media
+%include /tmp/ks-nfsshare
+
+# Include disk configuration
+%include /tmp/ks-diskconfig
+
+# Install GRUB
+bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
+
+# Include networking configuration
+%include /tmp/ks-networking
+
+# Specify authentication hashing algorithm
+# (why is 'useshadow' even an option anymore?)
+auth --passalgo=sha512 --useshadow
+
+# Disable selinux policies
+selinux --disabled
+
+# Disable firewall
+firewall --disabled
+
+# Don't install X, riddled with vulns
+skipx
+
+firstboot --disable
+
+# Provide a local REPO
+repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
+
+# Handle package installation
+%packages
+@base
+%end
+###############################################
+# End kick start automation procedures      #
+###############################################
+
+
+###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash
+%pre --interpreter=/bin/bash --erroronfail
 
 
 ###############################################
@@ -9,8 +72,8 @@
 ###############################################
 
 # Setup the env (setting /dev/tty3 as default IO)
-chvt 3
-exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
+chvt 2
+exec < /dev/tty2 > /dev/tty2 2>/dev/tty2
 
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
@@ -1193,69 +1256,6 @@ fi
 %end
 ###############################################
 # End %pre configuration script             #
-###############################################
-
-
-###############################################
-# Begin kick start automation procedures      #
-###############################################
-
-# Setup the installation media (if any)
-%include /tmp/ks-installation
-
-# Default language
-lang en_US
-
-# Default keyboard layout
-keyboard us
-
-# Include timezone
-%include /tmp/ks-timezone
-
-# Include root password configuration
-%include /tmp/ks-rootpw
-
-#platform x86, AMD64, or Intel EM64T
-
-# Restart system after kicked
-reboot
-
-# Use NFS or DVD for installation media
-%include /tmp/ks-nfsshare
-
-# Include disk configuration
-%include /tmp/ks-diskconfig
-
-# Install GRUB
-bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
-
-# Include networking configuration
-%include /tmp/ks-networking
-
-# Specify authentication hashing algorithm
-# (why is 'useshadow' even an option anymore?)
-auth --passalgo=sha512 --useshadow
-
-# Disable selinux policies
-selinux --disabled
-
-# Disable firewall
-firewall --disabled
-
-# Don't install X, riddled with vulns
-skipx
-
-firstboot --disable
-
-# Provide a local REPO
-repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
-
-# Handle package installation
-%packages
-@base
-%end
-###############################################
-# End kick start automation procedures      #
 ###############################################
 
 
