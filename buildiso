@@ -163,6 +163,13 @@ function donfs(){
 }
 
 
+# Ensure we have permissions
+if [ $UID != 0 ] ; then
+  echo "Requires root privileges"
+  exit 1
+fi
+
+
 echo -n "Checking for local copy of templates ... "
 
 

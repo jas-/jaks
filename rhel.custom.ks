@@ -1,67 +1,4 @@
 ###############################################
-# Begin kick start automation procedures      #
-###############################################
-
-# Setup the installation media (if any)
-%include /tmp/ks-installation
-
-# Default language
-lang en_US
-
-# Default keyboard layout
-keyboard us
-
-# Include timezone
-%include /tmp/ks-timezone
-
-# Include root password configuration
-%include /tmp/ks-rootpw
-
-#platform x86, AMD64, or Intel EM64T
-
-# Restart system after kicked
-reboot
-
-# Use NFS or DVD for installation media
-%include /tmp/ks-nfsshare
-
-# Include disk configuration
-%include /tmp/ks-diskconfig
-
-# Install GRUB
-bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
-
-# Include networking configuration
-%include /tmp/ks-networking
-
-# Specify authentication hashing algorithm
-# (why is 'useshadow' even an option anymore?)
-auth --passalgo=sha512 --useshadow
-
-# Disable selinux policies
-selinux --disabled
-
-# Disable firewall
-firewall --disabled
-
-# Don't install X, riddled with vulns
-skipx
-
-firstboot --disable
-
-# Provide a local REPO
-repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
-
-# Handle package installation
-%packages
-@base
-%end
-###############################################
-# End kick start automation procedures      #
-###############################################
-
-
-###############################################
 # Begin %pre configuration script             #
 ###############################################
 %pre --interpreter=/bin/bash --erroronfail
@@ -118,6 +55,21 @@ GATEWAY=
 
 # DVD is used for DVD or no network based installations
 DVD=false
+
+# RHN username
+RHNUSER=
+
+# RHN password
+RHNPASS=
+
+# Proxy server for RHN registration
+PROXY=http://proxy.pacificorp.us:8080
+
+# Proxy username
+USER=
+
+# Proxy password
+PASS=
 
 # Please see document for available server prefixes per timezone
 # http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/Server%20Naming%20Standard%20PPW.docx
@@ -1047,6 +999,11 @@ LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
 GATEWAY ${GATEWAY}
+RHNUSER ${RHNUSER}
+RHNPASS ${RHNPASS}
+PROXY ${PROXY}
+USER ${USER}
+PASS ${PASS}
 EOF
 
 
@@ -1066,7 +1023,16 @@ Location options:
   TIMEZONE:      ${zone}
   LOCATION:      ${location}
 
-NFS server:
+RHN options:
+  RHN Username:  ${RHNUSER}
+  RHN Password:  ${RHNPASS}
+
+Proxy settings:
+  PROXY:         ${PROXY}
+  USER:          ${USER}
+  PASS:          ${PASS}
+
+NFS options:
   SERVER:        ${nfs_server}
   SHARE:         ${path}
 
@@ -1255,7 +1221,70 @@ fi
 
 %end
 ###############################################
-# End %pre configuration script             #
+# End %pre configuration script               #
+###############################################
+
+
+###############################################
+# Begin kick start automation procedures      #
+###############################################
+
+# Setup the installation media (if any)
+%include /tmp/ks-installation
+
+# Default language
+lang en_US
+
+# Default keyboard layout
+keyboard us
+
+# Include timezone
+%include /tmp/ks-timezone
+
+# Include root password configuration
+%include /tmp/ks-rootpw
+
+#platform x86, AMD64, or Intel EM64T
+
+# Restart system after kicked
+reboot
+
+# Use NFS or DVD for installation media
+%include /tmp/ks-nfsshare
+
+# Include disk configuration
+%include /tmp/ks-diskconfig
+
+# Install GRUB
+bootloader --location=mbr --append="rhgb quiet crashkernel=512MB audit=1"
+
+# Include networking configuration
+%include /tmp/ks-networking
+
+# Specify authentication hashing algorithm
+# (why is 'useshadow' even an option anymore?)
+auth --passalgo=sha512 --useshadow
+
+# Disable selinux policies
+selinux --disabled
+
+# Disable firewall
+firewall --disabled
+
+# Don't install X, riddled with vulns
+skipx
+
+firstboot --disable
+
+# Provide a local REPO
+repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
+
+# Handle package installation
+%packages
+@base
+%end
+###############################################
+# End kick start automation procedures      #
 ###############################################
 
 
