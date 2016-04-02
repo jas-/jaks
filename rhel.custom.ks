@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash --erroronfail
+%pre --interpreter=/bin/bash
 
 
 ###############################################
@@ -1485,6 +1485,11 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
+USER="$(cat /tmp/ks-arguments|awk '$0 ~ /^USER/{print $2}')"
+PASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PASS/{print $2}')"
+RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RRNUSER/{print $2}')"
+RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
 
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
@@ -1556,6 +1561,82 @@ echo "Please wait; auto-configuring system according to build standards"
 
 
 ###############################################
+# Check for config-network tool               #
+###############################################
+
+# Run the $(dirname ${build_tools})/scripts/config-network tool by itself
+# because the argument requirements differ from all the other tools
+
+# Exit if config-network tool doesn't exist
+if [ ! -f ${build_tools}/scripts/config-network ]; then
+  echo "${build_tools}/scripts/config-network missing"
+  exit 1
+fi
+
+# Change into scripts/ subfolder if scripts/config-network exists
+cd ${build_tools}/scripts/  
+
+# Make sure our configuration data exists
+if [ ! -f /tmp/ks-networking ]; then
+  echo "/tmp/ks-networking file is missing, exiting"
+  exit 1
+fi
+
+
+###############################################
+# Configure network (802.1 or single) adapter #
+###############################################
+
+# Run ./config-network with network params to auto-configure bonded interfaces
+# for physical servers & non-bonded interfaces for virtual machine guests
+./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" \
+  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+
+
+###############################################
+# Check for config-register tool              #
+###############################################
+
+# Run the $(dirname ${build_tools})/scripts/config-register tool by itself
+# because the argument requirements differ from all the other tools
+
+# Exit if config-register tool doesn't exist
+if [ ! -f ${build_tools}/scripts/config-register ]; then
+  echo "${build_tools}/scripts/config-register missing"
+    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
+fi
+
+# Change into scripts/ subfolder if scripts/config-register exists
+cd ${build_tools}/scripts/  
+
+
+###############################################
+# Configure network (802.1 or single) adapter #
+###############################################
+
+if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
+    [[ "${RHNPASS}" != "" ]]; then
+
+  # Provide an empty proxy string
+  proxy=
+
+  # Build list of options based on provided parameters
+  if [[ "${PROXY}" != "" ]] && [[ "${USER}" != "" ]] &&
+      [[ "${PASS}" != "" ]]; then
+
+    # Since we require a proxy add it to ${proxy}
+    proxy='-x "${PROXY}" -y "${USER}" -z "${PASS}" '
+  fi
+
+  # Run ./config-register to facilitate automated registration
+  # for physical servers & non-bonded interfaces for virtual machine guests
+  ./config-register -va kickstart -s "${HOSTNAME}" -u "${RHNUSER}" \
+    -p "${RHNPASS}" ${proxy}
+      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+fi
+
+
+###############################################
 # Run build-tools to validate build           #
 ###############################################
 
@@ -1598,53 +1679,6 @@ total_successful_tools=${#successful_tools[@]}
 ###############################################
 
 # Should this be implemented? Or just force review of the logs?
-
-
-###############################################
-# Check for config-network tool               #
-###############################################
-
-# Run the $(dirname ${build_tools})/scripts/config-network tool by itself
-# because the argument requirements differ from all the other tools
-
-# Exit if config-network tool doesn't exist
-if [ ! -f ${build_tools}/scripts/config-network ]; then
-  echo "${build_tools}/scripts/config-network missing"
-  exit 1
-fi
-
-# Change into scripts/ subfolder if scripts/config-network exists
-cd ${build_tools}/scripts/  
-
-# Make sure our configuration data exists
-if [ ! -f /tmp/ks-networking ]; then
-  echo "/tmp/ks-networking file is missing, exiting"
-  exit 1
-fi
-
-
-###############################################
-# Get network parameters for config-network   #
-###############################################
-
-# Obtain ${IPADDR}, ${NETMASK} & ${GATEWAY} from /tmp/ks-networking
-net="$(cat /tmp/ks-networking)"
-IPADDR="$(echo "${net}" |
-  awk '{if (match($0, /ip=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-NETMASK="$(echo "${net}" |
-  awk '{if (match($0, /netmask=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-GATEWAY="$(echo "${net}" |
-  awk '{if (match($0, /gateway=([[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/, obj)){print obj[1]}}')"
-
-
-###############################################
-# Configure network (802.1 or single) adapter #
-###############################################
-
-# Run ./config-network with network params to auto-configure bonded interfaces
-# for physical servers & non-bonded interfaces for virtual machine guests
-./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" \
-  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
 
 
 ###############################################
