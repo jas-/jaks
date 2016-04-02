@@ -9,8 +9,8 @@
 ###############################################
 
 # Setup the env (setting /dev/tty3 as default IO)
-chvt 2
-exec < /dev/tty2 > /dev/tty2 2>/dev/tty2
+chvt 3
+exec < /dev/tty3 > /dev/tty3 2>/dev/tty3
 
 # Set $PATH to something robust
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
