@@ -1569,7 +1569,7 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
-PROX="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
+PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
 PROXURI="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYURI/{print $2}')"
 PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
 PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
@@ -1688,7 +1688,7 @@ fi
 # Exit if config-register tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-register ]; then
   echo "${build_tools}/scripts/config-register missing"
-    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log
+    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log
 fi
 
 # Change into scripts/ subfolder if scripts/config-register exists
