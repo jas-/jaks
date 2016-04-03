@@ -62,14 +62,17 @@ RHNUSER=
 # RHN password
 RHNPASS=
 
+# Default for proxy user (set to false to skip prompts)
+PROXY=true
+
 # Proxy server for RHN registration
-PROXY=http://proxy.pacificorp.us:8080
+PROXYURI=http://proxy.pacificorp.us:8080
 
 # Proxy username
-USER=
+PROXYUSER=
 
 # Proxy password
-PASS=
+PROXYPASS=
 
 # Please see document for available server prefixes per timezone
 # http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/Server%20Naming%20Standard%20PPW.docx
@@ -401,6 +404,63 @@ function configurelocation()
   while [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; do
     echo "Could not determine location from hostname provided."
     read -p "Physical location? [MST|PST] " location
+    echo ""
+  done
+}
+
+
+# Configures the proxy if required
+function configureproxy()
+{
+
+  # If ${PROXY} == true make sure we have ${PROXYURI}, ${PROXYUSER} & ${PROXYPASS}
+  if [ "${PROXY}" == "true" ]; then
+
+    # Handle ${PROXYURI} if missing
+    if [[ "${PROXYURI}" == "" ]]; then
+      while [ "${PROXYURI}" == "" ]; do
+        echo "No proxy URI specified; use PROXYURI=<uri> as boot arg to skip"
+        read -p "Enter proxy URI: " PROXYURI
+        echo ""
+      done
+    fi
+
+    # Handle ${PROXYUSER} if missing
+    if [[ "${PROXYUSER}" == "" ]]; then
+      while [ "${PROXYUSER}" == "" ]; do
+        echo "No proxy username specified; use PROXYUSER=<user> as boot arg to skip"
+        read -p "Enter proxy username: " PROXYUSER
+        echo ""
+      done
+    fi
+
+    # Handle ${PROXYPASS} if missing
+    if [[ "${PROXYPASS}" == "" ]]; then
+      while [ "${PROXYPASS}" == "" ]; do
+        echo "No proxy password specified; use PROXYPASS=<password> as boot arg to skip"
+        read -p "Enter proxy password: " PROXYPASS
+        echo ""
+      done
+    fi
+  fi
+}
+
+
+# Configures the RHN credentials
+function configurerhncreds()
+{
+
+  # Prompt for ${RHNUSER}
+  while [ "${RHNUSER}" == "" ]; do
+    echo "No RHN user specified; use RHNUSER=<user> as boot arg to skip"
+    read -p "Enter RHN user: " RHNUSER
+    echo ""
+  done
+
+  # Prompt for ${RHNPASS}
+  while [ "${RHNPASS}" == "" ]; do
+    echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
+    read -p "Enter RHN password: " RHNPASS
     echo ""
   done
 }
@@ -977,6 +1037,28 @@ clear
 
 
 ###############################################
+# Configuration for the proxy                 #
+###############################################
+
+# Setup proxy
+configureproxy
+
+# Clear the terminal
+clear
+
+
+###############################################
+# Configuration for RHN registration          #
+###############################################
+
+# Setup RHN credentials
+configurerhncreds
+
+# Clear the terminal
+clear
+
+
+###############################################
 # Configuration for the NFS share & zone      #
 ###############################################
 
@@ -1002,8 +1084,9 @@ GATEWAY ${GATEWAY}
 RHNUSER ${RHNUSER}
 RHNPASS ${RHNPASS}
 PROXY ${PROXY}
-USER ${USER}
-PASS ${PASS}
+PROXYURI ${PROXYURI}
+PROXYUSER ${PROXYUSER}
+PROXYPASS ${PROXYPASS}
 EOF
 
 
@@ -1029,8 +1112,9 @@ RHN options:
 
 Proxy settings:
   PROXY:         ${PROXY}
-  USER:          ${USER}
-  PASS:          ${PASS}
+  PROXY URI:     ${PROXYURI}
+  PROXY USER:    ${PROXYUSER}
+  PROXY PASS:    ${PROXYPASS}
 
 NFS options:
   SERVER:        ${nfs_server}
@@ -1485,9 +1569,10 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
-PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
-USER="$(cat /tmp/ks-arguments|awk '$0 ~ /^USER/{print $2}')"
-PASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PASS/{print $2}')"
+PROX="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
+PROXURI="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYURI/{print $2}')"
+PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
+PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
 RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RRNUSER/{print $2}')"
 RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
 
@@ -1611,7 +1696,7 @@ cd ${build_tools}/scripts/
 
 
 ###############################################
-# Configure network (802.1 or single) adapter #
+# Configure RHN registration                  #
 ###############################################
 
 if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
@@ -1621,18 +1706,18 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
   proxy=
 
   # Build list of options based on provided parameters
-  if [[ "${PROXY}" != "" ]] && [[ "${USER}" != "" ]] &&
-      [[ "${PASS}" != "" ]]; then
+  if [[ "${PROXY}" == "true" ]] && [[ "${PROXYUSER}" != "" ]] &&
+      [[ "${PROXYPASS}" != "" ]] && [[ "${PROXYURI}" != "" ]]; then
 
     # Since we require a proxy add it to ${proxy}
-    proxy='-x "${PROXY}" -y "${USER}" -z "${PASS}" '
+    proxy='-x "${PROXYURI}" -y "${PROXYUSER}" -z "${PROXYPASS}" '
   fi
 
   # Run ./config-register to facilitate automated registration
   # for physical servers & non-bonded interfaces for virtual machine guests
   ./config-register -va kickstart -s "${HOSTNAME}" -u "${RHNUSER}" \
-    -p "${RHNPASS}" ${proxy}
-      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+    -p "${RHNPASS}" "${proxy}"
+      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log 2>/dev/null
 fi
 
 
