@@ -1687,7 +1687,7 @@ fi
 
 # Exit if config-register tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-register ]; then
-  echo "${build_tools}/scripts/config-register missing"
+  echo "${build_tools}/scripts/config-register missing" \
     > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log
 fi
 
@@ -1715,8 +1715,7 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
 
   # Run ./config-register to facilitate automated registration
   # for physical servers & non-bonded interfaces for virtual machine guests
-  ./config-register -va kickstart -s "${HOSTNAME}" -u "${RHNUSER}" \
-    -p "${RHNPASS}" "${proxy}"
+  ./config-register -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${proxy}" \
       > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log 2>/dev/null
 fi
 
