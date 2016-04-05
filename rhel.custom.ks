@@ -56,6 +56,9 @@ GATEWAY=
 # DVD is used for DVD or no network based installations
 DVD=false
 
+# Register system with RHSM (if true RHNUSER & RHNPASS required)
+REGISTER=true
+
 # RHN username
 RHNUSER=
 
@@ -450,19 +453,23 @@ function configureproxy()
 function configurerhncreds()
 {
 
-  # Prompt for ${RHNUSER}
-  while [ "${RHNUSER}" == "" ]; do
-    echo "No RHN user specified; use RHNUSER=<user> as boot arg to skip"
-    read -p "Enter RHN user: " RHNUSER
-    echo ""
-  done
+  # If ${REGISTER} == true make sure we have the info we need
+  if [ "${REGISTER}" == "" ]; then
 
-  # Prompt for ${RHNPASS}
-  while [ "${RHNPASS}" == "" ]; do
-    echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
-    read -p "Enter RHN password: " RHNPASS
-    echo ""
-  done
+    # Prompt for ${RHNUSER}
+    while [ "${RHNUSER}" == "" ]; do
+      echo "No RHN user specified; use RHNUSER=<user> as boot arg to skip"
+      read -p "Enter RHN user: " RHNUSER
+      echo ""
+    done
+
+    # Prompt for ${RHNPASS}
+    while [ "${RHNPASS}" == "" ]; do
+      echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
+      read -p "Enter RHN password: " RHNPASS
+      echo ""
+    done
+  fi
 }
 
 
@@ -1679,19 +1686,19 @@ fi
 
 
 ###############################################
-# Check for config-register tool              #
+# Check for config-rhsm tool                  #
 ###############################################
 
-# Run the $(dirname ${build_tools})/scripts/config-register tool by itself
+# Run the $(dirname ${build_tools})/scripts/config-rhsm tool by itself
 # because the argument requirements differ from all the other tools
 
-# Exit if config-register tool doesn't exist
-if [ ! -f ${build_tools}/scripts/config-register ]; then
-  echo "${build_tools}/scripts/config-register missing" \
-    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log
+# Exit if config-rhsm tool doesn't exist
+if [ ! -f ${build_tools}/scripts/config-rhsm ]; then
+  echo "${build_tools}/scripts/config-rhsm missing" \
+    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log
 fi
 
-# Change into scripts/ subfolder if scripts/config-register exists
+# Change into scripts/ subfolder if scripts/config-rhsm exists
 cd ${build_tools}/scripts/  
 
 
@@ -1713,10 +1720,10 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
     proxy='-x "${PROXYURI}" -y "${PROXYUSER}" -z "${PROXYPASS}" '
   fi
 
-  # Run ./config-register to facilitate automated registration
+  # Run ./config-rhsm to facilitate automated registration
   # for physical servers & non-bonded interfaces for virtual machine guests
-  ./config-register -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${proxy}" \
-      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-register.log 2>/dev/null
+  ./config-rhsm -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${proxy}" \
+      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log 2>/dev/null
 fi
 
 
