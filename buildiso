@@ -163,13 +163,6 @@ function donfs(){
 }
 
 
-# Ensure we have permissions
-if [ $UID != 0 ] ; then
-  echo "Requires root privileges"
-  exit 1
-fi
-
-
 echo -n "Checking for local copy of templates ... "
 
 
@@ -237,11 +230,19 @@ fi
 for file in ${!files[@]}; do
 
 
-  echo -n "Searching for '$(basename ${file})' in 'templates/' ... "
+  echo -n "Searching for '$(basename ${file})' in '$(pwd)/templates/' ... "
 
 
   # Search for ${file}
   search=$(find templates/ -name $(basename ${file})|tail -1)
+
+
+  # If primary ${search} fails; try current directory
+  if [ "${search}" == "" ]; then
+    echo "not found"
+    echo -n "Searching for '$(basename ${file})' in '$(pwd)/' ... "
+    search=$(find . -name $(basename ${file})|tail -1)
+  fi
 
 
   # If ${file} is not in templates/ set ${missing} to 1
@@ -395,7 +396,7 @@ for img in ${iso[@]}; do
 
 
       # It is an image just copy it
-      if [[ "${type}" =~ JPEG|GIF|PNG|gzip ]]; then
+      if [[ "${type}" =~ JPEG|GIF|PNG ]]; then
 
         cp ${item} ${path}
         img=1
