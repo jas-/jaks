@@ -454,7 +454,7 @@ function configurerhncreds()
 {
 
   # If ${REGISTER} == true make sure we have the info we need
-  if [ "${REGISTER}" == "" ]; then
+  if [ "${REGISTER}" == "true" ]; then
 
     # Prompt for ${RHNUSER}
     while [ "${RHNUSER}" == "" ]; do
