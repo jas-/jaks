@@ -274,6 +274,7 @@ fi
 
 
 echo "Found a total of ${#iso[@]} RHEL ISO file(s)"
+echo ""
 
 
 # Iterate ${iso[@]} and do work

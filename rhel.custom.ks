@@ -1230,13 +1230,6 @@ for item in ${dsks[@]}; do
 
   if [ "${link}" == "" ]; then
 
-    # Wipe the MBR of each disk to account for 'clearpart' deficiencies
-    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null)
-
-    # Apparently RHEL > v7 doesn't know how to refresh the LVM info prior
-    # to a new LVM creation & assumes them to be valid despite the MBR
-    # being removed
-
     # First remove all Logical Volumes
     for lv in $(lvscan|awk '{print $2}'|sed -e "s|^'||" -e "s|'$||"); do
       lvremove -f $(basename ${lv}) &>/dev/null
@@ -1251,6 +1244,12 @@ for item in ${dsks[@]}; do
     for pv in $(pvscan|awk '$0 ~ /PV/{print $2}'); do
       pvremove -f ${pv} &>/dev/null
     done
+
+    # Wipe the MBR of each disk to account for 'clearpart' deficiencies
+    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null)
+
+    # Perform a partprobe to ensure disk labels in RHEL > 7 can be written
+    bogus=$(partprobe /dev/${disk})
 
     disks+=("${disk}:${size}")
 
@@ -1732,6 +1731,9 @@ fi
 ###############################################
 # Run build-tools to validate build           #
 ###############################################
+
+# Change into into parent folder and validate
+cd ../
 
 # Run ${build_tools} to validate changes
 ./rhel-builder -vc \
