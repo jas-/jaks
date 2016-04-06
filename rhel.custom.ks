@@ -416,8 +416,8 @@ function configurelocation()
 function configureproxy()
 {
 
-  # If ${PROXY} == true make sure we have ${PROXYURI}, ${PROXYUSER} & ${PROXYPASS}
-  if [ "${PROXY}" == "true" ]; then
+  # If ${PROXY} & ${REGISTER} == true make sure we have ${PROXYURI}, ${PROXYUSER} & ${PROXYPASS}
+  if [[ "${PROXY}" == "true" ]] && [[ "${REGISTER}" == "true" ]]; then
 
     # Handle ${PROXYURI} if missing
     if [[ "${PROXYURI}" == "" ]]; then
