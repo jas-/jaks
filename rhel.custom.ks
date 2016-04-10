@@ -304,7 +304,7 @@ function copytools()
   path="$(findtools)"
 
   # If ${buildtools} not found locally check all inodes (block)
-  if [[ "${path}" == "" ]] && [[ $? == 1 ]]; then
+  if [ "${path}" == "" ]; then
 
     # Check return from findtools
     if [ $(findtools) -eq 1 ]; then
