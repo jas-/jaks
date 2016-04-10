@@ -162,6 +162,7 @@ function donfs(){
   return 0
 }
 
+echo ""
 echo "[Build Environment]"
 echo -n "Checking for local copy of templates ... "
 
@@ -273,6 +274,7 @@ if [ ${#iso[@]} -eq 0 ]; then
 fi
 
 
+echo ""
 echo "[Base ISO]"
 echo "Found a total of ${#iso[@]} RHEL ISO file(s)"
 echo ""
