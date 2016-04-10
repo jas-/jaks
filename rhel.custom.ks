@@ -1226,30 +1226,63 @@ for item in ${dsks[@]}; do
   size="$(echo "${item}"|awk '{split($0, o, ":");print o[2]}')"
 
   # Skip ${disk} if it is a USB device
-  link="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
+  usb="$(readlink -f /sys/class/block/${disk}/device|grep usb)"
 
-  if [ "${link}" == "" ]; then
+  if [ "${usb}" == "" ]; then
 
     # First remove all Logical Volumes
     for lv in $(lvscan|awk '{print $2}'|sed -e "s|^'||" -e "s|'$||"); do
       lvremove -f $(basename ${lv}) &>/dev/null
+
+      # If ${DEBUG} is true log
+      if [ "${DEBUG}" == "true" ]; then
+        echo "LVM: Removed LV '${lv}'" >> ${dlog}
+      fi
     done
 
     # Now remove all Volume Groups
     for vg in $(vgscan|awk '$0 ~ /Found volume group/{print $4}'|sed -e 's/^"//' -e 's/"$//'); do
       vgremove -f ${vg} &>/dev/null
+
+      # If ${DEBUG} is true log
+      if [ "${DEBUG}" == "true" ]; then
+        echo "LVM: Removed VG '${vg}'" >> ${dlog}
+      fi
     done
 
     # Now remove any Physical Volumes
     for pv in $(pvscan|awk '$0 ~ /PV/{print $2}'); do
       pvremove -f ${pv} &>/dev/null
+
+      # If ${DEBUG} is true log
+      if [ "${DEBUG}" == "true" ]; then
+        echo "LVM: Removed PV '${pv}'" >> ${dlog}
+      fi
     done
 
     # Wipe the MBR of each disk to account for 'clearpart' deficiencies
     bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null)
 
+    # If ${DEBUG} is true log
+    if [ "${DEBUG}" == "true" ]; then
+      echo "PT: Removed patition table on '${disk}'" >> ${dlog}
+    fi
+
+    # Create label on disk
+    bogus=$(parted -s /dev/${disk} mklabel msdos)
+
+    # If ${DEBUG} is true log
+    if [ "${DEBUG}" == "true" ]; then
+      echo "PT: Created label on '${disk}'" >> ${dlog}
+    fi
+
     # Perform a partprobe to ensure disk labels in RHEL > 7 can be written
     bogus=$(partprobe /dev/${disk})
+
+    # If ${DEBUG} is true log
+    if [ "${DEBUG}" == "true" ]; then
+      echo "PT: Re-read disk '${disk}'" >> ${dlog}
+    fi
 
     disks+=("${disk}:${size}")
 
