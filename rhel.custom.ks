@@ -291,7 +291,7 @@ function findtools()
   fi
   
   return 1
-fi
+}
 
 
 # Function to handle moving build tools in %pre
