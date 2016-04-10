@@ -119,7 +119,7 @@ mst_timezone="Denver"
 dlog=/tmp/disks.log
 
 # Name of RHEL build tools
-buildtools='${buildtools}'
+buildtools="build-tools"
 
 
 ###############################################
