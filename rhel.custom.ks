@@ -118,6 +118,9 @@ mst_timezone="Denver"
 # Disk debugging log
 dlog=/tmp/disks.log
 
+# Name of RHEL build tools
+buildtools='${buildtools}'
+
 
 ###############################################
 # Disk specific variables & templates         #
@@ -239,16 +242,101 @@ function in_array()
 }
 
 
+# Mount all block inodes searching for '${buildtools}'
+function devinodes()
+{
+  # Obtain an array of disk devices as ${blockdevs[@]}
+  local blockdevs=($(ls -la /dev/*|awk '$0 ~ /^b/ && $4 ~ /^disk$/{print $10}'))
+
+  # Error if ${#blockdevs[@]} -lt 1
+  if [ ${#blockdevs[@]} -lt 1 ]; then
+    return 1
+  fi
+
+  # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
+  for dev in ${blockdevs[@]}; do
+
+    # Skip loop disk inodes
+    if [ "${dev}" =~ ^loop ]; then
+      continue
+    fi
+
+    # Make our mount point if it doesn't exist
+    if [ ! -d /tmp/tfs ]; then
+      mkdir /tmp/tfs
+    fi
+
+    # Mount & search for '${buildtools}'
+    mount ${dev} /tmp/tfs
+
+    # Check for the folder /tmp/tfs/${buildtools}
+    if [ -d /tmp/tfs/${buildtools} ]; then
+      return 0
+    else
+      umount /tmp/tfs
+    fi
+  done
+}
+
+
+# Function to recursively mount & search for '${buildtools}'
+function findtools()
+{
+  # Search for build tools already existing on any mounted filesystems
+  haystack=$(find / -type d -name ${buildtools})
+
+  # If it exists return 0 and echo the path
+  if [ -d ${haystack} ]; then
+    echo "${haystack}" && return 0
+  fi
+  
+  return 1
+fi
+
+
 # Function to handle moving build tools in %pre
 # This might be best served as a recursive function
 # to ensure we get the tools copied over
 function copytools()
 {
+
+  # Check locally for ${buildtools} first
+  path="$(findtools)"
+
+  # If ${buildtools} not found locally check all inodes (block)
+  if [[ "${path}" == "" ]] && [[ $? == 1 ]]; then
+
+    # Check return from findtools
+    if [ $(findtools) -eq 1 ]; then
+      echo "Could not locate '${buildtools}' on any disk inodes"
+      return 1
+    else
+
+      # Set ${path} to /tmp/tfs
+      path=/tmp/tfs/${buildtools}
+    fi
+  fi
+
+  # If it mounts try to get our build tools
+  if [ -d ${path} ]; then
+    cp -fr ${path} /tmp/
+  fi
+
+  # Unmount and cleanup
+  umount /tmp/tfs
+  rm -f /tmp/tfs
+}
+
+# Function to handle moving build tools in %pre
+# This might be best served as a recursive function
+# to ensure we get the tools copied over
+function copytools_orig()
+{
   # If /mnt/stage2 exists just get the tools from there
-  if [ -d /mnt/stage2/build-tools ]; then
+  if [ -d /mnt/stage2/${buildtools} ]; then
 
     # Copy tools from /mnt/stage2
-    cp -fr /mnt/stage2/build-tools /tmp
+    cp -fr /mnt/stage2/${buildtools} /tmp
   else
 
     # Local variable to handle device for mounting
@@ -273,8 +361,8 @@ function copytools()
     mount ${point} /tmp/tfs
 
     # If it mounts try to get our build tools
-    if [ -d /tmp/tfs/build-tools ]; then
-      cp -fr /tmp/tfs/build-tools /tmp/
+    if [ -d /tmp/tfs/${buildtools} ]; then
+      cp -fr /tmp/tfs/${buildtools} /tmp/
     fi
 
     # Unmount and cleanup
@@ -1095,6 +1183,7 @@ PROXY ${PROXY}
 PROXYURI ${PROXYURI}
 PROXYUSER ${PROXYUSER}
 PROXYPASS ${PROXYPASS}
+buildtools ${buildtools}
 EOF
 
 
@@ -1449,6 +1538,7 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 
 
 ###############################################
@@ -1471,9 +1561,9 @@ fi
 # If ${DVD} set is false get NFS mounts ready
 if [ "${DVD}" == "true" ]; then
 
-  # Copy the local DVD build-tools to the local chroot env
-  mkdir -p ${path}/linux/build-tools
-  cp -fr /tmp/build-tools/* ${path}/linux/build-tools/
+  # Copy the local DVD ${buildtools} to the local chroot env
+  mkdir -p ${path}/linux/${buildtools}
+  cp -fr /tmp/${buildtools}/* ${path}/linux/${buildtools}/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
@@ -1616,16 +1706,18 @@ PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
 PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
 RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RRNUSER/{print $2}')"
 RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
+buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
+
 
 # Mount point for NFS share
 path="/var/tmp/unixbuild"
 
 # Define a location for the RHEL build tool
-build_tools="${path}/linux/build-tools"
+build_tools="${path}/linux/${buildtools}"
 
 
 ###############################################
-# Validate build-tools location (NFS mount)   #
+# Validate ${buildtools} location (NFS mount)   #
 ###############################################
 
 # Make sure the NFS mount provided the directory
@@ -1636,7 +1728,7 @@ fi
 
 
 ###############################################
-# Validate build-tools exist (actual file)    #
+# Validate ${buildtools} exist (actual file)    #
 ###############################################
 
 # Does our build tool exist?
@@ -1669,7 +1761,7 @@ echo "Please wait; auto-configuring system according to build standards"
 
 
 ###############################################
-# Run build-tools to validate current env.    #
+# Run ${buildtools} to validate current env.    #
 ###############################################
 
 # Run ${build_tools} to validate current configuration with logging
@@ -1762,7 +1854,7 @@ fi
 
 
 ###############################################
-# Run build-tools to validate build           #
+# Run ${buildtools} to validate build           #
 ###############################################
 
 # Change into into parent folder and validate
