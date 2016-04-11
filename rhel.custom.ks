@@ -256,26 +256,25 @@ function devinodes()
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
   for dev in ${blockdevs[@]}; do
 
-    # Skip loop disk inodes
-    if [ "${dev}" =~ ^loop ]; then
+    # Skip loop & ram device inodes
+    if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]]; then
       continue
     fi
 
-    # Make our mount point if it doesn't exist
-    if [ ! -d /tmp/tfs ]; then
-      mkdir /tmp/tfs
+    # Mount & search for '${buildtools}', skip if mount fails
+    bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
+    if [ $? -ne 0 ]; then
+      continue
     fi
-
-    # Mount & search for '${buildtools}'
-    mount ${dev} /tmp/tfs
 
     # Check for the folder /tmp/tfs/${buildtools}
     if [ -d /tmp/tfs/${buildtools} ]; then
+      echo "/tmp/tfs/${buildtools}"
       return 0
-    else
-      umount /tmp/tfs
     fi
   done
+
+  return 1
 }
 
 
@@ -300,21 +299,29 @@ function findtools()
 function copytools()
 {
 
+  # Make our mount point if it doesn't exist
+  if [ ! -d /tmp/tfs ]; then
+    mkdir /tmp/tfs
+  fi
+
   # Check locally for ${buildtools} first
   path="$(findtools)"
 
-  # If ${buildtools} not found locally check all inodes (block)
-  if [ "${path}" == "" ]; then
+  # If the return code isn't 0 & ${path} is still empty call devinodes()
+  if [[ $? -ne 0 ]] || [[ "${path}" == "" ]]; then
 
-    # Check return from findtools
-    if [ $(findtools) -eq 1 ]; then
+    # Check return from devinodes()
+    path=$(devinodes)
+    if [[ $? -eq 1 ]] || [[ "${path}" == "" ]]; then
       echo "Could not locate '${buildtools}' on any disk inodes"
       return 1
-    else
-
-      # Set ${path} to /tmp/tfs
-      path=/tmp/tfs/${buildtools}
     fi
+
+  else
+  
+    # Set ${path} to /tmp/tfs
+    path=/tmp/tfs/${buildtools}
+
   fi
 
   # If it mounts try to get our build tools
@@ -323,51 +330,9 @@ function copytools()
   fi
 
   # Unmount and cleanup
-  umount /tmp/tfs
-  rm -f /tmp/tfs
-}
-
-# Function to handle moving build tools in %pre
-# This might be best served as a recursive function
-# to ensure we get the tools copied over
-function copytools_orig()
-{
-  # If /mnt/stage2 exists just get the tools from there
-  if [ -d /mnt/stage2/${buildtools} ]; then
-
-    # Copy tools from /mnt/stage2
-    cp -fr /mnt/stage2/${buildtools} /tmp
-  else
-
-    # Local variable to handle device for mounting
-    local point=
-
-    # If /dev/sda1 is a block device use that to look for tools
-    if [ -b /dev/sda1 ]; then
-      point=/dev/sda1
-    fi
-
-    # If ${point} still empty & /dev/sr0 is a block device look there
-    if [[ -b /dev/sr0 ]] && [[ "${point}" == "" ]]; then
-      point=/dev/sr0
-    fi
-
-    # Make our mount point if it doesn't exist
-    if [ ! -d /tmp/tfs ]; then
-      mkdir /tmp/tfs
-    fi
-
-    # Mount ${point}
-    mount ${point} /tmp/tfs
-
-    # If it mounts try to get our build tools
-    if [ -d /tmp/tfs/${buildtools} ]; then
-      cp -fr /tmp/tfs/${buildtools} /tmp/
-    fi
-
-    # Unmount and cleanup
-    umount /tmp/tfs
-    rm -f /tmp/tfs
+  bogus=$(umount /tmp/tfs &>/dev/null)
+  if [ -d /tmp/tfs ]; then
+    rm -fr /tmp/tfs
   fi
 }
 
