@@ -256,6 +256,12 @@ function devinodes()
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
   for dev in ${blockdevs[@]}; do
 
+    # Look to see if ${dev} is currently mounted & skip if it is
+    mnt=$(mount|grep ^${dev})
+    if [ "${mnt}" != "" ]; then
+      continue
+    fi
+
     # Skip loop & ram device inodes
     if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]]; then
       continue
