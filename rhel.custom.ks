@@ -101,7 +101,7 @@ hostname=
 location=
 
 # Mount point for NFS share
-path="/unixshr/linux/kickstart"
+nfspath="/unixshr/linux/kickstart"
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -308,7 +308,7 @@ function copytools()
   path="$(findtools)"
 
   # If the return code isn't 0 & ${path} is still empty call devinodes()
-  if [[ $? -ne 0 ]] || [[ "${path}" == "" ]]; then
+  if [[ $? -ne 0 ]] && [[ "${path}" == "" ]]; then
 
     # Check return from devinodes()
     path=$(devinodes)
@@ -316,12 +316,6 @@ function copytools()
       echo "Could not locate '${buildtools}' on any disk inodes"
       return 1
     fi
-
-  else
-  
-    # Set ${path} to /tmp/tfs
-    path=/tmp/tfs/${buildtools}
-
   fi
 
   # If it mounts try to get our build tools
@@ -1181,7 +1175,7 @@ Proxy settings:
 
 NFS options:
   SERVER:        ${nfs_server}
-  SHARE:         ${path}
+  SHARE:         ${nfspath}
 
 EOF
 
