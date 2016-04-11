@@ -267,8 +267,8 @@ function devinodes()
       continue
     fi
 
-    # Check for the folder /tmp/tfs/${buildtools}
-    if [ -d /tmp/tfs/${buildtools} ]; then
+    # Check for the folder /tmp/tfs/${buildtools}/rhel-builder
+    if [ -d /tmp/tfs/${buildtools}/rhel-builder ]; then
       echo "/tmp/tfs/${buildtools}"
       return 0
     fi
@@ -285,7 +285,7 @@ function findtools()
   haystack=$(find / -type d -name ${buildtools}|head -1)
 
   # If it exists return 0 and echo the path
-  if [ -d ${haystack} ]; then
+  if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
     echo "${haystack}" && return 0
   fi
   
