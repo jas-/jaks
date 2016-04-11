@@ -282,7 +282,7 @@ function devinodes()
 function findtools()
 {
   # Search for build tools already existing on any mounted filesystems
-  haystack=$(find / -type d -name ${buildtools})
+  haystack=$(find / -type d -name ${buildtools}|head -1)
 
   # If it exists return 0 and echo the path
   if [ -d ${haystack} ]; then
