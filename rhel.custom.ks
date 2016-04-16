@@ -1315,7 +1315,7 @@ for item in ${dsks[@]}; do
     done
 
     # Wipe the MBR of each disk to account for 'clearpart' deficiencies
-    bogus=$(dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null)
+    dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null
 
     # If ${DEBUG} is true log
     if [ "${DEBUG}" == "true" ]; then
@@ -1323,7 +1323,7 @@ for item in ${dsks[@]}; do
     fi
 
     # Create label on disk
-    bogus=$(parted -s /dev/${disk} mklabel msdos)
+    parted -s /dev/${disk} mklabel msdos &>/dev/null
 
     # If ${DEBUG} is true log
     if [ "${DEBUG}" == "true" ]; then
@@ -1331,7 +1331,7 @@ for item in ${dsks[@]}; do
     fi
 
     # Perform a partprobe to ensure disk labels in RHEL > 7 can be written
-    bogus=$(partprobe /dev/${disk})
+    partprobe /dev/${disk} &>/dev/null
 
     # If ${DEBUG} is true log
     if [ "${DEBUG}" == "true" ]; then
