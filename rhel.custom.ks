@@ -65,11 +65,8 @@ RHNUSER=
 # RHN password
 RHNPASS=
 
-# Default for proxy user (set to false to skip prompts)
-PROXY=true
-
 # Proxy server for RHN registration
-PROXYURI=http://proxy.pacificorp.us:8080
+PROXY=http://proxy.pacificorp.us:8080
 
 # Proxy username
 PROXYUSER=
@@ -329,8 +326,12 @@ function copytools()
     cp -fr ${path} /tmp/
   fi
 
-  # Unmount and cleanup
-  bogus=$(umount /tmp/tfs &>/dev/null)
+  # Unmount /tmp/tfs if it is mounted
+  if [ "$(mount|grep /tmp/tfs)" != "" ]; then
+    umount /tmp/tfs
+  fi
+
+  # Remove the /tmp/tfs folder
   if [ -d /tmp/tfs ]; then
     rm -fr /tmp/tfs
   fi
@@ -469,14 +470,14 @@ function configurelocation()
 function configureproxy()
 {
 
-  # If ${PROXY} & ${REGISTER} == true make sure we have ${PROXYURI}, ${PROXYUSER} & ${PROXYPASS}
-  if [[ "${PROXY}" == "true" ]] && [[ "${REGISTER}" == "true" ]]; then
+  # If ${PROXY} & ${REGISTER} == true make sure we have ${PROXY}, ${PROXYUSER} & ${PROXYPASS}
+  if [[ "${PROXY}" != "false" ]] && [[ "${REGISTER}" == "true" ]]; then
 
-    # Handle ${PROXYURI} if missing
-    if [[ "${PROXYURI}" == "" ]]; then
-      while [ "${PROXYURI}" == "" ]; do
-        echo "No proxy URI specified; use PROXYURI=<uri> as boot arg to skip"
-        read -p "Enter proxy URI: " PROXYURI
+    # Handle ${PROXY} if missing
+    if [[ "${PROXY}" == "" ]]; then
+      while [ "${PROXY}" == "" ]; do
+        echo "No proxy URI specified; use PROXYU=<uri> as boot arg to skip"
+        read -p "Enter proxy URI: " PROXY
         echo ""
       done
     fi
@@ -807,7 +808,6 @@ function multipledisks()
   local disk="${1}"
 
   # Convert ${disks} into an array (${disks[@]})
-  #IFS=',' read -a disks <<< "${disk}"
   disks=($(echo "${disk}"|awk 'BEGIN{RS=","}{print $1}'|sort -t: -k1))
 
   # Make copy of ${disks[@]:1}yes
@@ -1045,8 +1045,18 @@ clear
 # Copy build tools to temporary memory fs     #
 ###############################################
 
-# Set up the API defaults provided from /proc/cmdline
+# Find and copy tools to the /tmp filesystem
 copytools
+echo $?
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
+if [ $? -ne 0 ]; then
+  echo "Could not provide build-tools for post build process"
+  exit 1
+fi
 
 # Clear the terminal
 clear
@@ -1097,22 +1107,22 @@ clear
 
 
 ###############################################
-# Configuration for the proxy                 #
+# Configuration for RHN registration          #
 ###############################################
 
-# Setup proxy
-configureproxy
+# Setup RHN credentials
+configurerhncreds
 
 # Clear the terminal
 clear
 
 
 ###############################################
-# Configuration for RHN registration          #
+# Configuration for the proxy                 #
 ###############################################
 
-# Setup RHN credentials
-configurerhncreds
+# Setup proxy
+configureproxy
 
 # Clear the terminal
 clear
@@ -1145,7 +1155,6 @@ REGISTER ${REGISTER}
 RHNUSER ${RHNUSER}
 RHNPASS ${RHNPASS}
 PROXY ${PROXY}
-PROXYURI ${PROXYURI}
 PROXYUSER ${PROXYUSER}
 PROXYPASS ${PROXYPASS}
 buildtools ${buildtools}
@@ -1172,16 +1181,6 @@ RHN options:
   REGISTER:      ${REGISTER}
   RHN Username:  ${RHNUSER}
   RHN Password:  ${RHNPASS}
-
-Proxy settings:
-  PROXY:         ${PROXY}
-  PROXY URI:     ${PROXYURI}
-  PROXY USER:    ${PROXYUSER}
-  PROXY PASS:    ${PROXYPASS}
-
-NFS options:
-  SERVER:        ${nfs_server}
-  SHARE:         ${nfspath}
 
 EOF
 
@@ -1229,6 +1228,15 @@ Network configuration:
   NETMASK:       ${NETMASK}
   GATEWAY:       ${GATEWAY}
 
+Proxy settings:
+  PROXY:         ${PROXY}
+  PROXY USER:    ${PROXYUSER}
+  PROXY PASS:    ${PROXYPASS}
+
+NFS options:
+  SERVER:        ${nfs_server}
+  SHARE:         ${nfspath}
+
 EOF
 
 # Print the report
@@ -1243,6 +1251,11 @@ fi
 ###############################################
 # Configuration for physical disks            #
 ###############################################
+
+# Fix for errors handling primary disk on mklabel
+if [ "$(mount|grep /tmp/tfs)" != "" ]; then
+  umount /tmp/tfs
+fi
 
 # Determine the amount of memory on the system, used for our swap partition
 swap=$(kb2b $(cat /proc/meminfo|awk '$0 ~ /^MemTotal/{print $2}'))
@@ -1314,29 +1327,34 @@ for item in ${dsks[@]}; do
       fi
     done
 
+    # Iterate each disk & remove partition tables
+    part=($(fdisk -l ${disk}|awk 'BEGIN{OFS=" "}{if ($0 ~ /^\/dev/){print $1}}'|sort -r))
+    if [ ${#part[@]} -gt 0 ]; then
+      for prt in ${part[@]}; do
+        echo -e "$(printf 'd\n%d\nw' "${prt: -1}")"|fdisk ${disk}
+
+        # If ${DEBUG} is true log
+        if [ "${DEBUG}" == "true" ]; then
+          echo "PT: Removed patition '${prt}' on '${disk}'" >> ${dlog}
+        fi
+      done
+    fi
+
     # Wipe the MBR of each disk to account for 'clearpart' deficiencies
     dd if=/dev/zero of=/dev/${disk} bs=1 count=512 &>/dev/null
 
     # If ${DEBUG} is true log
     if [ "${DEBUG}" == "true" ]; then
-      echo "PT: Removed patition table on '${disk}'" >> ${dlog}
+      echo "PT: Removed first 512 bytes on '${disk}'" >> ${dlog}
     fi
 
     # Create label on disk
-    parted -s /dev/${disk} mklabel msdos &>/dev/null
+    #parted -s /dev/${disk} mklabel msdos &>/dev/null
 
     # If ${DEBUG} is true log
-    if [ "${DEBUG}" == "true" ]; then
-      echo "PT: Created label on '${disk}'" >> ${dlog}
-    fi
-
-    # Perform a partprobe to ensure disk labels in RHEL > 7 can be written
-    partprobe /dev/${disk} &>/dev/null
-
-    # If ${DEBUG} is true log
-    if [ "${DEBUG}" == "true" ]; then
-      echo "PT: Re-read disk '${disk}'" >> ${dlog}
-    fi
+    #if [ "${DEBUG}" == "true" ]; then
+    #  echo "PT: Created label on '${disk}'" >> ${dlog}
+    #fi
 
     disks+=("${disk}:${size}")
 
@@ -1407,6 +1425,9 @@ fi
 ###############################################
 # Begin kick start automation procedures      #
 ###############################################
+
+# Disable selinux
+selinux --disabled
 
 # Setup the installation media (if any)
 %include /tmp/ks-installation
@@ -1666,7 +1687,6 @@ IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
-PROXURI="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYURI/{print $2}')"
 PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
 PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
 RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RRNUSER/{print $2}')"
@@ -1798,17 +1818,17 @@ cd ${build_tools}/scripts/
 ###############################################
 
 if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
-    [[ "${RHNPASS}" != "" ]]; then
+    [[ "${RHNPASS}" != "" ]] && [[ "${REGISTER}" != "false" ]]; then
 
   # Provide an empty proxy string
   proxy=
 
   # Build list of options based on provided parameters
-  if [[ "${PROXY}" == "true" ]] && [[ "${PROXYUSER}" != "" ]] &&
-      [[ "${PROXYPASS}" != "" ]] && [[ "${PROXYURI}" != "" ]]; then
+  if [[ "${PROXY}" != "false" ]] && [[ "${PROXYUSER}" != "" ]] &&
+      [[ "${PROXYPASS}" != "" ]] && [[ "${PROXY}" != "" ]]; then
 
     # Since we require a proxy add it to ${proxy}
-    proxy='-x "${PROXYURI}" -y "${PROXYUSER}" -z "${PROXYPASS}" '
+    proxy='-x "${PROXY}" -y "${PROXYUSER}" -z "${PROXYPASS}" '
   fi
 
   # Run ./config-rhsm to facilitate automated registration
