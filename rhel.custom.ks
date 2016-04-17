@@ -253,16 +253,16 @@ function devinodes()
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
   for dev in ${blockdevs[@]}; do
 
-    # Look to see if ${dev} is currently mounted & skip if it is
-    mnt=$(mount|grep ^${dev})
-    if [ "${mnt}" != "" ]; then
-      continue
-    fi
-
     # Skip loop & ram device inodes
     if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]] ||
         [[ "${dev}" =~ rawctl ]]; then
       continue
+    fi
+
+    # Look to see if ${dev} is currently mounted & unmount if it is
+    mnt=$(mount|grep ^${dev}|awk '{print $3}')
+    if [ "${mnt}" != "" ]; then
+      umount ${mnt}
     fi
 
     # Mount & search for '${buildtools}', skip if mount fails
@@ -1048,16 +1048,6 @@ clear
 
 # Find and copy tools to the /tmp filesystem
 copytools
-echo $?
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
-
-if [ $? -ne 0 ]; then
-  echo "Could not provide build-tools for post build process"
-  exit 1
-fi
 
 # Clear the terminal
 clear
@@ -1526,6 +1516,105 @@ IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
+
+# Mount all block inodes searching for '${buildtools}'
+function devinodes()
+{
+  # Obtain an array of disk devices as ${blockdevs[@]}
+  local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
+
+  # Error if ${#blockdevs[@]} -lt 1
+  if [ ${#blockdevs[@]} -lt 1 ]; then
+    return 1
+  fi
+
+  # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
+  for dev in ${blockdevs[@]}; do
+
+    # Skip loop & ram device inodes
+    if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]] ||
+        [[ "${dev}" =~ rawctl ]]; then
+      continue
+    fi
+
+    # Look to see if ${dev} is currently mounted & unmount if it is
+    mnt=$(mount|grep ^${dev}|awk '{print $3}')
+    if [ "${mnt}" != "" ]; then
+      umount ${mnt}
+    fi
+
+    # Mount & search for '${buildtools}', skip if mount fails
+    bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
+    if [ $? -ne 0 ]; then
+      continue
+    fi
+
+    # Check for the folder /tmp/tfs/${buildtools}/rhel-builder
+    if [ -d /tmp/tfs/${buildtools}/rhel-builder ]; then
+      echo "/tmp/tfs/${buildtools}"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+
+# Function to recursively mount & search for '${buildtools}'
+function findtools()
+{
+  # Search for build tools already existing on any mounted filesystems
+  haystack=$(find / -type d -name ${buildtools}|head -1)
+
+  # If it exists return 0 and echo the path
+  if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
+    echo "${haystack}" && return 0
+  fi
+  
+  return 1
+}
+
+
+# Function to handle moving build tools in %pre
+# This might be best served as a recursive function
+# to ensure we get the tools copied over
+function copytools()
+{
+
+  # Make our mount point if it doesn't exist
+  if [ ! -d /tmp/tfs ]; then
+    mkdir /tmp/tfs
+  fi
+
+  # Check locally for ${buildtools} first
+  path="$(findtools)"
+
+  # If the return code isn't 0 & ${path} is still empty call devinodes()
+  if [[ $? -ne 0 ]] && [[ "${path}" == "" ]]; then
+
+    # Check return from devinodes()
+    path=$(devinodes)
+    if [[ $? -eq 1 ]] || [[ "${path}" == "" ]]; then
+      echo "Could not locate '${buildtools}' on any disk inodes"
+      return 1
+    fi
+  fi
+
+  # If it mounts try to get our build tools
+  if [ -d ${path} ]; then
+    cp -fr ${path} /tmp/
+  fi
+
+  # Unmount /tmp/tfs if it is mounted
+  if [ "$(mount|grep /tmp/tfs)" != "" ]; then
+    umount /tmp/tfs
+  fi
+
+  # Remove the /tmp/tfs folder
+  if [ -d /tmp/tfs ]; then
+    rm -fr /tmp/tfs
+  fi
+}
 
 
 ###############################################
