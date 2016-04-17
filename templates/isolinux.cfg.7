@@ -38,7 +38,7 @@ Kickstart without network from DVD (possibly outdated)
   ENDTEXT
   menu label RHEL {VER} ^DVD kickstart
   kernel vmlinuz
-  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true
+  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true REGISTER=false
 
 label local
   menu label Boot from ^local drive
