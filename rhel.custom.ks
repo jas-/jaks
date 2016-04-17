@@ -243,7 +243,7 @@ function in_array()
 function devinodes()
 {
   # Obtain an array of disk devices as ${blockdevs[@]}
-  local blockdevs=($(ls -la /dev/*|awk '$0 ~ /^b/ && $4 ~ /^disk$/{print $10}'))
+  local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
 
   # Error if ${#blockdevs[@]} -lt 1
   if [ ${#blockdevs[@]} -lt 1 ]; then
@@ -260,7 +260,8 @@ function devinodes()
     fi
 
     # Skip loop & ram device inodes
-    if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]]; then
+    if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]] ||
+        [[ "${dev}" =~ rawctl ]]; then
       continue
     fi
 
