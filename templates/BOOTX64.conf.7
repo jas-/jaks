@@ -12,7 +12,7 @@ title RHEL {VER} SLC kickstart
 	initrd /images/pxeboot/initrd.img
 
 title RHEL {VER} Local Kickstart
-	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true
+	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true REGISTER=false
 	initrd /images/pxeboot/initrd.img
 
 title Rescue Installed System
