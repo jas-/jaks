@@ -1434,7 +1434,7 @@ function devinodes()
     fi
 
     # Look to see if ${dev} is currently mounted & unmount if it is
-    mnt=$(mount|grep ^${dev}|awk '{print $3}')
+    mnt=$(mount|grep ^${dev}|grep -v "/mnt/sysimage"|awk '{print $3}')
     if [ "${mnt}" != "" ]; then
       umount ${mnt}
     fi
