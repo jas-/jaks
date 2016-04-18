@@ -1181,35 +1181,50 @@ for item in ${dsks[@]}; do
 
   if [ "${usb}" == "" ]; then
 
-    # First remove all Logical Volumes
-    for lv in $(lvscan|awk '{print $2}'|sed -e "s|^'||" -e "s|'$||"); do
-      lvremove -f $(basename ${lv}) &>/dev/null
+    # Obtain array of logical volumes from LVM as ${lvol[@]}
+    lvol=$(lvscan|awk '{print $2}'|sed -e "s|^'||" -e "s|'$||")
 
-      # If ${DEBUG} is true log
-      if [ "${DEBUG}" == "true" ]; then
-        echo "LVM: Removed LV '${lv}'" >> ${dlog}
-      fi
-    done
+    # If ${#lvol[@]} -gt 0 then remove them all
+    if [ ${#lvol[@]} -gt 0 ]; then
+      for lv in ${lvol[@]}; do
+        lvremove -f $(basename ${lv}) &>/dev/null
+  
+        # If ${DEBUG} is true log
+        if [ "${DEBUG}" == "true" ]; then
+          echo "LVM: Removed LV '${lv}'" >> ${dlog}
+        fi
+      done
+    fi
 
-    # Now remove all Volume Groups
-    for vg in $(vgscan|awk '$0 ~ /Found volume group/{print $4}'|sed -e 's/^"//' -e 's/"$//'); do
-      vgremove -f ${vg} &>/dev/null
+    # Obtain array of volume groups from LVM as ${vvol[@]}
+    vvol=$(vgscan|awk '$0 ~ /Found volume group/{print $4}'|sed -e 's/^"//' -e 's/"$//')
 
-      # If ${DEBUG} is true log
-      if [ "${DEBUG}" == "true" ]; then
-        echo "LVM: Removed VG '${vg}'" >> ${dlog}
-      fi
-    done
+    # If ${#vvol[@]} -gt 0 then remove them all
+    if [ ${#vvol[@]} -gt 0 ]; then
+      for vg in ${vvol[@]}; do
+        vgremove -f ${vg} &>/dev/null
 
-    # Now remove any Physical Volumes
-    for pv in $(pvscan|awk '$0 ~ /PV/{print $2}'); do
-      pvremove -f ${pv} &>/dev/null
+        # If ${DEBUG} is true log
+        if [ "${DEBUG}" == "true" ]; then
+          echo "LVM: Removed VG '${vg}'" >> ${dlog}
+        fi
+      done
+    fi
 
-      # If ${DEBUG} is true log
-      if [ "${DEBUG}" == "true" ]; then
-        echo "LVM: Removed PV '${pv}'" >> ${dlog}
-      fi
-    done
+    # Obtain array of volume groups from LVM as ${vvol[@]}
+    pvol=$(pvscan|awk '$0 ~ /PV/{print $2}')
+
+    # If ${#pvol[@]} -gt 0 then remove them all
+    if [ ${#pvol[@]} -gt 0 ]; then
+      for pv in ${pvol[@]}; do
+        pvremove -f ${pv} &>/dev/null
+
+        # If ${DEBUG} is true log
+        if [ "${DEBUG}" == "true" ]; then
+          echo "LVM: Removed PV '${pv}'" >> ${dlog}
+        fi
+      done
+    fi
 
     # Iterate each disk & remove partition tables
     part=($(fdisk -l ${disk}|awk 'BEGIN{OFS=" "}{if ($0 ~ /^\/dev/){print $1}}'|sort -r))
@@ -1231,14 +1246,6 @@ for item in ${dsks[@]}; do
     if [ "${DEBUG}" == "true" ]; then
       echo "PT: Removed first 512 bytes on '${disk}'" >> ${dlog}
     fi
-
-    # Create label on disk
-    #parted -s /dev/${disk} mklabel msdos &>/dev/null
-
-    # If ${DEBUG} is true log
-    #if [ "${DEBUG}" == "true" ]; then
-    #  echo "PT: Created label on '${disk}'" >> ${dlog}
-    #fi
 
     disks+=("${disk}:${size}")
 
@@ -1427,14 +1434,14 @@ function devinodes()
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
   for dev in ${blockdevs[@]}; do
 
-    # Skip loop & ram device inodes
+    # Skip loop, rawct, dm-* & ram device inodes
     if [[ "${dev}" =~ loop ]] || [[ "${dev}" =~ ram ]] ||
-        [[ "${dev}" =~ rawctl ]]; then
+        [[ "${dev}" =~ rawctl ]] || [[ "${dev}" =~ dm- ]]; then
       continue
     fi
 
     # Look to see if ${dev} is currently mounted & unmount if it is
-    mnt=$(mount|grep ^${dev}|grep -v "/mnt/sysimage"|awk '{print $3}')
+    mnt=$(mount|grep ^${dev}|grep -v /mnt/sysimage/|awk '{print $3}')
     if [ "${mnt}" != "" ]; then
       umount ${mnt}
     fi
@@ -1450,6 +1457,8 @@ function devinodes()
       echo "/tmp/tfs/${buildtools}"
       return 0
     fi
+
+    unmount /tmp/tfs
   done
 
   return 1
