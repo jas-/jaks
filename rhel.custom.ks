@@ -1452,13 +1452,17 @@ function devinodes()
       continue
     fi
 
-    # Check for the folder /tmp/tfs/${buildtools}/rhel-builder
-    if [ -d /tmp/tfs/${buildtools} ]; then
-      echo "/tmp/tfs/${buildtools}"
-      return 0
+    # Check for the ${buildtools} folder
+    needle="$(find /tmp/tfs -type d -name "${buildtools}" -print -quit)"
+    if [ "${needle}" != "" ]; then
+      if [ -d ${needle} ]; then
+        echo "${needle}"
+        return 0
+      fi
     fi
 
-    unmount /tmp/tfs
+    # Remove the mount while discarding errors
+    umount /tmp/tfs &>/dev/null
   done
 
   return 1
@@ -1545,7 +1549,6 @@ fi
 ###############################################
 
 
-echo "devinode(): ${path}"
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
   pause
