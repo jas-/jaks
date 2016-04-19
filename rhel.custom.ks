@@ -398,7 +398,7 @@ function configureproxy()
     if [[ "${PROXYPASS}" == "" ]]; then
       while [ "${PROXYPASS}" == "" ]; do
         echo "No proxy password specified; use PROXYPASS=<password> as boot arg to skip"
-        read -p "Enter proxy password: " PROXYPASS
+        read -sp "Enter proxy password: " PROXYPASS
         echo ""
       done
     fi
@@ -423,7 +423,7 @@ function configurerhncreds()
     # Prompt for ${RHNPASS}
     while [ "${RHNPASS}" == "" ]; do
       echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
-      read -p "Enter RHN password: " RHNPASS
+      read -sp "Enter RHN password: " RHNPASS
       echo ""
     done
   fi
