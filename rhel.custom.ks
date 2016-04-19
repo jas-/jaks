@@ -1515,13 +1515,14 @@ function copytools()
   fi
 
   # If it mounts try to get our build tools
-  if [ -d ${path} ]; then
+  if [[ -d ${path} ]] && [[ "${path}" != "" ]]; then
 
     # Make ${buildenv} exists in the right location
     if [ ! -d ${buildenv} ]; then
       mkdir -p ${buildenv}
     fi
 
+    echo "Copying '${buildtools}' from '${path}' to '${buildenv}'"
     cp -fr ${path} ${buildenv}
   fi
 
@@ -1564,7 +1565,6 @@ if [ "${DEBUG}" == "true" ]; then
   pause
 fi
 
-
 # Find and copy tools
 copytools
 
@@ -1580,8 +1580,8 @@ clear
 if [ "${DVD}" == "true" ]; then
 
   # Copy the local DVD ${buildtools} to the local chroot env
-  mkdir -p ${path}/linux/${buildtools}
-  cp -fr /tmp/${buildtools}/* ${path}/linux/${buildtools}/
+  #mkdir -p ${path}/linux/${buildtools}
+  #cp -fr /tmp/${buildtools}/* ${path}/linux/${buildtools}/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
