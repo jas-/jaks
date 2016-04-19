@@ -1423,12 +1423,18 @@ function pause() {
 # Mount all block inodes searching for '${buildtools}'
 function devinodes()
 {
-  # Obtain an array of disk devices as ${blockdevs[@]}
-  local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
+  # Obtain an array of block devices as ${blockdevs[@]}
+  local blockdevs=($(ls -la /dev/ | sort -k 4 |
+    awk '$10 ~ /[0-9]$/ && ($4 ~ /^cdrom$/ || $4 ~ /^disk$/){print "/dev/"$10}'))
 
   # Error if ${#blockdevs[@]} -lt 1
   if [ ${#blockdevs[@]} -lt 1 ]; then
     return 1
+  fi
+
+  # Make our mount point if it doesn't exist
+  if [ ! -d /tmp/tfs ]; then
+    mkdir -p /tmp/tfs
   fi
 
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
@@ -1441,19 +1447,19 @@ function devinodes()
     fi
 
     # Look to see if ${dev} is currently mounted & unmount if it is
-    mnt=$(mount|grep ^${dev}|grep -v /mnt/sysimage/|awk '{print $3}')
+    local mnt=$(mount|grep ^${dev}|grep -v /mnt/sysimage/|awk '{print $3}')
     if [ "${mnt}" != "" ]; then
       umount ${mnt}
     fi
 
     # Mount & search for '${buildtools}', skip if mount fails
-    bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
+    local bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
     if [ $? -ne 0 ]; then
       continue
     fi
 
     # Check for the ${buildtools} folder
-    needle="$(find /tmp/tfs -type d -name "${buildtools}" -print -quit)"
+    local needle="$(find /tmp/tfs -type d -name "${buildtools}" -print -quit)"
     if [ "${needle}" != "" ]; then
       if [ -d ${needle} ]; then
         echo "${needle}"
@@ -1473,7 +1479,7 @@ function devinodes()
 function findtools()
 {
   # Search for build tools already existing on any mounted filesystems
-  haystack=$(find / -type d -name ${buildtools}|head -1)
+  local haystack=$(find / -type d -name ${buildtools}|head -1)
 
   # If it exists return 0 and echo the path
   if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
@@ -1495,16 +1501,11 @@ function copytools()
     mkdir -p /tmp/tfs
   fi
 
-  # Make ${buildenv} exists
-  if [ ! -d ${buildenv} ]; then
-    mkdir -p ${buildenv}
-  fi
-
   # Check locally for ${buildtools} first
-  path="$(findtools)"
+  local path="$(findtools)"
 
-  # If the return code isn't 0 & ${path} is still empty call devinodes()
-  if [[ $? -ne 0 ]] && [[ "${path}" == "" ]]; then
+  # If the return code isn't 0 or ${path} is still empty call devinodes()
+  if [[ $? -ne 0 ]] || [[ "${path}" == "" ]]; then
 
     # Check return from devinodes()
     path=$(devinodes)
@@ -1515,12 +1516,23 @@ function copytools()
   fi
 
   # If it mounts try to get our build tools
-  if [ -d ${path} ]; then
+  if [[ -d ${path} ]] && [[ "${path}" != "" ]]; then
+
+    # Make ${buildenv} exists in the right location
+    if [ ! -d ${buildenv} ]; then
+      mkdir -p ${buildenv}
+    fi
+
+    echo "Copying '${buildtools}' from '${path}' to '${buildenv}'"
     cp -fr ${path} ${buildenv}
+  else
+    echo "Could not locate '${buildtools}', exiting..."
+    exit 1
   fi
 
   # Unmount /tmp/tfs if it is mounted
-  if [ "$(mount|grep /tmp/tfs)" != "" ]; then
+  local mounted="$(mount|grep /tmp/tfs)"
+  if [ "${mounted}" != "" ]; then
     umount /tmp/tfs
   fi
 
@@ -1532,27 +1544,8 @@ function copytools()
 
 
 ###############################################
-# Create mount point for NFS share in chroot  #
-###############################################
-
-# Mount point for NFS share or DVD build-tool configuration
-path="/mnt/sysimage/var/tmp/unixbuild"
-
-# Make sure the ${path} exists, make if not
-if [ ! -d "${path}" ] ; then
-  mkdir -p "${path}"
-fi
-
-
-###############################################
 # Copy build tools to temporary memory fs     #
 ###############################################
-
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
 
 # Find and copy tools
 copytools
@@ -1567,10 +1560,6 @@ clear
 
 # If ${DVD} set is false get NFS mounts ready
 if [ "${DVD}" == "true" ]; then
-
-  # Copy the local DVD ${buildtools} to the local chroot env
-  mkdir -p ${path}/linux/${buildtools}
-  cp -fr /tmp/${buildtools}/* ${path}/linux/${buildtools}/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
@@ -1645,12 +1634,14 @@ EOF
 
 fi
 
+
 ###############################################
 # Expose /tmp/ks* files to chroot env         #
 ###############################################
 
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
+
 
 ###############################################
 # Print %post (non-chroot) report             #
@@ -1977,6 +1968,7 @@ mv -f ${folder}/pre ${folder}/build-logs
 mv -f ${folder}/build ${folder}/build-logs
 mv -f ${folder}/post ${folder}/build-logs
 
+
 ###############################################
 # Setup appropriate permissions on backup     #
 ###############################################
@@ -1984,6 +1976,7 @@ mv -f ${folder}/post ${folder}/build-logs
 # Set some permissions to account for root pw
 chown -R root:root ${folder}
 chmod -R 600 ${folder}
+
 
 ###############################################
 # Print %post (non-chroot) report             #
@@ -1997,6 +1990,7 @@ cat /tmp/ks-report-post-chroot
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 %end
 ###############################################
