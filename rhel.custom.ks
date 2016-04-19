@@ -1523,7 +1523,6 @@ function copytools()
       mkdir -p ${buildenv}
     fi
 
-    echo "Copying '${buildtools}' from '${path}' to '${buildenv}'"
     cp -fr ${path} ${buildenv}
   else
     echo "Could not locate '${buildtools}', exiting..."
@@ -1548,6 +1547,7 @@ function copytools()
 ###############################################
 
 # Find and copy tools
+echo "Searching for '${buildtools}'..."
 copytools
 
 # Clear the terminal
