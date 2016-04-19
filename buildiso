@@ -309,6 +309,9 @@ for img in ${iso[@]}; do
   arch="$(arch "${img}")"
 
 
+  # Create a friendly date for the local installation method
+  date="$(date +%m-%d-%Y)"
+
   # Concatinate as buildnme
   buildnme="${filename}-${ver}-${arch}"
 
@@ -415,6 +418,7 @@ for img in ${iso[@]}; do
       # Edit the template based on the version etc
       cat ${item} |
         sed -e "s|{VER}|${ver}|g" \
+            -e "s|{DATE}|${date}|g" \
             -e "s|{ALTVER}|${altver}|g" > ${path}
 
       echo "done"
