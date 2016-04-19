@@ -1548,6 +1548,17 @@ fi
 # Copy build tools to temporary memory fs     #
 ###############################################
 
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  sed -n '/^function devino/,/^}$/p' /tmp/ks.cfg > /tmp/wtf
+  sed -n '/^function findtoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
+  sed -n '/^function copytoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
+  source /tmp/wtf
+  devinodes
+  pause
+fi
+
+
 # Find and copy tools
 copytools
 
