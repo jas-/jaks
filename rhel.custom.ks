@@ -1424,7 +1424,9 @@ function pause() {
 function devinodes()
 {
   # Obtain an array of disk devices as ${blockdevs[@]}
-  local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
+  #local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
+  local blockdevs=($(ls -la /dev/ | sort -k 4 |
+    awk '$10 ~ /[0-9]$/ && ($4 ~ /^cdrom$/ || $4 ~ /^disk$/){print $10}'))
 
   # Error if ${#blockdevs[@]} -lt 1
   if [ ${#blockdevs[@]} -lt 1 ]; then
@@ -1503,7 +1505,7 @@ function copytools()
   # Check locally for ${buildtools} first
   local path="$(findtools)"
 
-  # If the return code isn't 0 & ${path} is still empty call devinodes()
+  # If the return code isn't 0 or ${path} is still empty call devinodes()
   if [[ $? -ne 0 ]] || [[ "${path}" == "" ]]; then
 
     # Check return from devinodes()
