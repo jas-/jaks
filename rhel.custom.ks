@@ -1511,7 +1511,7 @@ function copytools()
     path=$(devinodes)
     if [[ $? -eq 1 ]] || [[ "${path}" == "" ]]; then
       echo "Could not locate '${buildtools}' on any disk inodes"
-      return 1
+      exit 1
     fi
   fi
 
@@ -1547,7 +1547,7 @@ function copytools()
 ###############################################
 
 # Find and copy tools
-echo "Searching for '${buildtools}'..."
+echo "Searching for '${buildtools}', please wait ..."
 copytools
 
 # Clear the terminal
