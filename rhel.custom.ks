@@ -1495,11 +1495,6 @@ function copytools()
     mkdir -p /tmp/tfs
   fi
 
-  # Make ${buildenv} exists
-  if [ ! -d ${buildenv} ]; then
-    mkdir -p ${buildenv}
-  fi
-
   # Check locally for ${buildtools} first
   path="$(findtools)"
 
@@ -1516,6 +1511,12 @@ function copytools()
 
   # If it mounts try to get our build tools
   if [ -d ${path} ]; then
+
+    # Make ${buildenv} exists in the right location
+    if [ ! -d ${buildenv} ]; then
+      mkdir -p ${buildenv}
+    fi
+
     cp -fr ${path} ${buildenv}
   fi
 
@@ -1536,12 +1537,12 @@ function copytools()
 ###############################################
 
 # Mount point for NFS share or DVD build-tool configuration
-path="/mnt/sysimage/var/tmp/unixbuild"
+#path="/mnt/sysimage/var/tmp/unixbuild"
 
 # Make sure the ${path} exists, make if not
-if [ ! -d "${path}" ] ; then
-  mkdir -p "${path}"
-fi
+#if [ ! -d "${path}" ] ; then
+#  mkdir -p "${path}"
+#fi
 
 
 ###############################################
@@ -1554,7 +1555,6 @@ if [ "${DEBUG}" == "true" ]; then
   sed -n '/^function findtoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
   sed -n '/^function copytoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
   source /tmp/wtf
-  devinodes
   pause
 fi
 
