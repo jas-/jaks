@@ -1504,7 +1504,7 @@ function copytools()
   local path="$(findtools)"
 
   # If the return code isn't 0 & ${path} is still empty call devinodes()
-  if [[ $? -ne 0 ]] && [[ "${path}" == "" ]]; then
+  if [[ $? -ne 0 ]] || [[ "${path}" == "" ]]; then
 
     # Check return from devinodes()
     path=$(devinodes)
@@ -1540,30 +1540,8 @@ function copytools()
 
 
 ###############################################
-# Create mount point for NFS share in chroot  #
-###############################################
-
-# Mount point for NFS share or DVD build-tool configuration
-#path="/mnt/sysimage/var/tmp/unixbuild"
-
-# Make sure the ${path} exists, make if not
-#if [ ! -d "${path}" ] ; then
-#  mkdir -p "${path}"
-#fi
-
-
-###############################################
 # Copy build tools to temporary memory fs     #
 ###############################################
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  sed -n '/^function devino/,/^}$/p' /tmp/ks.cfg > /tmp/wtf
-  sed -n '/^function findtoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
-  sed -n '/^function copytoo/,/^}$/p' /tmp/ks.cfg >> /tmp/wtf
-  source /tmp/wtf
-  pause
-fi
 
 # Find and copy tools
 copytools
@@ -1578,10 +1556,6 @@ clear
 
 # If ${DVD} set is false get NFS mounts ready
 if [ "${DVD}" == "true" ]; then
-
-  # Copy the local DVD ${buildtools} to the local chroot env
-  #mkdir -p ${path}/linux/${buildtools}
-  #cp -fr /tmp/${buildtools}/* ${path}/linux/${buildtools}/
 
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
