@@ -1431,6 +1431,11 @@ function devinodes()
     return 1
   fi
 
+  # Make our mount point if it doesn't exist
+  if [ ! -d /tmp/tfs ]; then
+    mkdir -p /tmp/tfs
+  fi
+
   # Iterate ${blockdevs[@]} and mount to find the ${buildtools}
   for dev in ${blockdevs[@]}; do
 
