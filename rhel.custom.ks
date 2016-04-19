@@ -1423,10 +1423,9 @@ function pause() {
 # Mount all block inodes searching for '${buildtools}'
 function devinodes()
 {
-  # Obtain an array of disk devices as ${blockdevs[@]}
-  #local blockdevs=($(ls -la /dev/*|awk '$4 ~ /^cdrom$/ || $4 ~ /^disk$/{print $10}'))
+  # Obtain an array of block devices as ${blockdevs[@]}
   local blockdevs=($(ls -la /dev/ | sort -k 4 |
-    awk '$10 ~ /[0-9]$/ && ($4 ~ /^cdrom$/ || $4 ~ /^disk$/){print $10}'))
+    awk '$10 ~ /[0-9]$/ && ($4 ~ /^cdrom$/ || $4 ~ /^disk$/){print "/dev/"$10}'))
 
   # Error if ${#blockdevs[@]} -lt 1
   if [ ${#blockdevs[@]} -lt 1 ]; then
@@ -1635,12 +1634,14 @@ EOF
 
 fi
 
+
 ###############################################
 # Expose /tmp/ks* files to chroot env         #
 ###############################################
 
 # Copy all of our configuration files from %pre to /mnt/sysimage/tmp
 cp /tmp/ks* /mnt/sysimage/tmp
+
 
 ###############################################
 # Print %post (non-chroot) report             #
@@ -1967,6 +1968,7 @@ mv -f ${folder}/pre ${folder}/build-logs
 mv -f ${folder}/build ${folder}/build-logs
 mv -f ${folder}/post ${folder}/build-logs
 
+
 ###############################################
 # Setup appropriate permissions on backup     #
 ###############################################
@@ -1974,6 +1976,7 @@ mv -f ${folder}/post ${folder}/build-logs
 # Set some permissions to account for root pw
 chown -R root:root ${folder}
 chmod -R 600 ${folder}
+
 
 ###############################################
 # Print %post (non-chroot) report             #
@@ -1987,6 +1990,7 @@ cat /tmp/ks-report-post-chroot
 if [ "${DEBUG}" == "true" ]; then
   pause
 fi
+
 
 %end
 ###############################################
