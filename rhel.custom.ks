@@ -1526,6 +1526,9 @@ function copytools()
 
     echo "Copying '${buildtools}' from '${path}' to '${buildenv}'"
     cp -fr ${path} ${buildenv}
+  else
+    echo "Could not locate '${buildtools}', exiting..."
+    exit 1
   fi
 
   # Unmount /tmp/tfs if it is mounted
