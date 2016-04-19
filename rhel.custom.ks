@@ -1548,12 +1548,6 @@ fi
 # Copy build tools to temporary memory fs     #
 ###############################################
 
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
-
 # Find and copy tools
 copytools
 
