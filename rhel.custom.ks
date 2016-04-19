@@ -1446,19 +1446,19 @@ function devinodes()
     fi
 
     # Look to see if ${dev} is currently mounted & unmount if it is
-    mnt=$(mount|grep ^${dev}|grep -v /mnt/sysimage/|awk '{print $3}')
+    local mnt=$(mount|grep ^${dev}|grep -v /mnt/sysimage/|awk '{print $3}')
     if [ "${mnt}" != "" ]; then
       umount ${mnt}
     fi
 
     # Mount & search for '${buildtools}', skip if mount fails
-    bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
+    local bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
     if [ $? -ne 0 ]; then
       continue
     fi
 
     # Check for the ${buildtools} folder
-    needle="$(find /tmp/tfs -type d -name "${buildtools}" -print -quit)"
+    local needle="$(find /tmp/tfs -type d -name "${buildtools}" -print -quit)"
     if [ "${needle}" != "" ]; then
       if [ -d ${needle} ]; then
         echo "${needle}"
@@ -1478,7 +1478,7 @@ function devinodes()
 function findtools()
 {
   # Search for build tools already existing on any mounted filesystems
-  haystack=$(find / -type d -name ${buildtools}|head -1)
+  local haystack=$(find / -type d -name ${buildtools}|head -1)
 
   # If it exists return 0 and echo the path
   if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
@@ -1501,7 +1501,7 @@ function copytools()
   fi
 
   # Check locally for ${buildtools} first
-  path="$(findtools)"
+  local path="$(findtools)"
 
   # If the return code isn't 0 & ${path} is still empty call devinodes()
   if [[ $? -ne 0 ]] && [[ "${path}" == "" ]]; then
@@ -1526,7 +1526,8 @@ function copytools()
   fi
 
   # Unmount /tmp/tfs if it is mounted
-  if [ "$(mount|grep /tmp/tfs)" != "" ]; then
+  local mounted="$(mount|grep /tmp/tfs)"
+  if [ "${mounted}" != "" ]; then
     umount /tmp/tfs
   fi
 
