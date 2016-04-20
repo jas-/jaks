@@ -1598,9 +1598,13 @@ fi
 # Make sure the NFS server is accessible      #
 ###############################################
 
+# Default for nfsicmp is true
+nfsicmp=true
+
 # Make sure we can connect to ${nfs_server}
 ping=$(ping -c1 ${nfs_server})
 if [ $? -ne 0 ]; then
+  nfsicmp=false
   echo "Could not contact the ${nfs_server}, check routing table (gateway)"
   do_mount=false
 fi
@@ -1614,10 +1618,21 @@ fi
 # to ensure we are using the latest build configuration tools
 if [ "${do_mount}" != "false" ]; then
 
+  # Set our results to false unless the NFS mount succeeds
+  nfsmt=false
+
+  # Create a local build message in case NFS fails
+  lclbuild="- Using (possibly outdated) '${buildtools}' for post configuration due to NFS mount failure"
+
+  # Make ${buildenv} exists for the mount point
+  if [ ! -d "${buildenv}" ]; then
+    mkdir -p ${buildenv}
+  fi
+
   # Mount NFS share for %post processing
-  nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
-  if [ $? -ne 0 ]; then
-    echo "An error occured mount ${nfs_server} @ ${path}, exiting"
+  nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${buildenv})
+  if [ $? -eq 0 ]; then
+    nfsmt=true
   fi
 
   # Generate a %pre (non-chroot) configuration report
@@ -1627,8 +1642,9 @@ Post installation: (pre-chroot)
     - Copied configurations to chroot environment
   NFS:
     - Created NFS mount points
-    - Verified NFS server responding to ICMP requests
-    - Mounted NFS server in chroot environment
+    - Verified NFS server responding to ICMP requests ({NFSICMP})
+    - Mounted NFS server in chroot environment ({NFSMT})
+    {LOCALBUILD}
 
 EOF
 
@@ -1649,7 +1665,10 @@ cp /tmp/ks* /mnt/sysimage/tmp
 
 # Clear the terminal
 clear
-cat /tmp/ks-report-post
+cat /tmp/ks-report-post |
+  sed -e "s|{NFSICMP}|${nfsicmp}|g" \
+      -e "s|{NFSMT}|${nfsmt}|g" \
+      -e "s|{LCLBUILD}|${lclbuild}|g"
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
