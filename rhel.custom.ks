@@ -1040,6 +1040,7 @@ RHNPASS ${RHNPASS}
 PROXY ${PROXY}
 PROXYUSER ${PROXYUSER}
 PROXYPASS ${PROXYPASS}
+nfspath ${nfspath}
 buildtools ${buildtools}
 buildenv ${buildenv}
 EOF
@@ -1406,6 +1407,7 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+nfspath="$(cat /tmp/ks-arguments|awk '$0 ~ /^nfspath/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
