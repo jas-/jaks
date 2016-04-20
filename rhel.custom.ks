@@ -98,7 +98,7 @@ hostname=
 location=
 
 # Mount point for NFS share
-nfspath="/unixshr/linux/kickstart"
+nfspath="/unixshr/linux"
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -449,7 +449,7 @@ function configurenfszones()
   echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
 
   # Write out /tmp/nfsshare file
-  echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
+  echo "nfs --server=${nfs_server} --dir=${nfspath}" > /tmp/ks-nfsshare
 }
 
 
