@@ -1630,7 +1630,7 @@ if [ "${do_mount}" != "false" ]; then
   fi
 
   # Mount NFS share for %post processing
-  nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${buildenv})
+  nfs=$(mount -t nfs -o nolock ${nfs_server}:${nfspath} ${buildenv})
   if [ $? -eq 0 ]; then
     nfsmt=true
   fi
