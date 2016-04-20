@@ -1635,6 +1635,11 @@ if [ "${do_mount}" != "false" ]; then
     nfsmt=true
   fi
 
+  # Set ${lclbuild} to empty if ${nfsmt} & ${nfsicmp} is true
+  if [[ "${nfsmt}" == "true" ]] && [[ "${nfsmt}" == "true" ]]; then
+    lclbuild=""
+  fi
+
   # Generate a %pre (non-chroot) configuration report
   cat <<EOF > /tmp/ks-report-post
 Post installation: (pre-chroot)
@@ -1644,7 +1649,7 @@ Post installation: (pre-chroot)
     - Created NFS mount points
     - Verified NFS server responding to ICMP requests ({NFSICMP})
     - Mounted NFS server in chroot environment ({NFSMT})
-    {LOCALBUILD}
+    {LCLBUILD}
 
 EOF
 
