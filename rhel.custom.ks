@@ -1454,7 +1454,7 @@ function devinodes()
 
     # Mount & search for '${buildtools}', skip if mount fails
     local bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]] || [[ "$(ls ${mnt_path})" == "" ]]; then
       continue
     fi
 
