@@ -98,7 +98,7 @@ hostname=
 location=
 
 # Mount point for NFS share
-nfspath="/unixshr/linux"
+nfspath="/unixshr"
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
