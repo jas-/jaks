@@ -1728,7 +1728,8 @@ GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
 PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
 PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
-RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RRNUSER/{print $2}')"
+REGISTER="$(cat /tmp/ks-arguments|awk '$0 ~ /^REGISTER/{print $2}')"
+RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNUSER/{print $2}')"
 RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 
@@ -1841,11 +1842,11 @@ fi
 
 # Run the $(dirname ${build_tools})/scripts/config-rhsm tool by itself
 # because the argument requirements differ from all the other tools
+reg=false
 
 # Exit if config-rhsm tool doesn't exist
-if [ ! -f ${build_tools}/scripts/config-rhsm ]; then
-  echo "${build_tools}/scripts/config-rhsm missing"ye \
-    > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log
+if [ -f ${build_tools}/scripts/config-rhsm ]; then
+  reg=true
 fi
 
 # Change into scripts/ subfolder if scripts/config-rhsm exists
@@ -1857,7 +1858,8 @@ cd ${build_tools}/scripts/
 ###############################################
 
 if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
-    [[ "${RHNPASS}" != "" ]] && [[ "${REGISTER}" != "false" ]]; then
+    [[ "${reg}" == "true" ]] && [[ "${RHNPASS}" != "" ]] &&
+    [[ "${REGISTER}" != "false" ]]; then
 
   # Provide an empty proxy string
   proxy=
@@ -1916,6 +1918,16 @@ successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){pr
 
 # Provide the total number of failed scripts run
 total_successful_tools=${#successful_tools[@]}
+
+cat <<EOF
+
+
+
+# If ${DEBUG} is set to true; pause
+if [ "${DEBUG}" == "true" ]; then
+  pause
+fi
+
 
 
 ###############################################
