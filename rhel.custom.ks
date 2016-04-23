@@ -1874,7 +1874,7 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
 
   # Run ./config-rhsm to facilitate automated registration
   # for physical servers & non-bonded interfaces for virtual machine guests
-  ./config-rhsm -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${proxy}" \
+  ./config-rhsm -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${PROXY}" \
       > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log 2>/dev/null
 fi
 
