@@ -894,7 +894,7 @@ function configurenetwork()
   else
 
     # Only do this if ${DVD} is false
-    if [ "${DVD}" == "false" ]; then
+    #if [ "${DVD}" == "false" ]; then
 
       # Check to see if anything was applied via DHCP
 
@@ -924,7 +924,7 @@ function configurenetwork()
       sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
       sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
       sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
-    fi
+    #fi
   fi
 
   # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
@@ -1322,7 +1322,7 @@ fi
 selinux --disabled
 
 # Setup the installation media (if any)
-#%include /tmp/ks-installation
+%include /tmp/ks-installation
 
 # Default language
 lang en_US
