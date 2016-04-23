@@ -1322,7 +1322,7 @@ fi
 selinux --disabled
 
 # Setup the installation media (if any)
-%include /tmp/ks-installation
+#%include /tmp/ks-installation
 
 # Default language
 lang en_US
