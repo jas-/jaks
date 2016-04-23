@@ -1919,27 +1919,6 @@ successful_tools=($(awk '{if (match($0, /.*\.(.*)'\''.*successfully.*/, obj)){pr
 # Provide the total number of failed scripts run
 total_successful_tools=${#successful_tools[@]}
 
-cat <<EOF
-TOTAL:  ${total}
-
-TOOLS:  ${tools[@]}
-
-RAN:    ${total_tools[@]}
-
-FAILED: ${total_failed_tools}
-LIST:   ${failed_tools[@]}
-
-WIN:    ${total_successful_tools}
-LIST:   ${successful_tools[@]}
-EOF
-
-
-# If ${DEBUG} is set to true; pause
-if [ "${DEBUG}" == "true" ]; then
-  pause
-fi
-
-
 
 ###############################################
 # Re-run failed jobs individually             #
