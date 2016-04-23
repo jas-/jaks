@@ -1908,7 +1908,7 @@ tools=($(awk '$0 ~ /^Executing:/{print $2}' ${log_file}))
 total_tools=${#tools[@]}
 
 # Get an array of configuration scripts that failed
-failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1]-1))}}' ${log_file}))
+failed_tools=($(awk '{if (match($0, /.*An error.*\.(.*);.*/, obj)){print "."substr(obj[1], 1, length(obj[1])-1)}}' ${log_file}))
 
 # Provide the total number of failed scripts run
 total_failed_tools=${#failed_tools[@]}
