@@ -886,50 +886,44 @@ function configurenetwork()
       [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (user-supplied): ${GATEWAY} is invalid"
       exit 1
     fi
-
-    # Update /tmp/ks-arguments with network information
-    sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-    sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
-    sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
   else
 
-    # Only do this if ${DVD} is false
-    #if [ "${DVD}" == "false" ]; then
+    # Check to see if anything was applied via DHCP
 
-      # Check to see if anything was applied via DHCP
+    # Figure out our structure as 'ifconfig' output changed from 6.7 - 7.0
+    if [ "$(ifconfig|grep inet|grep "inet addr:")" == "" ]; then
+      IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $2}'|head -1)"
+      NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $4}'|head -1)"
+    else
+      IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 2|cut -d " " -f 1|head -1)"
+      NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 4|head -1)"
+    fi
+    GATEWAY="$(route -n|grep ^0.0.0.0|cut -b 17-32|cut -d " " -f 1|head -1)"
 
-      # Figure out our structure as 'ifconfig' output changed from 6.7 - 7.0
-      if [ "$(ifconfig|grep inet|grep "inet addr:")" == "" ]; then
-        IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $2}'|head -1)"
-        NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|awk '{print $4}'|head -1)"
-      else
-        IPADDR="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 2|cut -d " " -f 1|head -1)"
-        NETMASK="$(ifconfig|grep inet|grep -v 127.0.0.1|cut -d : -f 4|head -1)"
-      fi
-      GATEWAY="$(route -n|grep ^0.0.0.0|cut -b 17-32|cut -d " " -f 1|head -1)"
+    # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
+    if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
 
-      # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-      if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
-          [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
-          [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
-
-        # Be informative about the failure
-        [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (dhcp): ${IPADDR} is invalid"
-        [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (dhcp): ${NETMASK} is invalid"
-        [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (dhcp): ${GATEWAY} is invalid"
-        exit 1
-      fi
-
-      # Update /tmp/ks-arguments with network information
-      sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-      sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
-      sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
-    #fi
+      # Be informative about the failure
+      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (dhcp): ${IPADDR} is invalid"
+      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (dhcp): ${NETMASK} is invalid"
+      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (dhcp): ${GATEWAY} is invalid"
+      exit 1
+    fi
   fi
 
+  # Update /tmp/ks-arguments with network information
+  sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
+  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+  sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
+
   # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
-  echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
-    --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+  if [[ "${hostname}" != "" ]] && [[ "${IPADDR}" =~ "" ]] &&
+      [[ "${NETMASK}" != "" ]] && [[ "${GATEWAY}" != "" ]]; then
+    echo "network --bootproto=static --hostname=${hostname} --ip=${IPADDR} \
+      --netmask=${NETMASK} --gateway=${GATEWAY}" > /tmp/ks-networking
+  fi
 
 }
 
