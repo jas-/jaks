@@ -98,7 +98,7 @@ hostname=
 location=
 
 # Mount point for NFS share
-nfspath="/unixshr/linux/kickstart"
+nfspath="/unixshr/linux"
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -398,7 +398,7 @@ function configureproxy()
     if [[ "${PROXYPASS}" == "" ]]; then
       while [ "${PROXYPASS}" == "" ]; do
         echo "No proxy password specified; use PROXYPASS=<password> as boot arg to skip"
-        read -p "Enter proxy password: " PROXYPASS
+        read -sp "Enter proxy password: " PROXYPASS
         echo ""
       done
     fi
@@ -423,7 +423,7 @@ function configurerhncreds()
     # Prompt for ${RHNPASS}
     while [ "${RHNPASS}" == "" ]; do
       echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
-      read -p "Enter RHN password: " RHNPASS
+      read -sp "Enter RHN password: " RHNPASS
       echo ""
     done
   fi
@@ -449,7 +449,7 @@ function configurenfszones()
   echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
 
   # Write out /tmp/nfsshare file
-  echo "nfs --server=${nfs_server} --dir=${path}" > /tmp/ks-nfsshare
+  echo "nfs --server=${nfs_server} --dir=${nfspath}" > /tmp/ks-nfsshare
 }
 
 
@@ -1040,6 +1040,7 @@ RHNPASS ${RHNPASS}
 PROXY ${PROXY}
 PROXYUSER ${PROXYUSER}
 PROXYPASS ${PROXYPASS}
+nfspath ${nfspath}
 buildtools ${buildtools}
 buildenv ${buildenv}
 EOF
@@ -1406,6 +1407,7 @@ HOSTNAME="$(cat /tmp/ks-arguments|awk '$0 ~ /^HOSTNAME/{print $2}')"
 IPADDR="$(cat /tmp/ks-arguments|awk '$0 ~ /^IPADDR/{print $2}')"
 NETMASK="$(cat /tmp/ks-arguments|awk '$0 ~ /^NETMASK/{print $2}')"
 GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
+nfspath="$(cat /tmp/ks-arguments|awk '$0 ~ /^nfspath/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
@@ -1454,7 +1456,7 @@ function devinodes()
 
     # Mount & search for '${buildtools}', skip if mount fails
     local bogus=$(mount ${dev} /tmp/tfs &>/dev/null)
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]] || [[ "$(ls ${mnt_path})" == "" ]]; then
       continue
     fi
 
@@ -1511,7 +1513,7 @@ function copytools()
     path=$(devinodes)
     if [[ $? -eq 1 ]] || [[ "${path}" == "" ]]; then
       echo "Could not locate '${buildtools}' on any disk inodes"
-      return 1
+      exit 1
     fi
   fi
 
@@ -1523,7 +1525,6 @@ function copytools()
       mkdir -p ${buildenv}
     fi
 
-    echo "Copying '${buildtools}' from '${path}' to '${buildenv}'"
     cp -fr ${path} ${buildenv}
   else
     echo "Could not locate '${buildtools}', exiting..."
@@ -1548,6 +1549,7 @@ function copytools()
 ###############################################
 
 # Find and copy tools
+echo "Searching for '${buildtools}', please wait ..."
 copytools
 
 # Clear the terminal
@@ -1598,9 +1600,13 @@ fi
 # Make sure the NFS server is accessible      #
 ###############################################
 
+# Default for nfsicmp is true
+nfsicmp=true
+
 # Make sure we can connect to ${nfs_server}
 ping=$(ping -c1 ${nfs_server})
 if [ $? -ne 0 ]; then
+  nfsicmp=false
   echo "Could not contact the ${nfs_server}, check routing table (gateway)"
   do_mount=false
 fi
@@ -1614,10 +1620,26 @@ fi
 # to ensure we are using the latest build configuration tools
 if [ "${do_mount}" != "false" ]; then
 
+  # Set our results to false unless the NFS mount succeeds
+  nfsmt=false
+
+  # Create a local build message in case NFS fails
+  lclbuild="- Using (possibly outdated) '${buildtools}' for post configuration due to NFS mount failure"
+
+  # Make ${buildenv} exists for the mount point
+  if [ ! -d "${buildenv}" ]; then
+    mkdir -p ${buildenv}
+  fi
+
   # Mount NFS share for %post processing
-  nfs=$(mount -t nfs -o nolock ${nfs_server}:/unixshr ${path})
-  if [ $? -ne 0 ]; then
-    echo "An error occured mount ${nfs_server} @ ${path}, exiting"
+  nfs=$(mount -t nfs -o nolock ${nfs_server}:${nfspath} ${buildenv})
+  if [ $? -eq 0 ]; then
+    nfsmt=true
+  fi
+
+  # Set ${lclbuild} to empty if ${nfsmt} & ${nfsicmp} is true
+  if [[ "${nfsmt}" == "true" ]] && [[ "${nfsmt}" == "true" ]]; then
+    lclbuild=""
   fi
 
   # Generate a %pre (non-chroot) configuration report
@@ -1627,8 +1649,9 @@ Post installation: (pre-chroot)
     - Copied configurations to chroot environment
   NFS:
     - Created NFS mount points
-    - Verified NFS server responding to ICMP requests
-    - Mounted NFS server in chroot environment
+    - Verified NFS server responding to ICMP requests ({NFSICMP})
+    - Mounted NFS server in chroot environment ({NFSMT})
+    {LCLBUILD}
 
 EOF
 
@@ -1649,7 +1672,10 @@ cp /tmp/ks* /mnt/sysimage/tmp
 
 # Clear the terminal
 clear
-cat /tmp/ks-report-post
+cat /tmp/ks-report-post |
+  sed -e "s|{NFSICMP}|${nfsicmp}|g" \
+      -e "s|{NFSMT}|${nfsmt}|g" \
+      -e "s|{LCLBUILD}|${lclbuild}|g"
 
 # If ${DEBUG} is set to true; pause
 if [ "${DEBUG}" == "true" ]; then
