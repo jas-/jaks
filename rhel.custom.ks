@@ -839,6 +839,11 @@ function valid_ip()
   local  ip=${1}
   local  stat=1
 
+  # Exit if ${ip} is empty
+  if [ "${ip}" == "" ]; then
+    return 0
+  fi
+
   if [[ ${ip} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
     OIFS=$IFS
     IFS='.'
@@ -884,7 +889,6 @@ function configurenetwork()
       [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (user-supplied): ${IPADDR} is invalid"
       [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (user-supplied): ${NETMASK} is invalid"
       [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (user-supplied): ${GATEWAY} is invalid"
-      exit 1
     fi
   else
 
@@ -900,16 +904,20 @@ function configurenetwork()
     fi
     GATEWAY="$(route -n|grep ^0.0.0.0|cut -b 17-32|cut -d " " -f 1|head -1)"
 
-    # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
-    if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
-        [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
-        [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+    # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present?
+    if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
+        [[ "${GATEWAY}" != "" ]]; then
 
-      # Be informative about the failure
-      [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (dhcp): ${IPADDR} is invalid"
-      [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (dhcp): ${NETMASK} is invalid"
-      [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (dhcp): ${GATEWAY} is invalid"
-      exit 1
+      # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
+      if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
+          [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
+          [[ $(valid_ip "${GATEWAY}") -ne 0 ]]; then
+
+        # Be informative about the failure
+        [[ $(valid_ip "${IPADDR}") -ne 0 ]] && echo "IPv4 (dhcp): ${IPADDR} is invalid"
+        [[ $(valid_ip "${NETMASK}") -ne 0 ]] && echo "Netmask (dhcp): ${NETMASK} is invalid"
+        [[ $(valid_ip "${GATEWAY}") -ne 0 ]] && echo "Gateway (dhcp): ${GATEWAY} is invalid"
+      fi
     fi
   fi
 
@@ -1027,6 +1035,7 @@ DVD ${DVD}
 LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
+NETMASK ${NETMASK}
 GATEWAY ${GATEWAY}
 REGISTER ${REGISTER}
 RHNUSER ${RHNUSER}
@@ -1507,7 +1516,6 @@ function copytools()
     path=$(devinodes)
     if [[ $? -eq 1 ]] || [[ "${path}" == "" ]]; then
       echo "Could not locate '${buildtools}' on any disk inodes"
-      exit 1
     fi
   fi
 
@@ -1522,7 +1530,6 @@ function copytools()
     cp -fr ${path} ${buildenv}
   else
     echo "Could not locate '${buildtools}', exiting..."
-    exit 1
   fi
 
   # Unmount /tmp/tfs if it is mounted
@@ -1837,7 +1844,7 @@ fi
 
 # Exit if config-rhsm tool doesn't exist
 if [ ! -f ${build_tools}/scripts/config-rhsm ]; then
-  echo "${build_tools}/scripts/config-rhsm missing" \
+  echo "${build_tools}/scripts/config-rhsm missing"ye \
     > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log
 fi
 
