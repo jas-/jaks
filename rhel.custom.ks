@@ -923,7 +923,7 @@ function configurenetwork()
 
   # Update /tmp/ks-arguments with network information
   sed -i "s/^IPADDR.*/IPADDR ${IPADDR}/g" /tmp/ks-arguments
-  sed -i "s/^NETMASK.*/NETMASK ${GATEWAY}/g" /tmp/ks-arguments
+  sed -i "s/^NETMASK.*/NETMASK ${NETMASK}/g" /tmp/ks-arguments
   sed -i "s/^GATEWAY.*/GATEWAY ${GATEWAY}/g" /tmp/ks-arguments
 
   # Use supplied ${IPADDR}, ${NETMASK} & ${GATEWAY} to write network config
