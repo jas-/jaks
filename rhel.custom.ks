@@ -98,7 +98,7 @@ hostname=
 location=
 
 # Mount point for NFS share
-nfspath="/unixshr/linux"
+nfspath="/unixshr"
 
 # Set ${country} to geographic location (echo "Hostname: ${hostname}"
 # no way to auto-determine unless geoIP functionality exists in initramfs)
@@ -119,7 +119,7 @@ dlog=/tmp/disks.log
 buildtools="build-tools"
 
 # Build-tools execution directory (chroot env)
-buildenv=/mnt/sysimage/var/tmp/unixbuild/linux/
+buildenv=/mnt/sysimage/var/tmp/unixbuild/
 
 
 ###############################################
@@ -1500,6 +1500,8 @@ function findtools()
 # to ensure we get the tools copied over
 function copytools()
 {
+  # Setup the ${buildtools} location from ${buildenv}
+  local buildloc="${buildenv}/linux/"
 
   # Make our mount point if it doesn't exist
   if [ ! -d /tmp/tfs ]; then
@@ -1522,12 +1524,12 @@ function copytools()
   # If it mounts try to get our build tools
   if [[ -d ${path} ]] && [[ "${path}" != "" ]]; then
 
-    # Make ${buildenv} exists in the right location
-    if [ ! -d ${buildenv} ]; then
-      mkdir -p ${buildenv}
+    # Make ${buildloc} exists in the right location
+    if [ ! -d ${buildloc} ]; then
+      mkdir -p ${buildloc}
     fi
 
-    cp -fr ${path} ${buildenv}
+    cp -fr ${path} ${buildloc}
   else
     echo "Could not locate '${buildtools}', exiting..."
   fi
