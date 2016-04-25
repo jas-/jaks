@@ -1734,13 +1734,11 @@ REGISTER="$(cat /tmp/ks-arguments|awk '$0 ~ /^REGISTER/{print $2}')"
 RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNUSER/{print $2}')"
 RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
+buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
-
-# Mount point for NFS share
-path="/var/tmp/unixbuild"
 
 # Define a location for the RHEL build tool
-build_tools="${path}/linux/${buildtools}"
+build_tools="${buildenv}/linux/${buildtools}"
 
 
 ###############################################
