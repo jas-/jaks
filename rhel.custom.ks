@@ -1738,7 +1738,7 @@ buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
 
 # Define a location for the RHEL build tool
-build_tools="${buildenv}/linux/${buildtools}"
+build_tools="${buildenv}linux/${buildtools}"
 
 
 ###############################################

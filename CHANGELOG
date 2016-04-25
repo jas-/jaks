@@ -1,3 +1,9 @@
+commit 41b323899283cee09141c6195d6dcf3251544d79
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon Apr 25 00:33:32 2016 -0600
+
+    Fix for hardcoded path for build tools during %post chroot
+
 commit c8038576ca33b84024fb712d81bf59a496595856
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:26:53 2016 -0600
