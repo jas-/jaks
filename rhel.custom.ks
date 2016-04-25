@@ -1737,12 +1737,15 @@ buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
 
+# Strip off /mnt/sysimage from ${buildenv}
+buildenv="$(echo "${buildenv}"|sed -e "s|/mnt/sysimage||g")"
+
 # Define a location for the RHEL build tool
-build_tools="${buildenv}linux/${buildtools}"
+build_tools="${buildenv}/linux/${buildtools}"
 
 
 ###############################################
-# Validate ${buildtools} location (NFS mount)   #
+# Validate ${buildtools} location (NFS mount) #
 ###############################################
 
 # Make sure the NFS mount provided the directory

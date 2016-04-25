@@ -1,3 +1,9 @@
+commit 9ee5795511914f4af1325b635470f5f338a89ad1
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon Apr 25 00:52:05 2016 -0600
+
+    %post chroot fix for  path
+
 commit 41b323899283cee09141c6195d6dcf3251544d79
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:33:32 2016 -0600
