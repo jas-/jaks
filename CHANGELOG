@@ -1,3 +1,9 @@
+commit bc5b4a84f46dd0efe687634071cd9c38f1623d1a
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon Apr 25 01:06:44 2016 -0600
+
+    %post chroot fix for  path part deux
+
 commit 9ee5795511914f4af1325b635470f5f338a89ad1
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:52:05 2016 -0600

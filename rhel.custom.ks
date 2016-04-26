@@ -1376,7 +1376,7 @@ repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
 
 # Handle package installation
 %packages
-@base
+@Core
 %end
 ###############################################
 # End kick start automation procedures      #
