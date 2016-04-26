@@ -1,3 +1,9 @@
+commit 32aa518632ec0ef00b9dec58914c2fa4b1dd899a
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon Apr 25 23:54:03 2016 -0600
+
+    Reverted back to @base & included nfs-utils to help facilitate %post chroot RPM installer
+
 commit b4fed93571ff1438dbc81263d92096e6e16ac2cd
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 23:32:14 2016 -0600

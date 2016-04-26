@@ -1900,7 +1900,7 @@ cd ../
 ###############################################
 
 # log file name
-log_file="${folder}/build/$(hostname)-$(date +%Y%m%d)*.log"
+log_file="${folder}/build/$(hostname)-*.log"
 
 # Get total number of tools configured to run
 total=$(awk '$0 ~ /^\[/{print}' rhel-builder|wc -l)
