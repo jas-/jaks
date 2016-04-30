@@ -1,3 +1,9 @@
+commit e93816e9df88b12fe0fed34ae21243ed5e0b8085
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Tue Apr 26 05:26:25 2016 -0600
+
+    Fix for %post chroot summary report regarding logs of build tools
+
 commit 32aa518632ec0ef00b9dec58914c2fa4b1dd899a
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 23:54:03 2016 -0600

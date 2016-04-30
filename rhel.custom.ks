@@ -1772,7 +1772,7 @@ fi
 ###############################################
 
 # Record a timestamped hostname string for build logs
-folder=/root/$(hostname)-$(date +%Y%m%d-%H%M)
+folder=/root/${HOSTNAME}-$(date +%Y%m%d-%H%M)
 
 # Create a folder structure for operational logging
 if [ ! -d "${folder}" ]; then
@@ -1795,7 +1795,7 @@ echo "Please wait; auto-configuring system according to build standards"
 
 # Run ${build_tools} to validate current configuration with logging
 ./rhel-builder -vc \
-  > ${folder}/pre/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+  > ${folder}/pre/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
@@ -1804,7 +1804,7 @@ echo "Please wait; auto-configuring system according to build standards"
 
 # Run ${build_tools} to make changes according to RHEL build guide standards
 ./rhel-builder -va kickstart \
-  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+  > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
@@ -1837,7 +1837,7 @@ fi
 # Run ./config-network with network params to auto-configure bonded interfaces
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" \
-  > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
+  > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
 
 
 ###############################################
@@ -1879,7 +1879,7 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
   # Run ./config-rhsm to facilitate automated registration
   # for physical servers & non-bonded interfaces for virtual machine guests
   ./config-rhsm -va kickstart -u "${RHNUSER}" -p "${RHNPASS}" "${PROXY}" \
-      > ${folder}/build/$(hostname)-$(date +%Y%m%d-%H%M)-config-rhsm.log 2>/dev/null
+      > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M)-config-rhsm.log 2>/dev/null
 fi
 
 
@@ -1892,7 +1892,7 @@ cd ../
 
 # Run ${build_tools} to validate changes
 ./rhel-builder -vc \
-  > ${folder}/post/$(hostname)-$(date +%Y%m%d-%H%M).log 2>/dev/null
+  > ${folder}/post/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
 ###############################################
@@ -1900,7 +1900,7 @@ cd ../
 ###############################################
 
 # log file name
-log_file="${folder}/build/$(hostname)-*.log"
+log_file="${folder}/build/${HOSTNAME}-*.log"
 
 # Get total number of tools configured to run
 total=$(awk '$0 ~ /^\[/{print}' rhel-builder|wc -l)
@@ -1957,7 +1957,7 @@ Post installation: (chroot)
       - Pre RHEL build configuration validation
       - RHEL build configuration results
       - Post RHEL build configuration validation
-    - Secured reports & configurations @ /root/$(hostname)-$(date +%Y%m%d)
+    - Secured reports & configurations @ /root/${HOSTNAME}-$(date +%Y%m%d)
 
 EOF
 
@@ -1974,7 +1974,7 @@ cp /tmp/ks* ${folder}/kickstart
 mkdir ${folder}/kickstart/configs
 
 # Create a timestamped filename
-filename=${folder}/$(hostname)-$(date +%Y%m%d).log
+filename=${folder}/${HOSTNAME}-$(date +%Y%m%d).log
 
 # Combine the reports
 cat ${folder}/kickstart/ks-report-general > ${filename}
@@ -1990,7 +1990,7 @@ rm ${folder}/kickstart/ks-report*
 mv ${folder}/kickstart/ks-* ${folder}/kickstart/configs
 
 # Move the ks.cfg to the current hostname.ks
-mv ${folder}/kickstart/ks.cfg ${folder}/kickstart/$(hostname).ks
+mv ${folder}/kickstart/ks.cfg ${folder}/kickstart/${HOSTNAME}.ks
 
 # Remove everything else
 rm ${folder}/ks-*
