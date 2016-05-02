@@ -1144,7 +1144,7 @@ fi
 clear
 
 # Provide a status regarding disk provisioning
-echo "Provisioning disks, please wait ... "
+echo "Provisioning disk(s), please wait ... "
 
 # Fix for errors handling primary disk on mklabel
 if [ "$(mount|grep /tmp/tfs)" != "" ]; then
