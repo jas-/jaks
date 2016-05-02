@@ -1140,6 +1140,12 @@ fi
 # Configuration for physical disks            #
 ###############################################
 
+# Clear the TTY
+clear
+
+# Provide a status regarding disk provisioning
+echo "Provisioning disk allocation, please wait ... "
+
 # Fix for errors handling primary disk on mklabel
 if [ "$(mount|grep /tmp/tfs)" != "" ]; then
   umount /tmp/tfs
