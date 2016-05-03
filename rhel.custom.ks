@@ -1058,7 +1058,7 @@ cat <<EOF > /tmp/ks-report-general
 General options:
   DEBUG:         ${DEBUG}
   INSTALL:       ${INSTALL}
-  ROOTPW:        ${pass}
+  ROOTPW:        *************
 
 Location options:
   COUNTRY:       ${country}
