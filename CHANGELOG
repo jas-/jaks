@@ -1,3 +1,9 @@
+commit 8e5f18c4953152c89810c36c01d076b9b953e150
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Tue May 3 00:14:37 2016 -0600
+
+    Added some affiinity handling for various functionality
+
 commit 44168b92368330d3dd107c59749002d597fd38c5
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 2 04:47:01 2016 -0600

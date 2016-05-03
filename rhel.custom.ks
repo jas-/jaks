@@ -1068,7 +1068,7 @@ Location options:
 RHN options:
   REGISTER:      ${REGISTER}
   RHN Username:  ${RHNUSER}
-  RHN Password:  ${RHNPASS}
+  RHN Password:  *************
 
 EOF
 
@@ -1119,7 +1119,7 @@ Network configuration:
 Proxy settings:
   PROXY:         ${PROXY}
   PROXY USER:    ${PROXYUSER}
-  PROXY PASS:    ${PROXYPASS}
+  PROXY PASS:    *************
 
 NFS options:
   SERVER:        ${nfs_server}
@@ -1994,6 +1994,9 @@ rm ${folder}/kickstart/ks-report*
 
 # Move the configuration files used
 mv ${folder}/kickstart/ks-* ${folder}/kickstart/configs
+
+# Wipe out the ks-arguments file to clean up any provided credentials
+rm ${folder}/kickstart/configs/ks-arguments
 
 # Move the ks.cfg to the current hostname.ks
 mv ${folder}/kickstart/ks.cfg ${folder}/kickstart/${HOSTNAME}.ks
