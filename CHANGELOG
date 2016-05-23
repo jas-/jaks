@@ -1,3 +1,15 @@
+commit c62e892fe231dfb2494ec113a14866751ed2ad2b
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Wed May 4 00:53:43 2016 -0600
+
+    Version bump to v0.0.18
+
+commit 30428d949f93bb0059b2da65a80fe8e0d3576662
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Tue May 3 03:09:53 2016 -0600
+
+    One more password in the report
+
 commit ab3a1825770e7b8455b78ce171fd0a392e0f2033
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 3 02:36:26 2016 -0600
