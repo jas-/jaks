@@ -586,17 +586,14 @@ function configuredisks()
     efi=$(echo "${efi_tmpl}" |
       sed -e "s|{SIZE}|500|g" -e "s|{PRIMARY}|${disk}|g")
 
-    # Use GNU parted to obtain the physical partition ID for grub installation
-    bid=$(parted -sl|awk '$6 ~ /^boot$/{print $1}')
-
     # Use ${bid} to rewrite ${grub_tmpl}
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|${disk}${bid}|g' > /tmp/ks-grubinstall
+      sed -e 's|{GRUB}|partition|g' > /tmp/ks-grubinstall
   else
 
     # Use MBR to rewrite ${grub_tmpl} because it isn't an EFI installation
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|MBR|g' > /tmp/ks-grubinstall
+      sed -e 's|{GRUB}|mbr|g' > /tmp/ks-grubinstall
   fi
 
   # If ${evaldisk} size > 100GB; assume physical
