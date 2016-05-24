@@ -588,14 +588,14 @@ function configuredisks()
 
     # Use ${bid} to rewrite ${grub_tmpl}
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|partition|g' \
-          -e 's|{DISK}|${disk}|g' > /tmp/ks-grubinstall
+      sed -e "s|{GRUB}|partition|g" \
+          -e "s|{DISK}|${disk}|g" > /tmp/ks-grubinstall
   else
 
     # Use MBR to rewrite ${grub_tmpl} because it isn't an EFI installation
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|mbr|g' \
-          -e 's|{DISK}|${disk}|g' > /tmp/ks-grubinstall
+      sed -e "s|{GRUB}|mbr|g" \
+          -e "s|{DISK}|${disk}|g" > /tmp/ks-grubinstall
   fi
 
   # If ${evaldisk} size > 100GB; assume physical
