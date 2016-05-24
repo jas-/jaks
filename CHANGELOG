@@ -1,3 +1,9 @@
+commit 0041a146781c139df829fb88a07055a9061bf96d
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon May 23 18:27:58 2016 -0600
+
+    Fix for grub installation; specifiy disk order; part duex
+
 commit d97e620e338d92a4cb36888a13ac8ab6549c2b76
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 18:22:57 2016 -0600
