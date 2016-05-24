@@ -1,7 +1,7 @@
 ###############################################
 # Begin %pre configuration script             #
 ###############################################
-%pre --interpreter=/bin/bash
+%pre --interpreter=/bin/bash --log=/dev/tty3
 
 
 ###############################################
@@ -143,7 +143,7 @@ lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 efi_tmpl="part /boot/EFI --size={SIZE} --fstype="efi" --ondisk={PRIMARY}"
 
 # Grub installation template
-grub_tmpl="bootloader --location={GRUB} --append=\"rhgb quiet crashkernel=512MB audit=1\""
+grub_tmpl="bootloader --location={GRUB} --driveorder={DISK} --append=\"rhgb quiet crashkernel=512M audit=1\""
 
 # Define a template for disk configurations
 read -d '' disk_template <<"EOF"
@@ -588,12 +588,14 @@ function configuredisks()
 
     # Use ${bid} to rewrite ${grub_tmpl}
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|partition|g' > /tmp/ks-grubinstall
+      sed -e 's|{GRUB}|partition|g' \
+          -e 's|{DISK}|${disk}|g' > /tmp/ks-grubinstall
   else
 
     # Use MBR to rewrite ${grub_tmpl} because it isn't an EFI installation
     echo "${grub_tmpl}" |
-      sed -e 's|{GRUB}|mbr|g' > /tmp/ks-grubinstall
+      sed -e 's|{GRUB}|mbr|g' \
+          -e 's|{DISK}|${disk}|g' > /tmp/ks-grubinstall
   fi
 
   # If ${evaldisk} size > 100GB; assume physical
@@ -1405,7 +1407,7 @@ nfs-utils
 ###############################################
 # Begin %post non-chroot configuration        #
 ###############################################
-%post --nochroot --interpreter=/bin/bash --erroronfail
+%post --nochroot --interpreter=/bin/bash --erroronfail --log=/dev/tty3
 
 
 ###############################################
@@ -1714,7 +1716,7 @@ fi
 ###############################################
 # Begin %post chroot configuration            #
 ###############################################
-%post --interpreter=/bin/bash --erroronfail
+%post --interpreter=/bin/bash --erroronfail --log=/dev/tty3
 
 
 ###############################################

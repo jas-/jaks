@@ -1,3 +1,9 @@
+commit 19dcd303a392e2724d52d6839f6fc432aca9fa64
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sun May 22 21:27:12 2016 -0600
+
+    Fix for --location option (mbr vs. partition)
+
 commit 444d09f19909b0374388ce8608e6fa254eac1d68
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun May 22 21:15:16 2016 -0600
