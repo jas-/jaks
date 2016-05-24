@@ -1,3 +1,9 @@
+commit c84c60e4401f3026c5d7b8e88c322c31b054ee7c
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon May 23 20:12:34 2016 -0600
+
+    Fix for grub installation; specifiy disk order; part tres
+
 commit 0041a146781c139df829fb88a07055a9061bf96d
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 18:27:58 2016 -0600

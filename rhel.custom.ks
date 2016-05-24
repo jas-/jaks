@@ -140,7 +140,7 @@ lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
 --size={SIZE}"
 
 # '/boot/efi' partition template
-efi_tmpl="part /boot/EFI --size={SIZE} --fstype="efi" --ondisk={PRIMARY}"
+efi_tmpl="part /boot/efi --size={SIZE} --fstype="efi" --ondisk={PRIMARY}"
 
 # Grub installation template
 grub_tmpl="bootloader --location={GRUB} --driveorder={DISK} --append=\"rhgb quiet crashkernel=512M audit=1\""
