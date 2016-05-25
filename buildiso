@@ -460,7 +460,7 @@ for img in ${iso[@]}; do
 
   # Ensure it is bootable by USB & DVD media types
   taskset -c 1 chrt -f 40 \
-    isohybrid ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
+    isohybrid -u ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
     &>/dev/null
 
   echo "done"
