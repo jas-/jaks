@@ -1,3 +1,9 @@
+commit 4710c17856cef5dd2e75feb17bbc988078a3887d
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Mon May 23 22:17:01 2016 -0600
+
+    Fix regarding location of /boot/efi (was /boot/EFI)
+
 commit c84c60e4401f3026c5d7b8e88c322c31b054ee7c
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 20:12:34 2016 -0600
