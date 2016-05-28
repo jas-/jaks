@@ -1,3 +1,9 @@
+commit ffe45c0a376973a44100bf13532b1bc3708bb0e8
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Wed May 25 01:36:52 2016 -0600
+
+    Fix for isohybrid & USB devices not having uEFI capabilities
+
 commit 1c1adb08f73e4b3f9a045d7184d1c62c86f27ad8
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 24 20:34:21 2016 -0600
