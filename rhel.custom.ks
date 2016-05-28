@@ -1893,7 +1893,7 @@ if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
       [[ "${PROXYPASS}" != "" ]] && [[ "${PROXY}" != "" ]]; then
 
     # Since we require a proxy add it to ${proxy}
-    proxy='-x "${PROXY}" -y "${PROXYUSER}" -z "${PROXYPASS}" '
+    proxy="-x ${PROXY} -y ${PROXYUSER} -z ${PROXYPASS}"
   fi
 
   # Run ./config-rhsm to facilitate automated registration
