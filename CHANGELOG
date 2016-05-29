@@ -1,3 +1,9 @@
+commit 1d1e6196bf1e0263310bd76d3fab8e7f3a95d8d0
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sat May 28 19:22:54 2016 -0600
+
+    Fix for paths when determining templates
+
 commit a8bf8aa8b8e516add4b028fad8552753e7d165c2
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 18:03:08 2016 -0600

@@ -598,8 +598,11 @@ function configuredisks()
           -e "s|{DISK}|${disk}|g" > /tmp/ks-grubinstall
   fi
 
-  # If ${evaldisk} size > 100GB; assume physical
-  if [ ${evalsize} -gt ${gbytes} ]; then
+  # Build physical system size in bytes
+  pssize=$(eval $(gb2b 100) + $(gb2b 40) + $(gb2b 10) + $(gb2b 2))
+
+  # If ${evaldisk} size > 100GB & > ${pssize}; assume physical
+  if [[ ${evalsize} -gt ${gbytes} ]] && [[ ${evalsize} -ge ${pssize} ]]; then
 
     # 100GB / LVM
     root_size=$(gb2b 100)
@@ -614,8 +617,8 @@ function configuredisks()
     tmp_size=$(gb2b 2)
   fi
 
-  # If ${evalsize} size == 100GB; assume vm
-  if [ ${evalsize} -eq ${gbytes} ]; then
+  # If ${evalsize} size == 100GB && < ${pssize}; assume vm
+  if [[ ${evalsize} -ge ${gbytes} ]] && [[ ${evalsize} -le ${pssize} ]]; then
 
     # 40GB / LVM
     root_size=$(gb2b 40)
