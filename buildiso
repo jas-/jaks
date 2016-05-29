@@ -231,11 +231,11 @@ fi
 for file in ${!files[@]}; do
 
 
-  echo -n "Searching for '$(basename ${file})' in '$(pwd)/templates/' ... "
+  echo -n "Searching for '$(basename ${file})' in '$(pwd)/kickstart/templates/' ... "
 
 
   # Search for ${file}
-  search=$(find templates/ -name $(basename ${file})|tail -1)
+  search=$(find templates/kickstart/templates/ -name $(basename ${file})|tail -1)
 
 
   # If primary ${search} fails; try current directory
@@ -414,14 +414,17 @@ for img in ${iso[@]}; do
         continue
       fi
 
+      # If ${img} != 1 then make modifications to the template
+      if [ ${img} -ne 1 ]; then
 
-      # Edit the template based on the version etc
-      cat ${item} |
-        sed -e "s|{VER}|${ver}|g" \
-            -e "s|{DATE}|${date}|g" \
-            -e "s|{ALTVER}|${altver}|g" > ${path}
+        # Edit the template based on the version etc
+        cat ${item} |
+          sed -e "s|{VER}|${ver}|g" \
+              -e "s|{DATE}|${date}|g" \
+              -e "s|{ALTVER}|${altver}|g" > ${path}
 
-      echo "done"
+        echo "done"
+      fi
     fi
 
 
