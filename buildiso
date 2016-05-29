@@ -375,7 +375,7 @@ for img in ${iso[@]}; do
     # If ${item} is a folder assume 'build-tools' and copy
     if [ -d ${item} ]; then
       echo -n "Copying build tools to build environment ... "
-      taskset -c 1 chrt -f 40 cp -fr ${item} ${buildnme}/${buildenv[${item}]}
+      cp -fr ${item} ${buildnme}/${buildenv[${item}]}
       echo "done"
     fi
 
@@ -441,7 +441,7 @@ for img in ${iso[@]}; do
 
 
   # Begin the build
-  taskset -c 1 chrt -f 40 mkisofs -U -A "RHEL-${ver}" -V "RHEL-${ver}" \
+  mkisofs -U -A "RHEL-${ver}" -V "RHEL-${ver}" \
     -volset "RHEL-${ver}" -J -joliet-long \
    	-o ../${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
    	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
@@ -459,10 +459,9 @@ for img in ${iso[@]}; do
 
 
   # Ensure it is bootable by USB & DVD media types
-  taskset -c 1 chrt -f 40 \
-    isohybrid -u \
-      ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
-      &>/dev/null
+  isohybrid -u \
+    ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
+    &>/dev/null
 
   echo "done"
 

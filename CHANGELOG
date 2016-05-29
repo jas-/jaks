@@ -1,3 +1,9 @@
+commit 9bf61593fb840f5c8b442c49565c93dfb81d1983
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sat May 28 17:25:27 2016 -0600
+
+    Fix for auto-registration tool call for RHSM
+
 commit e20a68acfefe241fd8ad9e739854280bc24eec55
 Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 17:17:29 2016 -0600
