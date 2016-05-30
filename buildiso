@@ -423,6 +423,12 @@ for img in ${iso[@]}; do
               -e "s|{DATE}|${date}|g" \
               -e "s|{ALTVER}|${altver}|g" > ${path}
 
+        # Fix for USB EFI installations with grub.conf path
+        fix=$(basename ${item})
+        if [ "${fix}" == "grub.conf" ]; then
+          cp ${path}/${fix} ${buildnme}/isolinux/${fix}
+        fi
+
         echo "done"
       fi
     fi

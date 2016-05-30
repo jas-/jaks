@@ -1572,6 +1572,18 @@ function copytools()
   fi
 }
 
+###############################################
+# Copy DNS settings to chroot env             #
+###############################################
+
+# If /etc/resolv.conf exists do work
+if [ -f /etc/resolv.conf ]; then
+  cp -f /etc/resolv.conf /mnt/sysimage/etc/
+fi
+
+# Clear the terminal
+clear
+
 
 ###############################################
 # Copy build tools to temporary memory fs     #
