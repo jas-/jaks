@@ -32,7 +32,7 @@ files[build-tools/]="/build-tools/"
 files[rhel.custom.ks]="/ks.cfg"
 files[isolinux.cfg]="/isolinux/isolinux.cfg"
 files[BOOTX64.conf]="/EFI/BOOT/BOOTX64.conf"
-files[grub.cfg]="/EFI/BOOT/grub.cfg"
+files[grub.cfg]="/isolinux/grub.conf"
 files[splash.jpg]="/isolinux/splash.jpg"
 files[splash.xpm.gz]="/EFI/BOOT/splash.xpm.gz"
 
