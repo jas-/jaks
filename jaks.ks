@@ -56,15 +56,6 @@ GATEWAY=
 # DVD is used for DVD or no network based installations
 DVD=false
 
-# Register system with RHSM (if true RHNUSER & RHNPASS required)
-REGISTER=false
-
-# RHN username
-RHNUSER=
-
-# RHN password
-RHNPASS=
-
 # Proxy server for RHN registration
 PROXY=false
 
@@ -85,17 +76,14 @@ hostname=
 # Global variable for location
 location=
 
-# GeoIP lookup URI (assists with timezone & locale)
-geoip_uri=http://ipinfo.io/
-
 # Disk debugging log
 dlog=/tmp/disks.log
 
 # Name of %post configuration scripts
-buildtools="jaks-post"
+buildtools="jaks-build-tools"
 
 # Build-tools execution directory (chroot env)
-buildenv=/mnt/sysimage/var/tmp/jaks-post/
+buildenv=/mnt/sysimage/var/tmp/${buildtools}/
 
 
 ###############################################
@@ -1038,9 +1026,6 @@ HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
 NETMASK ${NETMASK}
 GATEWAY ${GATEWAY}
-REGISTER ${REGISTER}
-RHNUSER ${RHNUSER}
-RHNPASS ${RHNPASS}
 PROXY ${PROXY}
 PROXYUSER ${PROXYUSER}
 PROXYPASS ${PROXYPASS}
@@ -1065,11 +1050,6 @@ Location options:
   COUNTRY:       ${country}
   TIMEZONE:      ${zone}
   LOCATION:      ${location}
-
-RHN options:
-  REGISTER:      ${REGISTER}
-  RHN Username:  ${RHNUSER}
-  RHN Password:  *************
 
 EOF
 
@@ -1121,10 +1101,6 @@ Proxy settings:
   PROXY:         ${PROXY}
   PROXY USER:    ${PROXYUSER}
   PROXY PASS:    *************
-
-NFS options:
-  SERVER:        ${nfs_server}
-  SHARE:         ${nfspath}
 
 EOF
 
@@ -1378,13 +1354,9 @@ skipx
 
 firstboot --disable
 
-# Provide a local REPO
-repo --name="Red Hat Enterprise Linux" --baseurl=file:/mnt/source --cost=100
-
 # Handle package installation
 %packages
 @base
-nfs-utils
 %end
 ###############################################
 # End kick start automation procedures      #
@@ -1750,9 +1722,6 @@ GATEWAY="$(cat /tmp/ks-arguments|awk '$0 ~ /^GATEWAY/{print $2}')"
 PROXY="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXY/{print $2}')"
 PROXYUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYUSER/{print $2}')"
 PROXYPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^PROXYPASS/{print $2}')"
-REGISTER="$(cat /tmp/ks-arguments|awk '$0 ~ /^REGISTER/{print $2}')"
-RHNUSER="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNUSER/{print $2}')"
-RHNPASS="$(cat /tmp/ks-arguments|awk '$0 ~ /^RHNPASS/{print $2}')"
 buildtools="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildtools/{print $2}')"
 buildenv="$(cat /tmp/ks-arguments|awk '$0 ~ /^buildenv/{print $2}')"
 
@@ -1857,49 +1826,6 @@ fi
 # for physical servers & non-bonded interfaces for virtual machine guests
 ./config-network -va kickstart -n "${IPADDR}" -s "${NETMASK}" -g "${GATEWAY}" \
   > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M)-config-network.log 2>/dev/null
-
-
-###############################################
-# Check for config-rhsm tool                  #
-###############################################
-
-# Run the $(dirname ${build_tools})/scripts/config-rhsm tool by itself
-# because the argument requirements differ from all the other tools
-reg=false
-
-# Exit if config-rhsm tool doesn't exist
-if [ -f ${build_tools}/scripts/config-rhsm ]; then
-  reg=true
-fi
-
-# Change into scripts/ subfolder if scripts/config-rhsm exists
-cd ${build_tools}/scripts/  
-
-
-###############################################
-# Configure RHN registration                  #
-###############################################
-
-if [[ "${HOSTNAME}" != "" ]] && [[ "${RHNUSER}" != "" ]] &&
-    [[ "${reg}" == "true" ]] && [[ "${RHNPASS}" != "" ]] &&
-    [[ "${REGISTER}" != "false" ]]; then
-
-  # Provide an empty proxy string
-  proxy=
-
-  # Build list of options based on provided parameters
-  if [[ "${PROXY}" != "false" ]] && [[ "${PROXYUSER}" != "" ]] &&
-      [[ "${PROXYPASS}" != "" ]] && [[ "${PROXY}" != "" ]]; then
-
-    # Since we require a proxy add it to ${proxy}
-    proxy="-x ${PROXY} -y ${PROXYUSER} -z ${PROXYPASS}"
-  fi
-
-  # Run ./config-rhsm to facilitate automated registration
-  # for physical servers & non-bonded interfaces for virtual machine guests
-  ./config-rhsm -v -u "${RHNUSER}" -p "${RHNPASS}" "${PROXY}" \
-      > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M)-config-rhsm.log 2>/dev/null
-fi
 
 
 ###############################################
