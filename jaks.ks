@@ -57,7 +57,7 @@ GATEWAY=
 DVD=false
 
 # Register system with RHSM (if true RHNUSER & RHNPASS required)
-REGISTER=true
+REGISTER=false
 
 # RHN username
 RHNUSER=
@@ -66,25 +66,13 @@ RHNUSER=
 RHNPASS=
 
 # Proxy server for RHN registration
-PROXY=http://proxy.pacificorp.us:8080
+PROXY=false
 
 # Proxy username
 PROXYUSER=
 
 # Proxy password
 PROXYPASS=
-
-# Please see document for available server prefixes per timezone
-# http://moss.pacificorp.us/SiteDirectory/EntSys/Unix/OS/Documents/Servers%20and%20Hardware/Server%20Builds/Server%20Naming%20Standard%20PPW.docx
-
-# Naming standard prefix array for Pacific Standard Time systems
-pst_prefix=(ALB AST BND COG COO CRC ENT GPS HDR KFL LIN MAD MED MER PBC PCC PDX
-PEN PFO PMO POR ROS STA TER TOK WAL WIL)
-
-# Naming standard prefix array for Mountain Standard Time systems
-mst_prefix=(AMF BLU CAR CDC COD COT CUR DJP DEL DOG EDM EVA EWM GAD GRA GRC HNG
-HTR HUR IDF JBP JOV LAK LAR LAV LAY MOA MON NAU OGD PAC PGA PIO PRC PRE RAW RCH
-REX RIG RIV ROC SAN SAT SCC SHE SLC SMI TOO TRE UTB VER WBC)
 
 
 ###############################################
@@ -97,29 +85,17 @@ hostname=
 # Global variable for location
 location=
 
-# Mount point for NFS share
-nfspath="/unixshr"
-
-# Set ${country} to geographic location (echo "Hostname: ${hostname}"
-# no way to auto-determine unless geoIP functionality exists in initramfs)
-country="America"
-
-# Pacific Standard Time specific options
-pst_nfsserver="131.219.230.48"  # pdxnfsc01p
-pst_timezone="Los_Angeles"
-
-# Mountain Standard Time specific options
-mst_nfsserver="131.219.218.226" # slcnfsc01p
-mst_timezone="Denver"
+# GeoIP lookup URI (assists with timezone & locale)
+geoip_uri=http://ipinfo.io/
 
 # Disk debugging log
 dlog=/tmp/disks.log
 
-# Name of RHEL build tools
-buildtools="build-tools"
+# Name of %post configuration scripts
+buildtools="jaks-post"
 
 # Build-tools execution directory (chroot env)
-buildenv=/mnt/sysimage/var/tmp/unixbuild/
+buildenv=/mnt/sysimage/var/tmp/jaks-post/
 
 
 ###############################################
@@ -275,21 +251,22 @@ function confirminstall()
   # Ensure user knows they are going to wipe out the machine
   while [ "${install}" != "yes" ]; do
     clear
-    echo '***********************************************************************'
-    echo '*  __________               .__  _____.__                             *'
-    echo '*  \______   \_____    ____ |__|/ ____\__| ____  _________________    *'
-    echo '*   |     ___/\__  \ _/ ___\|  \   __\|  |/ ___\/  _ \_  __ \____ \   *' 
-    echo '*   |    |     / __ \\  \___|  ||  |  |  \  \__(  <_> )  | \/  |_> >  *'
-    echo '*   |____|    (____  /\___  >__||__|  |__|\___  >____/|__|  |   __/   *'
-    echo '*                  \/     \/                  \/            |__|      *'
-    echo '*                                                                     *'
-    echo '*                            W A R N I N G                            *'
-    echo '*                                                                     *'
-    echo '*  This process will install a completely new operating system.       *'
-    echo '*                                                                     *'
-    echo '*  Do you wish to continue?  Type "yes" to proceed                    *'
-    echo '*                                                                     *'
-    echo '***********************************************************************'
+    echo '********************************************************************'
+    echo '*                ____.  _____   ____  __.  _________               *'    
+    echo '*                |    | /  _  \ |    |/ _| /   _____/              *'
+    echo '*                |    |/  /_\  \|      <   \_____  \               *'
+    echo '*            /\__|    /    |    \    |  \  /        \              *'
+    echo '*            \________\____|__  /____|__ \/_______  /              *'
+    echo '*                             \/        \/        \/               *'
+    echo '*                  Just Another Kickstart Script                   *'
+    echo '*                                                                  *'
+    echo '*                          W A R N I N G                           *'
+    echo '*                                                                  *'
+    echo '*  This process will install a completely new operating system.    *'
+    echo '*                                                                  *'
+    echo '*  Do you wish to continue?  Type "yes" to proceed                 *'
+    echo '*                                                                  *'
+    echo '********************************************************************'
     echo
     read -p "Proceed with install? " install
   done
@@ -323,8 +300,13 @@ function configurehostname()
   # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
   if [ "${HOSTNAME}" == "" ]; then
 
+    # Get the current hostname
+    hname="$(uname -n)"
+
     # If static DHCP enabled option 12 *might* contain the appropriate hostname
-    hostname="$(uname -n)"
+    if [[ ! "${hname}" ~ localhost ]]; then
+      hostname="${hname}"
+    fi
   else
     # Set ${hostname} to global ${HOSTNAME}
     hostname="${HOSTNAME}"
@@ -1397,7 +1379,7 @@ skipx
 firstboot --disable
 
 # Provide a local REPO
-repo --name="Red Hat Enterprise Linux"  --baseurl=file:/mnt/source --cost=100
+repo --name="Red Hat Enterprise Linux" --baseurl=file:/mnt/source --cost=100
 
 # Handle package installation
 %packages

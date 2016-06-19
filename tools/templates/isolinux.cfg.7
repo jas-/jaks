@@ -5,7 +5,7 @@ timeout 600
 display boot.msg
 
 menu background splash.jpg
-menu title Pacificorp RHEL Utility Disk
+menu title jaks RHEL Utility Disk
 menu color border 0 #ffffffff #00000000
 menu color sel 7 #ffffffff #ff000000
 menu color title 0 #ffffffff #00000000
@@ -22,7 +22,7 @@ Kickstart from Portland NFS server
   menu label RHEL {VER} ^PDX kickstart
   menu default
   kernel vmlinuz
-  append initrd=initrd.img nompath lang=en_US keymap=us ksdevice=eth0 ks=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel.custom.ks method=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
+  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel.custom.ks inst.stage2=nfs:131.219.230.48:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
 
 label ks{ALTVER}slc
   TEXT HELP
@@ -30,7 +30,7 @@ Kickstart from SLC NFS server
   ENDTEXT
   menu label RHEL {VER} ^SLC kickstart
   kernel vmlinuz
-  append initrd=initrd.img nompath lang=en_US keymap=us ksdevice=eth0 ks=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel.custom.ks method=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
+  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel.custom.ks inst.stage2=nfs:131.219.218.226:/unixshr/linux/kickstart/rhel_{ALTVER}/ asknetwork
 
 label ks{ALTVER}local
   TEXT HELP
@@ -38,7 +38,7 @@ Kickstart without network from DVD ({DATE})
   ENDTEXT
   menu label RHEL {VER} ^DVD kickstart
   kernel vmlinuz
-  append initrd=initrd.img nompath lang=en_US keymap=us ks=hd:LABEL=RHEL-{VER}:/ks.cfg method=hd:LABEL=RHEL-{VER}:/mnt/stage2 repo=hd:LABEL=RHEL-{VER}:/ DVD=true REGISTER=false
+  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true REGISTER=false
 
 label local
   menu label Boot from ^local drive

@@ -1,21 +1,6 @@
 #!/bin/bash
 
 # Tool to assist in creating customized ISO's (EFI bootable)
-#Drop into a folder with any RHEL ISO files & run as a privileged user
-
-# Make sure either the SLC or NFS share is online, the system
-# has a networking connection & the following folder/files exist
-#
-# /export/unixshr/linux/
-#   |_ build-tools/ - Folder for RHEL build configuration tools
-#   |_ kickstart/ - Folder for kickstarts
-#   |    |_ rhel.custom.ks - Kickstart configuration script
-#   |    |_ templates/ - Folder for configuration file templates
-#   |    |    |_ isolinux.cfg - syslinux boot menu configuration
-#   |    |    |_ splash.jpg - Backgroup image for boot menu configuration
-#   |    |    |_ BOOTX64.conf - Boot menu configuration for EFI installs
-#   |    |    |_ grub2.conf - Grub2 boot menu configuration for EFI installs
-#
 
 
 # NFS shares by timezone
@@ -29,10 +14,10 @@ nfs_share=/unixshr/linux
 # Array of files as the keys w/ the value as the location in the customized build
 declare -A files
 files[build-tools/]="/build-tools/"
-files[rhel.custom.ks]="/ks.cfg"
+files[jaks.ks]="/ks.cfg"
 files[isolinux.cfg]="/isolinux/isolinux.cfg"
 files[BOOTX64.conf]="/EFI/BOOT/BOOTX64.conf"
-files[grub.cfg]="/isolinux/grub.conf"
+files[grub.conf]="/isolinux/grub.conf"
 files[splash.jpg]="/isolinux/splash.jpg"
 files[splash.xpm.gz]="/EFI/BOOT/splash.xpm.gz"
 
@@ -262,13 +247,13 @@ for file in ${!files[@]}; do
 done
 
 
-# Search current working directory for RHEL ISO file(s)
-iso=($(ls rhel-*.iso))
+# Search current working directory for ISO file(s)
+iso=($(ls *.iso))
 
 
 # Error & exit if ${#iso[@]} = 0
 if [ ${#iso[@]} -eq 0 ]; then
-  echo "Could not locate any RHEL ISO file(s)"
+  echo "Could not locate any ISO file(s)"
   cleanup
   exit 1
 fi
@@ -276,7 +261,7 @@ fi
 
 echo ""
 echo "[Base ISO]"
-echo "Found a total of ${#iso[@]} RHEL ISO file(s)"
+echo "Found a total of ${#iso[@]} ISO file(s)"
 echo ""
 
 
@@ -385,7 +370,7 @@ for img in ${iso[@]}; do
 
 
     # If ${altver} <= 7x set the version of our editable ${item} to 7
-    if [[ ${altver} -ge 70 ]] && [[ "${item}" != "rhel.custom.ks" ]]; then
+    if [[ ${altver} -ge 70 ]] && [[ "${item}" != "jaks.ks" ]]; then
 
       # If ${item}.7 exists (only configuration files should), use it as ${file}
       if [ -f "${item}.7" ]; then
@@ -452,7 +437,7 @@ for img in ${iso[@]}; do
   # Begin the build
   mkisofs -U -A "RHEL-${ver}" -V "RHEL-${ver}" \
     -volset "RHEL-${ver}" -J -joliet-long \
-   	-o ../${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
+   	-o ../${isodir}/jaks-$(date +%Y%m%d)-${ver}-x86_64-dvd.iso \
    	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
     -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
     -e images/efiboot.img -no-emul-boot . &>/dev/null
@@ -469,7 +454,7 @@ for img in ${iso[@]}; do
 
   # Ensure it is bootable by USB & DVD media types
   isohybrid -u \
-    ${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso \
+    ${isodir}/jaks-$(date +%Y%m%d)-${ver}-x86_64-dvd.iso \
     &>/dev/null
 
   echo "done"
@@ -478,7 +463,7 @@ for img in ${iso[@]}; do
   rm -fr ${buildnme}
 
 
-  echo "Build complete @ '${isodir}/pacificorp-$(date +%Y%m%d)-rhel-server-${ver}-x86_64-dvd.iso'"
+  echo "Build complete @ '${isodir}/jaks-$(date +%Y%m%d)-${ver}-x86_64-dvd.iso'"
   echo ""
 
 done
