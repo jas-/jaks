@@ -1,269 +1,286 @@
-commit 639eb5ea4c35398e9df0e74995d9335165973c1b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
-Date:   Sun May 29 19:07:05 2016 -0600
+commit b06585d29554e228c35e6a167e126c9d275274d5
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Sun Jun 19 14:24:56 2016 +0000
 
-    Version bump; testing rev #2
+    Version bump; v0.0.23. JAKS is born
+     - Renamed project
+     - Removing NFS dependencies
+     - Migrated ISO build tools to seperate folder
+     - Rewriting timezone & locale functionality
+    wq
 
-commit 011922ab3d3c27e6f515110c5659194a7181e03a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
-Date:   Sun May 29 19:05:30 2016 -0600
+commit b748c766012ae2f05ecd5b6c9e626ee84949c072
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sun May 29 22:25:18 2016 -0600
 
-    Version bump; testing rev #1
+    Renamed templates; grub.cfg to grub.conf
 
-commit d347e4cc98398e9e4c87a85f1244d985ca996f74
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+commit 10af05484a080fee0b0d617ed146eb563bde946c
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sun May 29 22:00:13 2016 -0600
+
+    Fix for buildiso regarding EFI grub.conf path
+
+commit 11abde739ad305941dfe12c139ae80a8cbe0e9cb
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
+Date:   Sun May 29 20:31:00 2016 -0600
+
+    Fix for missing DNS in chroot; required for RHSM registration
+
+commit 9694cfe5c75948e40960d61a57838d5708848df2
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 21:52:54 2016 -0600
 
-    Fix for disk space for vm vs. physical systems
+    Version bump; v0.2.22 - Fix for VM vs. Physical disk allocation"
 
 commit 1d1e6196bf1e0263310bd76d3fab8e7f3a95d8d0
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 19:22:54 2016 -0600
 
     Fix for paths when determining templates
 
 commit a8bf8aa8b8e516add4b028fad8552753e7d165c2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 18:03:08 2016 -0600
 
     Removed affinity controls
 
 commit 9bf61593fb840f5c8b442c49565c93dfb81d1983
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 17:25:27 2016 -0600
 
     Fix for auto-registration tool call for RHSM
 
 commit e20a68acfefe241fd8ad9e739854280bc24eec55
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat May 28 17:17:29 2016 -0600
 
     Formatting for buildiso tool
 
 commit ffe45c0a376973a44100bf13532b1bc3708bb0e8
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed May 25 01:36:52 2016 -0600
 
     Fix for isohybrid & USB devices not having uEFI capabilities
 
 commit 1c1adb08f73e4b3f9a045d7184d1c62c86f27ad8
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 24 20:34:21 2016 -0600
 
     Fix for RHSM registration procudure argument list
 
 commit 4710c17856cef5dd2e75feb17bbc988078a3887d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 22:17:01 2016 -0600
 
     Fix regarding location of /boot/efi (was /boot/EFI)
 
 commit c84c60e4401f3026c5d7b8e88c322c31b054ee7c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 20:12:34 2016 -0600
 
     Fix for grub installation; specifiy disk order; part tres
 
 commit 0041a146781c139df829fb88a07055a9061bf96d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 18:27:58 2016 -0600
 
     Fix for grub installation; specifiy disk order; part duex
 
 commit d97e620e338d92a4cb36888a13ac8ab6549c2b76
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 23 18:22:57 2016 -0600
 
     Fix for grub installation; specifiy disk order
 
 commit 19dcd303a392e2724d52d6839f6fc432aca9fa64
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun May 22 21:27:12 2016 -0600
 
     Fix for --location option (mbr vs. partition)
 
 commit 444d09f19909b0374388ce8608e6fa254eac1d68
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun May 22 21:15:16 2016 -0600
 
     Fixes for EFI grub installation location (MBR vs. EFI partition)
 
 commit b4ff1778eb3e8409041182d1db41d75f6d783387
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun May 22 20:37:07 2016 -0600
 
     Version bump - v0.0.19
 
 commit c62e892fe231dfb2494ec113a14866751ed2ad2b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed May 4 00:53:43 2016 -0600
 
     Version bump to v0.0.18
 
 commit 30428d949f93bb0059b2da65a80fe8e0d3576662
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 3 03:09:53 2016 -0600
 
     One more password in the report
 
 commit ab3a1825770e7b8455b78ce171fd0a392e0f2033
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 3 02:36:26 2016 -0600
 
     Removed ks-arguments from provided kickstart configs to clean passwords
 
 commit 8e5f18c4953152c89810c36c01d076b9b953e150
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue May 3 00:14:37 2016 -0600
 
     Added some affiinity handling for various functionality
 
 commit 44168b92368330d3dd107c59749002d597fd38c5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 2 04:47:01 2016 -0600
 
     Status message regarding disk provisioning part tre
 
 commit 62a1d1f80899b10286ccd17b68a483491d858ff0
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 2 04:45:02 2016 -0600
 
     Status message regarding disk provisioning part duex
 
 commit 9550ddd9de79e6fb9c0fb88de3a7d5bc7fc25331
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon May 2 04:39:16 2016 -0600
 
     Status message regarding disk provisioning
 
 commit aff96e976fedab81d257da4a2bdfc76828f9c491
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 30 02:59:53 2016 -0600
 
     Fixes for odds & sods
 
 commit e93816e9df88b12fe0fed34ae21243ed5e0b8085
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Apr 26 05:26:25 2016 -0600
 
     Fix for %post chroot summary report regarding logs of build tools
 
 commit 32aa518632ec0ef00b9dec58914c2fa4b1dd899a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 23:54:03 2016 -0600
 
     Reverted back to @base & included nfs-utils to help facilitate %post chroot RPM installer
 
 commit b4fed93571ff1438dbc81263d92096e6e16ac2cd
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 23:32:14 2016 -0600
 
     Fix for nfs-utils by using @Core vs. @base for %packages specification
 
 commit bc5b4a84f46dd0efe687634071cd9c38f1623d1a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 01:06:44 2016 -0600
 
     %post chroot fix for  path part deux
 
 commit 9ee5795511914f4af1325b635470f5f338a89ad1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:52:05 2016 -0600
 
     %post chroot fix for  path
 
 commit 41b323899283cee09141c6195d6dcf3251544d79
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:33:32 2016 -0600
 
     Fix for hardcoded path for build tools during %post chroot
 
 commit c8038576ca33b84024fb712d81bf59a496595856
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 25 00:26:53 2016 -0600
 
     Due to failures with BSM auditing perl script location this fix addresses the NFS mount point for  to ensure the tool can be located and installed during %post chroot
 
 commit 23f8a69e49cc55c7f3d23860bd42c0defe043751
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 24 22:51:30 2016 -0600
 
     Added CHANGELOG to help facilitate good record keeping
 
 commit 0f73c52aa1015a6bab085b7aefaab208f91805a1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 23:23:20 2016 -0600
 
     Fix for DHCP based network configuration with regards to invalid NETMASK param
 
 commit 0f91d43c29d0bf2a7acf17c4d6cf5f0b4ddcc2f2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 06:42:25 2016 -0600
 
     Fix for proxy argm to config-rhsm
 
 commit 84813fb5a36d5e62886c5e3762acdf6abb57e11f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 06:39:59 2016 -0600
 
     Removed temporary report; fix for failed array of tool names
 
 commit bdddf8075e8ad92dd0a2aa26e028bbbfebe370c6
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 06:34:11 2016 -0600
 
     Fix for substring of failed job list
 
 commit 6d34aa0adaa4a23c9dafb4d0a73687e8ee184855
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 06:20:04 2016 -0600
 
     Temporary report on tool run
 
 commit cb663ed0af587e2900e58bc4ff3f2bb1e726b5e5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 06:16:52 2016 -0600
 
     Fixes for RHSM registration
 
 commit ec2418c95d380219ff9609beeb0d2e1b51a9bcc9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 02:35:51 2016 -0600
 
     Fix for DHCP vs. empty network settings
 
 commit 6ec05f84d87fc1f3d86f09b7ba9fbc1d590567af
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 00:54:16 2016 -0600
 
     Revised network configuration function to elimiate DVD conditional & added conditional to handle missing network params
 
 commit ed388ea687d0ed3da33a89eca9bcfbccaf813a0d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 00:49:01 2016 -0600
 
     Re-enabled cdrom installation method, disabled DVD network setup
 
 commit c2020c7541c55b7e300ebbe48b1b28e98290804c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 00:41:08 2016 -0600
 
     Disabled CDROM installtion method temp
 
 commit 81e37a2766013506061be056a7a961a2e896b418
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 23 00:28:03 2016 -0600
 
     Removed unused ks file
 
 commit aaa59137d66bd90fc158e15e321b877b1fae2fda
-Author: Jason Gerfen <jason.gerfen@gmail.com>
+Author: Jason Gerfen <jason.gerfen@pacificorp.com>
 Date:   Sat Apr 23 00:09:36 2016 -0600
 
     Status messages
 
 commit 8b7cf1b10e17f2970788b8bcfa164e54f737dbef
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 18 22:41:45 2016 -0600
 
     Revisions to handle searches for build-tools & disk handling
@@ -277,13 +294,13 @@ Date:   Mon Apr 18 22:41:45 2016 -0600
        build tool use &/or NFS share build tool accessibility
 
 commit 2048abba8732df662f82eddc4ba2559c6344590e
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 18 07:05:32 2016 -0600
 
     Fixes & more robust handling for LVM physical volumes, volume groups & logical volume removals
 
 commit da27828495960cda81799489b0076e2483261a6f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 17 04:18:07 2016 -0600
 
     Version bump: v0.0.10
@@ -293,247 +310,247 @@ Date:   Sun Apr 17 04:18:07 2016 -0600
      2. Unable to locate build-tools issue
 
 commit d139bf7f25b6e72454514d0890063681ca6f865f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 17 04:08:37 2016 -0600
 
     Moved copytools to %post pre chroot
 
 commit 9fafd31e16be2b3233ef4df6dd693d6257823488
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 17 00:02:26 2016 -0600
 
     Modified devinodes() to search cdrom devices
 
 commit 3980314652fe186c25643f63c97602975eea27ee
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 16 04:10:00 2016 -0600
 
     Fix for disk mounting issue
 
 commit 003b921c4139090eec5d253c1012764d47caa753
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 16 04:02:19 2016 -0600
 
     Fix for sub process regarding partition table removal causing a race condition when making the disk label
 
 commit 4a2b12c75482af5f56cf224b538d586bdb67ff4b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 11 09:10:26 2016 -0600
 
     Fixes for local build tools
 
 commit 4c34886bbea2c30820d4d9b7051f68f89aa9687d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 11 05:54:28 2016 -0600
 
     Fix for NFS share path getting changed
 
 commit f0a736bd9013da7d3cdf80aa33572f02a6ed521d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 11 03:59:26 2016 -0600
 
     Removed nested conditional
 
 commit 3d33631645d626bf1ded104c849d8c4fba543335
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 11 03:32:34 2016 -0600
 
     Fix for multiple found locations for build-tools
 
 commit 93d11dc3186627420ffff9e63af9a6f2c87bf614
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Apr 11 02:18:27 2016 -0600
 
     Fix for USB local disk installation & missing paths for build-tools
 
 commit 60f7c8917f04b522abb02163be967badff47cf13
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 08:08:34 2016 -0600
 
     fix for build-tools variable value
 
 commit 50f5924d4aa7a96667b44adae1ad894b045a675c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 08:05:18 2016 -0600
 
     Removed some debugging
 
 commit 863bb1f750a5fe3d8e5d5dbb7f7ee259d3433c2f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 08:03:39 2016 -0600
 
     buildiso verbage
 
 commit 75ebcfafc86c6eda7de1f328f5f11fa3ca6e4e3a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 07:58:19 2016 -0600
 
     Debugging output
 
 commit 87a16705e44eb0d02ee32e19cc170d5d214d9525
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 07:57:26 2016 -0600
 
     Conditional for findtools()
 
 commit 055742c9e9895f2aab022013cb5736eca4acb7c2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 07:54:55 2016 -0600
 
     fix for end function block
 
 commit 360ba8ba80ab2ea43d24b68f243ebcfb3b20fc39
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 07:53:13 2016 -0600
 
     Fixes for missing build-tools on %post chroot env
 
 commit a4728dcdd94d37a94d6793790b49145ad9934d21
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 05:51:40 2016 -0600
 
     Verbosity for buildiso tool
 
 commit 84382b54f30edfde138e55158673069a9b5de615
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 10 05:45:53 2016 -0600
 
     Version bump; fixes for disk labels
 
 commit ab1a5119785fe302e7fa8c63c805a0039ada8775
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Apr 6 09:19:03 2016 -0600
 
     Fixes for partition removal and kernel reloading of missing partition table data
 
 commit 23621d30e414cc98409acc3d5569bb3c5bfdba26
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Apr 6 07:34:43 2016 -0600
 
     Added  value to general report
 
 commit 44c93c9f47a7d3dae665f27f4e82fe48c41d3ee6
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Apr 6 07:03:04 2016 -0600
 
     Added conditional to proxy for register flag
 
 commit 2c970024d0524e140196385a01034ed3e4151d2c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Apr 5 09:04:17 2016 -0600
 
     Fix for
 
 commit b89b745be2980f9c8f571a61e7b88d85accd674e
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Apr 5 08:48:23 2016 -0600
 
     Fix for build-tools path search in buildiso
 
 commit b7aa1beead8667b29060d87dcc905d248978e228
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Apr 5 08:07:55 2016 -0600
 
     Fix for changes in config-register tool (now config-rhsm)
 
 commit b9173ab09128af2051a267fcc48616d7f5da92a9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 3 08:35:34 2016 -0600
 
     Fixed log output for registration & change in API
 
 commit 6f14c1a09df09b9b1588f2b74d950e05b4774128
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 3 02:56:22 2016 -0600
 
     Fix for log name during config-register
 
 commit ab3f15c42c80a3b17e47edd3b442ec1d28dc2066
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Apr 3 02:17:56 2016 -0600
 
     Added functionality for handling RHN automation
 
 commit 52f92275bb5d7dfa9c313eebd5daf10b41187b66
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 2 09:06:13 2016 -0600
 
     Added options for RHN registration & references to build tool to facilitate differences in RHN registration processes post installation & build
 
 commit 508d0647951d6b51a4e9a16e3ddcf690d36795b0
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 2 07:34:43 2016 -0600
 
     Moved back to tty3 as tty2 seems to be reservered
 
 commit b953e6e18c4256fe33843e0a2714cb793d4a1b08
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 2 07:25:09 2016 -0600
 
     Reversed changes for %pre & added 500 check to buildiso
 
 commit 97b7ed26a4effe16906c18c33f0d94e0e31994d1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Apr 2 06:00:40 2016 -0600
 
     Refactored to accomodate for 7.2 %pre manual & moved from tty3 to tty2
 
 commit b00d1e6c260d271a2c4708cfac15e497f5cd66b3
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 28 09:27:35 2016 -0600
 
     Removed errorneous hostname toupper items
 
 commit ec6ea98fb77f9d3a9c1f3dedbd57fffc253f207d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 28 09:04:04 2016 -0600
 
     Force conforming to non-loud hostnames; because yelling is rude
 
 commit d1b1345d62aacffb21fe82f6650b0865d861c781
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 26 03:51:59 2016 -0600
 
     Fixes for disk labels where multiple disks exist using > 7.x
 
 commit b656ff42fc76bc9d5d3b6a2b7a569a564088d159
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 22 11:04:14 2016 -0600
 
     Fix for > vs. >= test operator for multiple disk systems
 
 commit acc897ccc12524e8aaea358c27344c1cf54cf6e1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 22 04:42:12 2016 -0600
 
     Removed old LVM template relics
 
 commit 6e5d4f9101984ad8406c99c4ac1c45bef07f044c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 21 16:35:11 2016 -0600
 
     Fixes for DHCP network configuration parsing
 
 commit d4a91df14e65052d80c9d15f4da9b8c23a6311dc
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 21 15:16:27 2016 -0600
 
     Fixes for RHEL > 7 and LVM's
 
 commit 6338dfa0ae4e8402634c411332918c66cc87fb4f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 21 14:43:48 2016 -0600
 
     Fixes for 75% of total disk remainders for /opt/app provisioning
 
 commit c6d62665eb9d80ec5620aa98d4e4c9cd041d390f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 21 13:16:09 2016 -0600
 
     Fixes & verbage for IPv4, subnet etc
 
 commit c61e00e831fa3cb118411323566f2e44e3b0ec9c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 20 15:17:02 2016 -0600
 
     Templates & buildiso:
@@ -547,25 +564,25 @@ Date:   Sun Mar 20 15:17:02 2016 -0600
      - Output formatting for readability
 
 commit 4bfc3a8fee371c10250c4863c6b50613e6c495b9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 19 11:11:29 2016 -0600
 
     Added splash.xpm.gz to handle EFI Grub menu
 
 commit 4e1e5dc7f4e4832574a183c90e3f04307b419860
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 19 11:11:04 2016 -0600
 
     Added splash.xpm.gz to handle EFI Grub menu
 
 commit 21b493472e965548763a8709412a906fcd505227
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 19 10:16:53 2016 -0600
 
     buildiso bug fixes
 
 commit 1eb58d9a3b488f2be93641cb648a9145639208ff
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 19 09:47:05 2016 -0600
 
     buildiso 20160319:
@@ -576,49 +593,49 @@ Date:   Sat Mar 19 09:47:05 2016 -0600
     - Added support for grub.cfg
 
 commit bc7190ecfc74e878f47b4614cbafb322ced78586
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 15 13:15:20 2016 -0600
 
     Revised buildiso
 
 commit c0d79557d09eba5b3c1862a6fe2d2ddd298bf2d1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 15 13:01:45 2016 -0600
 
     Removed old per distro configs to a template structure
 
 commit 4dee140d7d8f4aec2919c7df4ddbeb9e3db802ca
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 15 08:20:51 2016 -0600
 
     EFI boot fixes; BOOTX64.conf & buildiso tool
 
 commit 3dc0c4f2592c8cb4f34c66a801707794f4f33d2a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 14 13:29:53 2016 -0600
 
     Final fix for EFI kickstart installations
 
 commit f395fff40ce6cd05292af417da8dd1e23a79dc1f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Mar 14 12:55:17 2016 -0600
 
     Fixes for EFI boot types
 
 commit eaecf411854a77250894be333321ad88003a0b4d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 12:10:28 2016 -0600
 
     Readable syntax for valid_ip()
 
 commit 3a5637a2579edd4f8fbdf8e9e9b8f3cf306b9b53
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 12:04:43 2016 -0600
 
     Fix for configurenetwork() name
 
 commit d430e07f198add302186a1b0c0dda91a62110386
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 12:00:27 2016 -0600
 
     Version bump; v0.0.6
@@ -627,97 +644,97 @@ Date:   Sun Mar 13 12:00:27 2016 -0600
     - Fix for return value validation & associated conditionals for IPv4 validation function
 
 commit ef0ef45a04e329385c8989581b05f2375ff5e52c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 07:40:05 2016 -0600
 
     Version bump; v0.0.5 - Removed verbosity on tool copy
 
 commit 3ceea957c51f90f1786f393c752e34df8cafadeb
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 07:37:48 2016 -0600
 
     Reporting fix for boot & primary disk
 
 commit 55d5de1c2fa0faa5acffcc02b3d811154f142163
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 07:34:20 2016 -0600
 
     Added disk names for multiple disk reports as well as primary for /boot
 
 commit 7e4046a4aa1c723815491e06461d1258beff9b76
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Mar 13 07:19:24 2016 -0600
 
     Refactoring disk reports
 
 commit 7e2b3929babc2e53a7455300999acbd1089d2f2b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Mar 9 14:35:15 2016 -0700
 
     SWAP change from physical to LVM & optapplv only uses 75%
 
 commit 757d9ddd2b1f7655df62091e2b9294cbfdca35ed
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 8 14:50:53 2016 -0700
 
     Fix for integer on LVM creation
 
 commit 4d469ca07d0c4843225635cf3e027af5c9509ce7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 8 11:31:11 2016 -0700
 
     Fixes for space allocations math & debugging log for disk detection
 
 commit ea0cbe06a2db3096140b4037a1ed8ecd9b95af5f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 8 11:06:19 2016 -0700
 
     Fix for RHEL-6.7 change to --percent LVM creation
 
 commit ffbf99f844e1bdf95ba4c93dc16f7b74c9ff9632
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 8 08:14:48 2016 -0700
 
     6.7 isolinux.cfg & fix for API change regarding use of --percent for LVM
 
 commit e6861f18069e49c54086289d157494cf76841219
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Mar 5 12:39:37 2016 -0700
 
     Fix for paths regarding rhel-6.6 isolinux.cfg file
 
 commit 81d720f86fd50af8d6cd7d7d096acb5870ca9fa7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Mar 2 12:09:19 2016 -0700
 
     Comments for copytools()
 
 commit 66b3992d56b3329898a2b45d1418e5da592da5d9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Mar 2 10:48:56 2016 -0700
 
     Fix for USB mounted %post build utilities
 
 commit cb58bf6125020b32708c75a1df7bbd01d3dafe2c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 1 15:36:57 2016 -0700
 
     Fixes for USB based local installs
 
 commit 7dc44b1cb909be1bb49e6989336b3eec93072e82
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Mar 1 11:01:26 2016 -0700
 
     Fix for isolinux USB ks source & kickstart build tools copy operation
 
 commit c465a7051a932e07fc46aee3a0ee42f8e0abe79d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 29 16:08:59 2016 -0700
 
     Added isolinux.cfg files for custom RHEL 6.5 & 6.6 DVD ISO & fixes for DVD only builds
 
 commit ed508a218adbc1f06adaa81aa0b0dd58d7b84bb6
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 29 08:51:15 2016 -0700
 
     Bug fixes & features
@@ -726,25 +743,25 @@ Date:   Mon Feb 29 08:51:15 2016 -0700
      - Now handles swath of applicable hostnames to location conversions
 
 commit 5f92435298bd00164025d0c9d6abb959e5cc89c4
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 27 14:19:11 2016 -0700
 
     Expanded location to handle all available locations
 
 commit e61f5731cf5b2e03e4e29b89f05134b811be4ec7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 27 11:37:13 2016 -0700
 
     Fix for DVD build tools
 
 commit 7ecb8801cf2e4b1127ceb6e3fc9bbc5841f4c7d5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Feb 23 15:38:49 2016 -0700
 
     Fix for ext4 2% LVM overhead
 
 commit c139fe8e19088eb7c35087cb1d4897cda0ecc746
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Feb 23 15:31:40 2016 -0700
 
     Fixes for multiple disks;
@@ -755,206 +772,206 @@ Date:   Tue Feb 23 15:31:40 2016 -0700
     Fix for report size for optapp LVM for multiple disks
 
 commit e3d58c2a07a74c30ad51911db0323be2ef2aafd7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 17:41:00 2016 -0700
 
     Errors occuring with 2GB allocated for overhead of extra disk LVM
 
 commit 652536df57d1398501e0440efee662a759878c15
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 16:30:56 2016 -0700
 
     Fix for volume group when creating optapp logical volume
 
 commit 4ca2e10e6ff4b5abef10c46d000ef7647d7127f9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 16:25:25 2016 -0700
 
     Removed debug=true default
 
 commit b4b7088ed139541a10d7430b9dba85b6b8608ff4
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 16:06:34 2016 -0700
 
     Fix for process
 
 commit eed2507f7007462f897952cf292b7d3ff7131261
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 15:52:19 2016 -0700
 
     Order of operations (left right evaluation) fix for previous fix
 
 commit 96aceb8f64e78440e5380f978218b4d55ce1eafd
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 15:30:34 2016 -0700
 
     Fix for physical extent overhead on extended disks
 
 commit e357a01985902ff1a9afcb4f3c34efbc00c41bdf
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 14:59:06 2016 -0700
 
     Fix for multiple disks size calculations
 
 commit 1b983f06e1b667de28c76f3ce8ee5ffb9f413dc9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 13:09:14 2016 -0700
 
     Added sorting filter to ensure accuracy in positions
 
 commit 7b1a5de25aec4e91e3fa0815cd7f216cbbbedb67
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 12:30:48 2016 -0700
 
     Fix for halt if partition sizes cannot be determined
 
 commit d5baa0e51b8f85d0c00ba9a47be73d563a8a64f0
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 12:26:39 2016 -0700
 
     Fix for dynamic size allocated for /tmp LVM
 
 commit f0257113dd108dc9bae3342223bcb74ef9f99f8c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 21 12:13:32 2016 -0700
 
     Fixes for extra disks; reports & configs
 
 commit 060ed32a23a632a291fee527dff1641f9b826d80
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 20 17:59:01 2016 -0700
 
     Fix for Physical volume size on primary
 
 commit 3746292ebb96212d69db0c4bd5ff7dc60ca42632
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 20 17:12:41 2016 -0700
 
     Fix for filter when obtaining route parameter
 
 commit a07182c8de6776644e5d50dcf2f42819f3a37dcb
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 20 16:54:22 2016 -0700
 
     Fix for numerical representation of gateway
 
 commit 49f05488ecf873e03ba52db116ed8c0c74e62ed4
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Feb 16 17:46:19 2016 -0700
 
     Fix for mv arg
 
 commit 2c4b645b1319b37a9a3dc4a297e675d12c1e9b44
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Feb 16 17:24:02 2016 -0700
 
     Reporting changes
 
 commit cde4b0cd3d5b5afa39fb268df8df9b8e1656f33d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 15 11:25:04 2016 -0700
 
     Fix for kickstart configuration path
 
 commit b8bbc34176be985ae87a6784ab4a5484f4558e32
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 15 11:13:45 2016 -0700
 
     Fix for report path
 
 commit 5213d72422e51187d2cbe0c8b10683abafa80e46
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 17:03:44 2016 -0700
 
     Housekeeping on configuration & reports generated
 
 commit 725a46bdf2deb711d1feac3500a8dc1b3bb2897b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 16:31:15 2016 -0700
 
     Removed percentages from reporting
 
 commit 5a663a852e0361353fee821295ee7eacc95a0acc
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 15:57:30 2016 -0700
 
     Some debugging for totals 1
 
 commit f6e8c00d5140e19a9cd7b7010b0d46315d8ebf54
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 15:34:39 2016 -0700
 
     Some debugging for totals
 
 commit 9685e1d02eda3e7b5f981b32109ca9d3a227c165
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 15:23:47 2016 -0700
 
     Syntax error fix for awk
 
 commit d4cc31c7cf452b150d66655c9d150c1461183999
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 15:12:51 2016 -0700
 
     Fix for reporting percentages
 
 commit fbfed953843006c9111935a310f793cb1e6aa1af
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 15:04:56 2016 -0700
 
     Fix for handling EFI boot vs. legacy BIOS boot; allocates additional 200MB for RHEL /boot/efi partition
 
 commit ca9c28dfcc96cba6945f06bc6b73f5f8128839be
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 14 12:43:32 2016 -0700
 
     Fixes for multi-disks reports & processing;
     filters for USB block devices; Fix for negative numbers when calculating optapp
 
 commit 84e1e497c709529dea18725571aba46259941618
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 15:23:11 2016 -0700
 
     Fix for total_size variable
 
 commit 1f0ed97ccfe6cc9f45258eee914c90741c2957f3
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 15:19:24 2016 -0700
 
     reversed optapp calculation
 
 commit cd80c9bc112e5d1a2067efaebc691af833acee98
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 15:13:36 2016 -0700
 
     Fixes for bytes vs. mb calculations
 
 commit dfc6260c47da3ad0c2fe1732376eb58c555454a1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 11:09:09 2016 -0700
 
     Final for vm &/or physical deployments
 
 commit 78835df0519dde7847df864f0b0c49abfcf53bc1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 11:04:18 2016 -0700
 
     Debugging for size allocations
 
 commit 4607d3ad31b865c36a81d06817bca4ea2d61df44
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 10:58:04 2016 -0700
 
     Moved away from b2mb conversion for non-standard vm
 
 commit 63e865acc59b6b58f87a8d9b93adee70e59da5ef
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 10:52:09 2016 -0700
 
     Problem with gb to b
 
 commit 0fbb3e7494cfd1b26a7f4b2287550d7ef5036b0e
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 13 10:21:03 2016 -0700
 
     Debugging & fix for ip, netmask & subnet:
@@ -969,115 +986,115 @@ Date:   Sat Feb 13 10:21:03 2016 -0700
        DHCP & (possibly) BOOTP available
 
 commit cc5e0224cd1351021150ca58b7185619e22249b7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 14:53:45 2016 -0700
 
     Added new function to handle non uniform numbers
 
 commit 3b7082c376493b31ef7a4775e2c0da272a84f190
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 13:22:34 2016 -0700
 
     Added percentages to final report for failed/successful jobs
 
 commit 395f5f7513182f980a3df6ce6c9e8b1c3629444d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 12:51:50 2016 -0700
 
     Fix for bootparams()
 
 commit cfc7606927c69a80108a1f7829ae4b4d1946486b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 12:48:33 2016 -0700
 
     Disabled error on fail
 
 commit 3718279f035b46dc707a99f1ef5e15f8577eeb08
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 12:43:25 2016 -0700
 
     Global variables for hostname & location
 
 commit e34b920122fe47ce7d7aa0e0121cff46170139ef
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 12:23:54 2016 -0700
 
     Migrated nfs & timezone to functions
 
 commit a80ca9ec08f5334f59c2cf4ed8017ecbb5266a5a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 11:21:46 2016 -0700
 
     Migrated location, hostname, rootpw to functions
 
 commit 2a25a045eaaecc280089a29836ec293d88476361
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 10:08:31 2016 -0700
 
     Reverted back to static banner; pos
 
 commit e36de33e1ff017a4417687687d8322f057748de4
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 10:06:08 2016 -0700
 
     printf? 2
 
 commit e0298012ed1bdcef0a876c2e683f5162eaeecaee
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 10:04:06 2016 -0700
 
     printf?
 
 commit 0ffd3ddd96a67941db5c1cdecad1a349aed01171
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 10:01:23 2016 -0700
 
     echo fix?
 
 commit 77457417ab437e56ac7fe23c90837cf755f80874
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:53:59 2016 -0700
 
     Removed apostrophies from banner variable
 
 commit 3de2ff0f3c7e8a66c0ada700649720403bb94bb5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:52:25 2016 -0700
 
     Fix for printing confirmation banner
 
 commit bc67bab4cbe80b495d7cd53b9170d211ad596fd2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:50:43 2016 -0700
 
     Migrated confirmation dialog to function confirminstall()
 
 commit 28465a4be12c4104e5eb7cc155d36671e30ce2c2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:37:15 2016 -0700
 
     Migrated away from inline argument parsing to function; bootparams()
 
 commit 3be97a393e2188bb2cec5c921bbfefb7e92f6fe8
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:32:11 2016 -0700
 
     Version bump; v0.0.1. Defined API defaults for brevity
 
 commit 28b4ac8af237a2e62bc147ea4af4f29245f59197
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 10 09:18:59 2016 -0700
 
     Changes to ordering of configuration output
 
 commit 25be88bb31cc592d701e48f8e8155ab4dec39dc9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Tue Feb 9 18:10:04 2016 -0700
 
     Added nodev, noexec & nosuid options to /tmp LVM
 
 commit 615caf09d584385a6f56c8d52bd63362da93a65f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 17:29:47 2016 -0700
 
     RHEL kickstart
@@ -1093,38 +1110,38 @@ Date:   Mon Feb 8 17:29:47 2016 -0700
                      regarding build tools failed, success etc.
     
     Disks:
-     - Disks are auto assembled based on jaks UNIX team
+     - Disks are auto assembled based on Pacificorp UNIX team
        build standards for physical vs. virtual builds.
      - If system disk specifications fall outside the range
        outlined in the build guide a dynamic configuration is
        used based on percentages of the total space available.
 
 commit caa8f4cb9d369cb4c0a351b4d07c5054d4a5e999
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 17:28:59 2016 -0700
 
     Debugging output
 
 commit 58da46f441ee913a71b576aa8d9eb433386f55ff
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 17:28:25 2016 -0700
 
     Fix for human readable bytes to GB values
 
 commit 74d49b3558d3de97f8150495363414daf5cd24d9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 17:25:08 2016 -0700
 
     Fix for 21474836480 in templates2output()
 
 commit e0893b1e01dd3dead0079104256fe5364e8f4f6d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 17:19:13 2016 -0700
 
     Worked on non-conforming disk types (like my vm)
 
 commit 4f1df6426b4b42732b34ca63d88776522d8b6887
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 15:06:26 2016 -0700
 
     Disk configuration:
@@ -1134,7 +1151,7 @@ Date:   Mon Feb 8 15:06:26 2016 -0700
      - Function for writing primary and if needed extra LVM disk configurations
 
 commit 558253cb5c69e154cf54ebe02b642fe4ade7aaee
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 11:42:02 2016 -0700
 
     Disk templates:
@@ -1154,139 +1171,139 @@ Date:   Mon Feb 8 11:42:02 2016 -0700
           based on disk sizes
 
 commit 15065c88d683ec74dd73746969c7c548985a5ad7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:38:40 2016 -0700
 
     Added human readable swap space output
 
 commit f959a36e065d23e9fe36c9cfca76ab69ea725041
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:35:47 2016 -0700
 
     Fix for bytes to GB expr
 
 commit bee569615964d09351e364699e074a140506fcef
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:34:05 2016 -0700
 
     Converted bytes to GB for disk size output
 
 commit 393236d6abd299d4fc99154af82e830f573ac64b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:27:20 2016 -0700
 
     Fix for conditional w/ disk count found & physical build type
 
 commit 3005ffd481b42d1f8c1d8f507cdaa230fb9afa45
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:25:12 2016 -0700
 
     DEBUG pauses & informational messaging for disk processing
 
 commit d12276049ab9491ab2894bd8e9c1c894baaeff91
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:19:58 2016 -0700
 
     Fix for awk regex for determine swap size
 
 commit d97bfbd6f900357d4604ec1c994f9e37899e482c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Mon Feb 8 10:19:10 2016 -0700
 
     Fix for conditional on count of disks present
 
 commit 3b9488c6e6356b2172f8ce5fb49b4c092caa6c66
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 19:01:37 2016 -0700
 
     Thought placement
 
 commit fbc284bb26dcdb447ec9078af7ef025b1e7829f5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 18:59:59 2016 -0700
 
     Iteration of  & conditional to validate bytes < 100GB
 
 commit 60243880549ea83f89b7d12ed6cb21c78a9e0a15
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 18:44:20 2016 -0700
 
     More commenting to break sections up
 
 commit ac03dcd57d731cf037004cdcf4f8f85210397178
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 18:40:17 2016 -0700
 
     Added some verbose in-line comments for future maintainability
 
 commit b6a586a6ca484e1cda88b4ae84379abf5fd9d41f
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 18:18:42 2016 -0700
 
     %pre: Working on disk assembly
 
 commit b4ea5f71dccf33d51d7d0a9e97b73b1498ca5e27
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 17:18:57 2016 -0700
 
     Set some permissions for build logs
 
 commit d5c2219a5da3c1f6b31e3ea1ded0a979aa887ea9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:45:50 2016 -0700
 
     pause/break
 
 commit a31b02c4162070e192fa75bab8ff03ab7cd320c9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:36:22 2016 -0700
 
     Grrrr
 
 commit 010a7ce5448700ebf735115a89db4eee1773a78a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:34:24 2016 -0700
 
     Fix for setting  to /tmp/ks-arguemnts
 
 commit 4127658ca83e584163cee08ca91d634589e807c1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:31:29 2016 -0700
 
     Removed arglist write to logs
 
 commit 03b09216ef3b32fc6918eeceacb07949fd68a748
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:30:54 2016 -0700
 
     Remvoed ROOTPW from second %post (we don't store that)
 
 commit 73f9eb997cf656a47691403338ed7a985227cbb7
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:27:36 2016 -0700
 
     Fix for second %post and env arguments
 
 commit 7e75656ede34e7263334b69b61d44d7ba688495a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:18:50 2016 -0700
 
     Formatting for maintainability
 
 commit 70cbe9ea50a282813ad18b9283e720ec37709441
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 16:11:50 2016 -0700
 
     Migrated DEBUG to %pre & %post; applied fix for config-network tool
 
 commit be718d4ee8e8e3bb5e834fe68fc67b59f1d97b02
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 15:57:01 2016 -0700
 
     Fix for conditional for new DEBUG arg
 
 commit 71d6390d2b8545f396832e8aa3e0099233443bd8
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 15:55:01 2016 -0700
 
     DEBUG option & fixes:
@@ -1296,100 +1313,100 @@ Date:   Sun Feb 7 15:55:01 2016 -0700
      - Fix for %post (chroot) regarding build-tools directory
 
 commit 601f24b623895cd7dadec990542295dc105b7d87
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:47:58 2016 -0700
 
     Removed symbol in comment
 
 commit dd09f74081417ed4096abd66ed4df300bc4d3a00
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:42:18 2016 -0700
 
     Added some path info
 
 commit b379f9d0c89dfd9a954848f3db5f03ff88dac6df
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:35:24 2016 -0700
 
     Added the stdout handling back in
 
 commit 9d8ebcc02fe1fe65dab6335290c1abb90b84dbdf
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:30:16 2016 -0700
 
     Fix for pauses on  loop, doh
 
 commit ce21d4f4c1d103089bf10366c5d5f91da8e1a9f1
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:22:25 2016 -0700
 
     Moved copy of configuration files to end
 
 commit 64b2ff4aef17bd7d309ca7ab0084470255acaaaa
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:17:20 2016 -0700
 
     Added breaks to each tool run
 
 commit 35b44284d364c2e32dd42ad87b01f97a3ccd9916
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:11:50 2016 -0700
 
     Added break prior to restart
 
 commit 7225ec71062bbb6472fdd47cf906a71c56d889c2
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:10:26 2016 -0700
 
     Increased timeout after each builder tool run
 
 commit 0280c7a52bf81463a8e83556bc56a71754084342
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:09:38 2016 -0700
 
     Fix for ks.cfg getting backed up
 
 commit 7833d3630dc251b80adcce22d44d16151e40322e
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 14:02:34 2016 -0700
 
     Disabled stdout to /dev/null
 
 commit 10c10aee5637d1eded0ae8ae844390dc2e1b217c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 13:56:54 2016 -0700
 
     Debug timeout
 
 commit fd4d00b9ac41bbcfd6eb17b014e5f367949a8556
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 13:55:52 2016 -0700
 
     Fix for clear partitions of all vs. sda disks
 
 commit 3b689b5cf27c2c538a56345f50b0006168c1ccf9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 13:51:37 2016 -0700
 
     Forced stdout to /dev/null & fix for config-network tool
 
 commit 6b3eaaa276c34f23a659dca1896eba704cf97ea5
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 13:42:53 2016 -0700
 
     Added config-network to %post (chroot) section
 
 commit e050a7ff418ad104d9b351f6ab9d75919364904c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sun Feb 7 12:51:52 2016 -0700
 
     Re-ordered disk configuration bits
 
 commit f58f0344bb42f67ccb751f391924339654ec374b
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 6 11:56:44 2016 -0700
 
-    jaks.ks:
+    rhel.custom.ks:
       - Sections:
         - %pre:
           1. Handles passed arguments by converting to referenced variables; i.e. INSTALL = ${INSTALL} etc.
@@ -1423,109 +1440,109 @@ Date:   Sat Feb 6 11:56:44 2016 -0700
              post-validation of OS env.
 
 commit 015b6012428ddf52deb4444090f0d67b694e0309
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Sat Feb 6 11:40:14 2016 -0700
 
     Verbsoe steps through run
 
 commit afd94ee244cbb335ff6fe6b774dcf130597edd0c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:25:15 2016 -0700
 
     Fix for location variable assignment
 
 commit 52430d967069e5e92a76e68195ee2961d0bdae22
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:23:33 2016 -0700
 
     Fix for location conditional
 
 commit d2a026babc0aebda2ca85638d105c3df0d7bd9b4
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:19:41 2016 -0700
 
     Debugging pauses
 
 commit 0bf849b59fc96048210da5b80ac8a9adedac646a
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:15:42 2016 -0700
 
     Removed call to env & replaced 'tr' with 'awk tolower()'
 
 commit c5d5b03313e704ba32ab2ff9f8c440cecebb8b9d
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:05:13 2016 -0700
 
     Added call to env
 
 commit 50103e03705827bf2b70c6caa17429610dd1edca
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 19:02:42 2016 -0700
 
     Migrating older code base using associtive arrays to compatible variable based syntax
 
 commit 12efb9d96dcb751b74118591471a2bbfd3165692
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 18:44:12 2016 -0700
 
     Test for  from cat <<EOF
 
 commit 587a559e4363ddce07643fa1b8bc2235dbea0126
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 18:39:54 2016 -0700
 
     Fix for 'gateway' networking arguement
 
 commit 5e32efeeae0e97ea3a9222f2bda758d68261ad9c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 18:38:46 2016 -0700
 
     Some debugging info to ensure options passed are parsed correctly
 
 commit 231c19cfc6779e3d64adc697f629dc464437c71c
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 18:31:06 2016 -0700
 
     Fix for iteration & assignment of key -> value of command line args
 
 commit 74666639032f787b38c8762688d0b2b7022c28b9
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:59:25 2016 -0700
 
     Enabled logginf for %pre & inluded longer sleep time
 
 commit fe1e54b42f80c89d015010b9b6a5adcdc8754fb0
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:45:42 2016 -0700
 
     Removed TUX, damn shame
 
 commit 6b4a82a8d6dfff8785be1103e67d2b749d96efd6
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:38:55 2016 -0700
 
     Added some verbose comments for handling arguments
 
 commit 44dbdd8087626285478b747428462ee58782b756
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:36:43 2016 -0700
 
     Commented out root pw prompt or argument passing
 
 commit 5ed68a9c4a2c510d6ffade682dfeb7bd2faf2919
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:28:25 2016 -0700
 
     Fix for using uname when expecting DHCP option 12
 
 commit f02f691b2d1be0549ba17b4760d2cbd80b97ba34
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 16:27:31 2016 -0700
 
     Commented out frivilous bit
 
 commit db856ae4ef5ef511b6009c78e911d31ee4f708eb
-Author: Jason Gerfen <Jason.Gerfen@gmail.com>
+Author: Jason Gerfen <Jason.Gerfen@pacificorp.com>
 Date:   Wed Feb 3 15:26:12 2016 -0700
 
     Initial commit
