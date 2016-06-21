@@ -250,13 +250,22 @@ function confirminstall()
     echo '*                                                                  *'
     echo '*                          W A R N I N G                           *'
     echo '*                                                                  *'
-    echo '*  This process will install a completely new operating system.    *'
+    echo '*  This process will install a completely new operating system     *'
+    echo '*  while destroying all data on all non-usb & non-network storage  *'
     echo '*                                                                  *'
-    echo '*  Do you wish to continue?  Type "yes" to proceed                 *'
+    echo '*         Do you wish to continue?  Type "yes" to proceed          *'
     echo '*                                                                  *'
     echo '********************************************************************'
     echo
+
+    # Get input from user
     read -p "Proceed with install? " install
+
+    # If 'no' proceed to shut down system
+    if [ "${install" == "no" ]; then
+      echo "Shuting down ... "
+      shutdown -h now
+    fi
   done
 }
 
@@ -375,30 +384,6 @@ function configureproxy()
         echo ""
       done
     fi
-  fi
-}
-
-
-# Configures the RHN credentials
-function configurerhncreds()
-{
-
-  # If ${REGISTER} == true make sure we have the info we need
-  if [ "${REGISTER}" == "true" ]; then
-
-    # Prompt for ${RHNUSER}
-    while [ "${RHNUSER}" == "" ]; do
-      echo "No RHN user specified; use RHNUSER=<user> as boot arg to skip"
-      read -p "Enter RHN user: " RHNUSER
-      echo ""
-    done
-
-    # Prompt for ${RHNPASS}
-    while [ "${RHNPASS}" == "" ]; do
-      echo "No RHN password specified; use RHNPASS=<pass> as boot arg to skip"
-      read -sp "Enter RHN password: " RHNPASS
-      echo ""
-    done
   fi
 }
 
@@ -975,17 +960,6 @@ clear
 
 # Configure the physical location
 configurelocation
-
-# Clear the terminal
-clear
-
-
-###############################################
-# Configuration for RHN registration          #
-###############################################
-
-# Setup RHN credentials
-configurerhncreds
 
 # Clear the terminal
 clear
