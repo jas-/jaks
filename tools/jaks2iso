@@ -83,37 +83,29 @@ echo "[Build Environment]"
 echo -n "Checking for local copy of templates ... "
 
 
+# Make sure the templates folder exists
+if [ ! -d templates/ ]; then
+  echo "missing, exiting"
+  exit 1
+fi
+
+
+echo "exists"
+
+
 # Test ${files[@]} once more
 for file in ${!files[@]}; do
 
 
-  echo -n "Searching for '$(basename ${file})' in '$(pwd)/kickstart/templates/' ... "
+  echo -n "Searching for '$(basename ${file})' ... "
 
 
   # Search templates/ for ${file}
   search=$(ls templates/ | grep ${file})
 
-
   # If ${file} is not in templates/ set ${missing} to 1
-  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
-    missing=1
-    search=$(find templates/kickstart/templates/ -name $(basename ${file})|tail -1)
-    continue
-  fi
-
-
-  # If primary ${search} fails; try current directory
-  if [ "${search}" == "" ]; then
-    echo "not found"
-    echo -n "Searching for '$(basename ${file})' in '$(pwd)/' ... "
-    search=$(find . -name $(basename ${file})|tail -1)
-  fi
-
-
-  # If ${file} is not in templates/ set ${missing} to 1
-  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
-    echo "missing; check configuration options"
-    cleanup
+  if [[ ${search} == "" ]] || [[ ! -f ${search} ]]; then
+    echo "missing, exiting"
     exit 1
   fi
 
@@ -133,7 +125,6 @@ iso=($(ls *.iso))
 # Error & exit if ${#iso[@]} = 0
 if [ ${#iso[@]} -eq 0 ]; then
   echo "Could not locate any ISO file(s)"
-  cleanup
   exit 1
 fi
 
@@ -161,7 +152,6 @@ for img in ${iso[@]}; do
   tiso="$(file ${img})"
   if [[ ! "${tiso}" =~ 9660 ]]; then
     echo "'${img}' is not a valid ISO 9660 file"
-    cleanup
     continue
   fi
 
@@ -188,7 +178,6 @@ for img in ${iso[@]}; do
   mtloop "${img}" "${buildnme}-loop"
   if [ $? -ne 0 ]; then
     echo "Count not mount '${img}' @ '${buildnme}-loop'"
-    cleanup
     continue
   fi
 
@@ -207,7 +196,6 @@ for img in ${iso[@]}; do
   copy "${buildnme}-loop/*" "${buildnme}/"
   if [ $? -ne 0 ]; then
     echo "error"
-    cleanup
     continue
   fi
 
@@ -219,7 +207,6 @@ for img in ${iso[@]}; do
   umtloop "${buildnme}-loop"
   if [ $? -ne 0 ]; then
     echo "Count not un-mount ${buildnme}-loop"
-    cleanup
     continue
   fi
 
@@ -348,5 +335,3 @@ for img in ${iso[@]}; do
 done
 
 
-# Clean up mounts etc
-cleanup
