@@ -3,14 +3,6 @@
 # Tool to assist in creating customized ISO's (EFI bootable)
 
 
-# NFS shares by timezone
-declare -A nfs
-nfs[PDT]="pdxnfsc01p"
-nfs[MDT]="slcnfsc01p"
-
-# NFS share location
-nfs_share=/unixshr/linux
-
 # Array of files as the keys w/ the value as the location in the customized build
 declare -A files
 files[build-tools/]="/build-tools/"
@@ -86,130 +78,9 @@ function arch(){
 }
 
 
-# Cleanup build environment on failure & success
-function cleanup(){
-  echo -n "Cleaning up build environment ... "
-
-
-  # Find mounted NFS share
-  share=$(mount|grep nfs|grep templates|awk '{print $3}')
-  if [ "${share}" != "" ]; then
-    umount ${share}
-  fi
-
-  # If templates/ folder exists remove it
-  if [ -d templates ]; then
-    rm -fr templates
-  fi
-
-
-  echo "done"
-}
-
-
-# Get the timezone
-function timezone(){
-  echo "$(date +%Z)"
-}
-
-
-# Ping function
-function pinger(){
-  ping -c1 ${1} &>/dev/null
-  return $?
-}
-
-
-# NFS share
-function donfs(){
-
-  # Setup the NFS server based on the configured timezone
-  nfs_server="${nfs[$(timezone)]}"
-  if [ "${nfs_server}" == "" ]; then
-    nfs_server="${nfs[PDT]}"
-  fi
-
-
-  # Ping ${nfs_server} to make sure it is accessible
-  pinger "${nfs_server}"
-  if [ $? -ne 0 ]; then
-    return $?
-  fi
-
-
-  # Mount the NFS share @ ${1}
-  mount -t nfs -o cto,nolock ${nfs_server}:${nfs_share} ${1} &>/dev/null
-  if [ $? -ne 0 ]; then
-    return 2
-  fi
-
-
-  return 0
-}
-
 echo ""
 echo "[Build Environment]"
 echo -n "Checking for local copy of templates ... "
-
-
-# Check to see if templates folder exists locally
-if [ ! -d templates ]; then
-
-  # Create the NFS mount point
-  mdir "templates"
-fi
-
-
-# Set ${missing} to 0
-missing=0
-
-
-# Iterate ${!files[@]} & test
-for file in ${!files[@]}; do
-
-
-  # Search templates/ for ${file}
-  search=$(ls templates/ | grep ${file})
-
-
-  # If ${file} is not in templates/ set ${missing} to 1
-  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
-    missing=1
-    continue
-  fi
-done
-
-
-echo $([ ${missing} -eq 0 ] && echo "found" || echo "missing")
-
-
-# If ${missing} = 1 mount ${nfs_server}
-if [ ${missing} -eq 1 ]; then
-
-
-  echo -n "Mounting NFS share ... "
-
-
-  # Do the NFS bit
-  donfs "templates/"
-
-
-  if [ $? -eq 1 ]; then
-    echo "error, not responding"
-    cleanup
-    continue
-  fi
-
-
-  if [ $? -eq 2 ]; then
-    echo "error mounting share"
-    cleanup
-    continue
-  fi
-
-
-  echo "done"
-fi
 
 
 # Test ${files[@]} once more
@@ -219,8 +90,16 @@ for file in ${!files[@]}; do
   echo -n "Searching for '$(basename ${file})' in '$(pwd)/kickstart/templates/' ... "
 
 
-  # Search for ${file}
-  search=$(find templates/kickstart/templates/ -name $(basename ${file})|tail -1)
+  # Search templates/ for ${file}
+  search=$(ls templates/ | grep ${file})
+
+
+  # If ${file} is not in templates/ set ${missing} to 1
+  if [[ ${search} == "" ]] || [[ ! -f ${search} ]] && [[ ! -d ${search} ]]; then
+    missing=1
+    search=$(find templates/kickstart/templates/ -name $(basename ${file})|tail -1)
+    continue
+  fi
 
 
   # If primary ${search} fails; try current directory
