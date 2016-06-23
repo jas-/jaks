@@ -80,7 +80,7 @@ location=
 dlog=/tmp/disks.log
 
 # Name of %post configuration scripts
-buildtools="jaks-build-tools"
+buildtools="jaks-post-config"
 
 # Build-tools execution directory (chroot env)
 buildenv=/mnt/sysimage/var/tmp/${buildtools}/

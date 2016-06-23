@@ -5,7 +5,7 @@
 
 # Array of files as the keys w/ the value as the location in the customized build
 declare -A files
-files[build-tools/]="/build-tools/"
+files[jaks-post-config]="/jaks-post-config/"
 files[jaks.ks]="/ks.cfg"
 files[isolinux.cfg]="/isolinux/isolinux.cfg"
 files[BOOTX64.conf]="/EFI/BOOT/BOOTX64.conf"
@@ -101,17 +101,17 @@ for file in ${!files[@]}; do
 
 
   # Search templates/ for ${file}
-  search=$(ls templates/ | grep ${file})
+  #search=$(ls templates/ | grep ${file})
 
   # If ${file} is not in templates/ set ${missing} to 1
-  if [[ ${search} == "" ]] || [[ ! -f ${search} ]]; then
+  if [[ ! -f templates/${file} ]] && [[ ! -f ../${file} ]]; then
     echo "missing, exiting"
     exit 1
   fi
 
 
   # Assign ${search} to ${buildenv} array
-  buildenv["${search}"]="${files[${file}]}"
+  buildenv["templates/${file}"]="${files[${file}]}"
 
 
   echo "done"
