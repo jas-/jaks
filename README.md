@@ -17,10 +17,10 @@ The options listed below are custom arguments which supercede those provided
 from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 
 ### General ###
-`INSTALL` *[(boolean) Default: false]*
+`INSTALL` *[(boolean) Default: false]* - 
 Disables safety prompt and can facilitate an automated installation.
 
-`DEBUG` *[(boolean) Default: false]*
+`DEBUG` *[(boolean) Default: false]* - 
 When set to 'true' forces user input & generates informational reports based
 on the following;
 
@@ -30,11 +30,11 @@ on the following;
  4. Networking specific information
  5. Disk(s) configuration
 
-`ROOTPW` *[(string) Default: (empty)]*
+`ROOTPW` *[(string) Default: (empty)]* - 
 Here a root user account can be configured to asssit with automation.
 
 ### Locale/Timezone ###
-`LOCATION` *[(string) Default: (empty)]*
+`LOCATION` *[(string) Default: (empty)]* - 
 The location can be used to supercede the GeoIP installation option.
 
 ### Networking ###
