@@ -58,12 +58,12 @@ and will superceede the default `netmask` option when both are provided.
 If specified, this option will set the default route of the system
 and will superceede the default `gateway` option when both are provided.
 
-## contributing ##
+## Contributing ##
 Contributions are welcome & appreciated. Refer to the
 [contributing document](https://github.com/jas-/jaks/blob/master/CONTRIBUTING.md)
 to help facilitate pull requests.
 
-## license ##
+## License ##
 This software is licensed under the
 [MIT License](https://github.com/jas-/jaks/blob/master/LICENSE).
 

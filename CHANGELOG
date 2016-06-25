@@ -1,3 +1,78 @@
+commit ff0378ead4dce737c00f49dc9da200b78f7843fe
+Author: Jas- <Jason.Gerfen@gmial.com>
+Date:   Sat Jun 25 09:30:36 2016 -0600
+
+    Additional readme info
+
+commit b54922ee93414bb53cb6ebf7faa0888de2cdca8f
+Author: Jas- <Jason.Gerfen@gmial.com>
+Date:   Sat Jun 25 09:26:02 2016 -0600
+
+    Version bump; v0.0.25
+    
+    Removed NFS references from post configuraton report
+    Updated argument list in README
+
+commit fcb344112feaf61bc7bd972b35c6f9ba0c88a80f
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 02:39:39 2016 +0000
+
+    Added submodule to handle %post process dependencies
+
+commit bc3aece541a37cc5d6e40273ec9ae4e80a27718b
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 02:22:00 2016 +0000
+
+    Italics for variable
+
+commit f6ef2ba8858b0ff2c34d701c85443fe8b08b878f
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 02:19:31 2016 +0000
+
+    Italics for variable
+
+commit d29f25afe2a9aa6a2c358ab6a9b0e6eeed542772
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 01:44:19 2016 +0000
+
+    Fixing broken ISO builder
+
+commit e558dce660febe461072e7102c18e17538dd7227
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 01:36:58 2016 +0000
+
+    Permissions fix
+
+commit 7b7bd243e2b3a286f2b4bc38baf1ba7642dec71e
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 01:22:01 2016 +0000
+
+    Version bump: v0.0.24
+
+commit de31c9b2e8ea234064d3ed014b22a667136ea628
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Thu Jun 23 01:21:28 2016 +0000
+
+    Added contributing document
+
+commit bcc03a60689b9a8f396c5c40dc94b1da1c5d8c74
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Tue Jun 21 11:19:13 2016 +0000
+
+    Removed RHN registration functions
+
+commit cdf8a690cdc4833d76720634e26bfdee53368ba4
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Sun Jun 19 14:53:22 2016 +0000
+
+    Removed RHN registration args & post config calls
+
+commit 88fcdbd440bceb87e12182b16502a77806944077
+Author: Jas- <jason.gerfen@gmail.com>
+Date:   Sun Jun 19 14:29:00 2016 +0000
+
+    Updated CHANGELOG
+
 commit b06585d29554e228c35e6a167e126c9d275274d5
 Author: Jas- <jason.gerfen@gmail.com>
 Date:   Sun Jun 19 14:24:56 2016 +0000
