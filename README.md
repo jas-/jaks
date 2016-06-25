@@ -3,7 +3,7 @@
 Facilitates automation of RHEL/Fedora/CentOS installations
 
 ```text
-        ____.  _____   ____  __.  _________ 
+        ____.  _____   ____  __.  _________
         |    | /  _  \ |    |/ _| /   _____/
         |    |/  /_\  \|      <   \_____  \
     /\__|    /    |    \    |  \  /        \
@@ -17,10 +17,10 @@ The options listed below are custom arguments which supercede those provided
 from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 
 ### General ###
-`INSTALL` *[(boolean) Default: false]* - 
+`INSTALL` *[(boolean) Default: false]* -
 Disables safety prompt and can facilitate an automated installation.
 
-`DEBUG` *[(boolean) Default: false]* - 
+`DEBUG` *[(boolean) Default: false]* -
 When set to 'true' forces user input & generates informational reports based
 on the following;
 
@@ -30,16 +30,26 @@ on the following;
  4. Networking specific information
  5. Disk(s) configuration
 
-`ROOTPW` *[(string) Default: (empty)]* - 
+`ROOTPW` *[(string) Default: (empty)]* -
 Here a root user account can be configured to asssit with automation.
 
 ### Locale/Timezone ###
-`LOCATION` *[(string) Default: (empty)]* - 
+`LOCATION` *[(string) Default: (empty)]* -
 The location can be used to supercede the GeoIP installation option.
 
 ### Networking ###
+`IP` *[(string) Default: (empty)]* -
+If specified, this option will set the default IP address of the system
+and will superceede the default `ip` option when both are provided. This
+allows for a possible temporary build environment network configuration.
 
+`NETMASK` *[(string) Default: (empty)]* -
+If specified, this option will set the default subnet of the system
+and will superceede the default `netmask` option when both are provided.
 
+`GATEWAY` *[(string) Default: (empty)]* -
+If specified, this option will set the default route of the system
+and will superceede the default `gateway` option when both are provided.
 
 ## contributing ##
 Contributions are welcome & appreciated. Refer to the

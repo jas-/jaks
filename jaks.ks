@@ -240,7 +240,7 @@ function confirminstall()
   while [ "${install}" != "yes" ]; do
     clear
     echo '********************************************************************'
-    echo '*                ____.  _____   ____  __.  _________               *'    
+    echo '*                ____.  _____   ____  __.  _________               *'
     echo '*                |    | /  _  \ |    |/ _| /   _____/              *'
     echo '*                |    |/  /_\  \|      <   \_____  \               *'
     echo '*            /\__|    /    |    \    |  \  /        \              *'
@@ -286,7 +286,7 @@ function configureroot()
     echo ""
   done
 
-  # Write ${pass} to rootpw 
+  # Write ${pass} to rootpw
   echo "rootpw ${pass}" > /tmp/ks-rootpw
 }
 
@@ -324,7 +324,7 @@ function configurelocation()
     location="$(echo "${LOCATION}"|awk '{print toupper($0)}')"
   fi
 
-  # If ${location} != MST || PST then search 
+  # If ${location} != MST || PST then search
   if [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; then
 
     # Search for ${location} in ${mst_prefix}
@@ -588,7 +588,7 @@ function configuredisks()
     tmp_size=$(gb2b 2)
   fi
 
-  # If ${evaldisk} size < 100GB; split disk 
+  # If ${evaldisk} size < 100GB; split disk
   if [ ${evalsize} -lt ${gbytes} ]; then
 
     # Allocate 40% of ${size} for /root (rootlv)
@@ -853,7 +853,7 @@ function configurenetwork()
   # Is ${IPADDR}, ${NETMASK} & ${GATEWAY} present from args list?
   if [[ "${IPADDR}" != "" ]] && [[ "${NETMASK}" != "" ]] && \
       [[ "${GATEWAY}" != "" ]]; then
-  
+
     # Validate IPv4 addresses for ${IPADDR}, ${NETMASK} & ${GATEWAY}
     if [[ $(valid_ip "${IPADDR}") -ne 0 ]] || \
         [[ $(valid_ip "${NETMASK}") -ne 0 ]] || \
@@ -1149,7 +1149,7 @@ for item in ${dsks[@]}; do
     if [ ${#lvol[@]} -gt 0 ]; then
       for lv in ${lvol[@]}; do
         lvremove -f $(basename ${lv}) &>/dev/null
-  
+
         # If ${DEBUG} is true log
         if [ "${DEBUG}" == "true" ]; then
           echo "LVM: Removed LV '${lv}'" >> ${dlog}
@@ -1444,7 +1444,7 @@ function findtools()
   if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
     echo "${haystack}" && return 0
   fi
-  
+
   return 1
 }
 
@@ -1783,7 +1783,7 @@ if [ ! -f ${build_tools}/scripts/config-network ]; then
 fi
 
 # Change into scripts/ subfolder if scripts/config-network exists
-cd ${build_tools}/scripts/  
+cd ${build_tools}/scripts/
 
 # Make sure our configuration data exists
 if [ ! -f /tmp/ks-networking ]; then
@@ -1870,12 +1870,11 @@ Post installation: (chroot)
     - Backup of kickstart configurations:
       - Location & timezone configuration
       - Default root user configuration
-      - NFS installation configuration
       - Physical disk configuration
     - Backup of build logs:
-      - Pre RHEL build configuration validation
-      - RHEL build configuration results
-      - Post RHEL build configuration validation
+      - Pre build configuration validation
+      - Build configuration results
+      - Post build configuration validation
     - Secured reports & configurations @ /root/${HOSTNAME}-$(date +%Y%m%d)
 
 EOF
