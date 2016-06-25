@@ -12,6 +12,13 @@ Facilitates automation of RHEL/Fedora/CentOS installations
           Just Another Kickstart Script
 ```
 
+## Cloning ##
+This project includes a set of customizable `%post` configuraton tools
+to assist in both hardening and customizing the system once installed.
+
+Because of this it is best to clone the project with the `--recursive`
+option. Please see the `INSTALL` document for additional details.
+
 ## Options ##
 The options listed below are custom arguments which supercede those provided
 from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
