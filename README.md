@@ -77,10 +77,10 @@ LVM configuration
   /opt/app
 ```  
 
-The current decision tree that auto-assembles the disks is shown here and
-will vary based on the number of block devices & the size of each block device.
+To accomodate for disks of varying size the folling conditionals are
+used to determine how to assemble the disk(s).
 
-All sizes are represented in bytes
+**All sizes are represented in bytes**
 ```text
 d^n = Physical disks 
 m = Physical System Memory
@@ -89,7 +89,13 @@ f = 107374182400 (100GB)
 pp = 107374182400 + 42949672960 + 10737418240 + 2147483648 (Physical Partitions)
 vp = 42949672960 + 21474836480 + 10737418240 + 2147483648 (Virtual Partition)
 op = .40 + .20 + .10 + .2 (Less than 100GB in size. Allocates by percentages of disk size)
+```
 
+And the decision tree that auto-assembles the disks is shown here. The final
+result will depend on the size of the disk(s) and the number of disk(s) found
+on the host.
+
+```text
 	(d^n = 1) ? d0 – (b + m x 1) –
         (d0 > f) && (d0 < pp) ? d0 – (pp + d0 (.75))
         (d0 = f) && (d0 > pp) ? d0 – (vp + d0(.75))
