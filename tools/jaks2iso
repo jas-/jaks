@@ -2,6 +2,10 @@
 
 # Tool to assist in creating customized ISO's (EFI bootable)
 
+# Global options
+verbose=0
+version=6
+prog="$(basename $0)"
 
 # Array of files as the keys w/ the value as the location in the customized build
 declare -A files
@@ -18,6 +22,50 @@ declare -A buildenv
 
 # A final folder for the customized build(s)
 isodir="builds"
+
+
+# Displays available arg list
+usage()
+{
+  cat <<EOF
+$0 creates custom EFI bootable ISO images
+
+Usage $0 [options]
+
+  Help:
+    -h  Show this message
+    -v  Enable verbosity mode
+
+  Options:
+    -d  Anaconda version [(6)|7]
+
+EOF
+}
+
+
+# Ensure we have permissions
+if [ $UID != 0 ] ; then
+  echo "${prog}: Requires root privileges"
+  exit 1
+fi
+
+
+# Set variables
+while getopts "hvd:" OPTION ; do
+  case $OPTION in
+    h) usage && exit 1 ;;
+    v) verbose=1 ;;
+    d) version=$OPTARG ;;
+    ?) usage && exit 1 ;;
+  esac
+done
+
+
+# Only anaconda version 6 or 7 supported
+if [[ ${version} -ne 6 ]] || [[ ${version} -ne 7 ]] ; then
+  echo "${prog}: Only Anaconda kickstart installations for versions 6 (default) or 7 supported"
+  exit 1
+fi
 
 
 # Pause function handle pausing if ${DEBUG} = true
@@ -156,18 +204,16 @@ for img in ${iso[@]}; do
   fi
 
 
-  # Dice up the name
+  # Re-assign the name
   filename="$(filename "${img}")"
-  ver="$(version "${img}")"
-  altver="$(echo "${ver}"|sed "s|\.||g")"
-  arch="$(arch "${img}")"
 
 
   # Create a friendly date for the local installation method
   date="$(date +%m-%d-%Y)"
 
+
   # Concatinate as buildnme
-  buildnme="${filename}-${ver}-${arch}"
+  buildnme="${filename}-iso"
 
 
   # Build a loop back mount point
@@ -235,8 +281,8 @@ for img in ${iso[@]}; do
     path="${buildnme}/${buildenv[${item}]}"
 
 
-    # If ${altver} <= 7x set the version of our editable ${item} to 7
-    if [[ ${altver} -ge 70 ]] && [[ "${item}" != "jaks.ks" ]]; then
+    # If ${version} <= 7x set the version of our editable ${item} to 7
+    if [[ ${version} -ge 7 ]] && [[ "${item}" != "jaks.ks" ]]; then
 
       # If ${item}.7 exists (only configuration files should), use it as ${file}
       if [ -f "${item}.7" ]; then
