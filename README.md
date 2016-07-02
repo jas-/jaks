@@ -80,7 +80,7 @@ LVM configuration
 To accomodate for disks of varying size the folling conditionals are
 used to determine how to assemble the disk(s).
 
-* All sizes are represented in bytes *
+*All sizes are represented in bytes
 ```text
 d^n = Physical disks 
 m = Physical System Memory
