@@ -29,7 +29,7 @@ isodir="builds"
 usage()
 {
   cat <<EOF
-$0 creates custom EFI bootable ISO images
+Creates customized JAKS ISO's from existing Linux ISO files
 
 Usage $0 [options]
 
