@@ -24,7 +24,7 @@ The `jaks2iso` tool accompanying this project facilitates customizing any
 
 It requires the following binaries; `mkisofs` & `isohybrid`.
 
-### jaks-post-cofnig; OS hardening & customization tool(s) ###
+### jaks-post-config; OS hardening & customization tool(s) ###
 The [jaks-post-config](https://github.com/jas-/jaks-post-config) toolkit
 assists in every facet of configuring the system in the pre-boot (chroot)
 environment.
