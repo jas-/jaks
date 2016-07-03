@@ -1,6 +1,7 @@
 # jaks - Just Another Kickstart Script
 
-Facilitates automation of RHEL/Fedora/CentOS installations
+Facilitates automation of any `Anaconda` based 
+[distribution](http://fedoraproject.org/wiki/Anaconda/Distros)
 
 ```text
         ____.  _____   ____  __.  _________
@@ -12,12 +13,33 @@ Facilitates automation of RHEL/Fedora/CentOS installations
           Just Another Kickstart Script
 ```
 
-## Cloning ##
-This project includes a set of customizable `%post` configuraton tools
-to assist in both hardening and customizing the system once installed.
+## Dependencies ##
+JAKS is a fairly independent kickstart implementation with the exception
+of two dependencies which assist in creating customizable ISO's & the `%post`
+configuration process.
 
-Because of this it is best to clone the project with the `--recursive`
-option. Please see the `INSTALL` document for additional details.
+### jaks2iso; ISO customization tool ###
+The `jaks2iso` tool accompanying this project facilitates customizing any
+`Anaconda` based [distribution](http://fedoraproject.org/wiki/Anaconda/Distros).
+
+It requires the following binaries; `mkisofs` & `isohybrid`.
+
+### jaks-post-cofnig; OS hardening & customization tool(s) ###
+The [jaks-post-config](https://github.com/jas-/jaks-post-config) toolkit
+assists in every facet of configuring the system in the pre-boot (chroot)
+environment.
+
+It is exendable and provides a wide range of `%post` configuration
+tools for things like [network](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-network),
+[DNS](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-dns),
+[login defaults](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-acct-defaults),
+[auditing](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-audit-rules),
+[PAM](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-pam-cracklib),
+[services](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-services-disable) &
+[user account creation](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-user-admin).
+
+This tool is currently configured as a sub-module of this repository making it
+easy to include it as a dependency when cloned with the `--recursive` option.
 
 ## Options ##
 The options listed below are custom arguments which supercede those provided
