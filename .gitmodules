@@ -1,0 +1,3 @@
+[submodule "tools/templates/jaks-post-config"]
+	path = tools/templates/jaks-post-config
+	url = https://github.com/jas-/jaks-post-config.git
