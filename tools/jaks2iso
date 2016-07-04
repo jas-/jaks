@@ -10,11 +10,11 @@ prog="$(basename $0)"
 
 # Array of files as the keys w/ the value as the location in the customized build
 declare -A files
-files[jaks-post-config]="/jaks-post-config/"
+files[jaks-post-config/]="/jaks-post-config/"
 files[jaks.ks]="/ks.cfg"
 files[isolinux.cfg]="/isolinux/isolinux.cfg"
 files[BOOTX64.conf]="/EFI/BOOT/BOOTX64.conf"
-files[grub.conf]="/isolinux/grub.conf"
+files[grub.conf]="/EFI/BOOT/grub.conf"
 
 # An empty array to handle locations of each required ${files}
 declare -A buildenv
@@ -129,7 +129,8 @@ for file in ${!files[@]}; do
 
 
   # If ${file} is not in templates/ set ${missing} to 1
-  if [[ ! -f templates/${file} ]] && [[ ! -f ../${file} ]]; then
+  if [[ ! -f templates/${file} ]] && [[ ! -f ../${file} ]] &&
+    [[ ! -d templates/${file} ]]; then
     echo "missing, exiting"
     exit 1
   fi
@@ -144,7 +145,7 @@ done
 
 
 # Search current working directory for ISO file(s)
-iso=($(ls *.iso))
+iso=($(ls *.iso 2>/dev/null))
 
 
 # Error & exit if ${#iso[@]} = 0
@@ -182,7 +183,7 @@ for img in ${iso[@]}; do
 
 
   # Re-assign the name
-  filename="$(filename "${img}")"
+  filename="${img}"
 
 
   # Create a friendly date for the local installation method
@@ -194,18 +195,18 @@ for img in ${iso[@]}; do
 
 
   # Build a loop back mount point
-  mdir "${buildnme}-loop"
+  mdir "${filename}-loop"
 
 
-  # Mount ${img} @ ${buildnme}-loop
-  mtloop "${img}" "${buildnme}-loop"
+  # Mount ${img} @ ${filename}-loop
+  mtloop "${img}" "${filename}-loop"
   if [ $? -ne 0 ]; then
-    echo "Count not mount '${img}' @ '${buildnme}-loop'"
+    echo "Count not mount '${img}' @ '${filename}-loop'"
     continue
   fi
 
 
-  echo "Mounted '${img}' @ '${buildnme}-loop'"
+  echo "Mounted '${img}' @ '${filename}-loop'"
 
 
   # Create a working directory to customize the ISO in
@@ -215,8 +216,8 @@ for img in ${iso[@]}; do
   echo -n "Copying ISO contents to '${buildnme}' folder ... "
 
 
-  # Copy contents of ${buildnme}-loop to ${buildnme}
-  copy "${buildnme}-loop/*" "${buildnme}/"
+  # Copy contents of ${filename}-loop to ${buildnme}
+  copy "${filename}-loop/*" "${buildnme}/"
   if [ $? -ne 0 ]; then
     echo "error"
     continue
@@ -227,17 +228,17 @@ for img in ${iso[@]}; do
 
 
   # Unmount the ISO
-  umtloop "${buildnme}-loop"
+  umtloop "${filename}-loop"
   if [ $? -ne 0 ]; then
-    echo "Count not un-mount ${buildnme}-loop"
+    echo "Count not un-mount ${filename}-loop"
     continue
   fi
 
 
   # Remove the loopback mount point
-  rm -fr ${buildnme}-loop/
+  rm -fr ${filename}-loop/
 
-  
+
   # Iterate ${buildenv} for customization of ${buildnme}
   for item in ${!buildenv[@]}; do
 
@@ -281,7 +282,6 @@ for img in ${iso[@]}; do
 
       # It is an image just copy it
       if [[ "${type}" =~ JPEG|GIF|PNG ]]; then
-
         cp ${item} ${path}
         img=1
         echo "done"
@@ -297,11 +297,6 @@ for img in ${iso[@]}; do
               -e "s|{DATE}|${date}|g" \
               -e "s|{ALTVER}|${altver}|g" > ${path}
 
-        # Fix for USB EFI installations with grub.conf path
-        fix=$(basename ${item})
-        if [ "${fix}" == "grub.conf" ]; then
-          cp ${path}/${fix} ${buildnme}/isolinux/${fix}
-        fi
 
         echo "done"
       fi
@@ -309,12 +304,12 @@ for img in ${iso[@]}; do
 
 
   done
-  
+
 
   # Now that the ${buildnme} is customized go ahead and make the ISO
   mdir ${isodir}
 
-  
+
   # Change into the directory
   cwd=$(pwd)
   cd ${buildnme}/
@@ -349,12 +344,10 @@ for img in ${iso[@]}; do
   echo "done"
 
 
-  rm -fr ${buildnme}
+  #rm -fr ${buildnme}
 
 
   echo "Build complete @ '${isodir}jaks-${date}-${filename}'"
   echo ""
 
 done
-
-
