@@ -1,6 +1,6 @@
 # jaks - Just Another Kickstart Script
 
-Facilitates automation of any `Anaconda` based 
+Facilitates automation of any `Anaconda` based
 [distribution](http://fedoraproject.org/wiki/Anaconda/Distros)
 
 ```text
@@ -69,14 +69,14 @@ LVM configuration
   /export/home
   /tmp
   /opt/app
-```  
+```
 
 To accomodate for disks of varying size the folling conditionals are
 used to determine how to assemble the disk(s).
 
-*All sizes are represented in bytes
+*All sizes are represented in bytes*
 ```text
-d^n = Physical disks 
+d^n = Physical disks
 m = Physical System Memory
 b = 524288000 (500MB)
 f = 107374182400 (100GB)
