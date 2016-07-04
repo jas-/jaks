@@ -1,12 +1,25 @@
 # jaks2iso - Assists with building an ISO image
+The `jaks2iso` tool accompanying this project facilitates customizing any
+`Anaconda` based [distribution](http://fedoraproject.org/wiki/Anaconda/Distros).
 
-The jaks2iso tool is an automated solution to customizing an existing ISO
-from Fedora/CentOS/RHEL or additional Anaconda (RPM) based Linux Distribution.
+It requires the following binaries; `mkisofs` & `isohybrid`.
 
-Usage is simple; download your favorite RPM (Anaconda installed) Linux
-Distribution into the same folder as this tool and run as a privileged user
-to create a custom ISO that supports uEFI, USB, DVD & iLO, CIMC based
-installations.
+## jaks-post-config; OS hardening & customization tool(s) ##
+While optional; the [jaks-post-config](https://github.com/jas-/jaks-post-config)
+toolkit assists in every facet of configuring the system in the pre-boot
+(chroot) environment.
+
+It is exendable and provides a wide range of `%post` configuration
+tools for things like [network](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-network),
+[DNS](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-dns),
+[login defaults](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-acct-defaults),
+[auditing](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-audit-rules),
+[PAM](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-pam-cracklib),
+[services](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-services-disable) &
+[user account creation](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-user-admin).
+
+This tool is currently configured as a sub-module of this repository making it
+easy to include it as a dependency when cloned with the `--recursive` option.
 
 ## Contributing ##
 Contributions are welcome & appreciated. Refer to the

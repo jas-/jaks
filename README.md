@@ -13,34 +13,6 @@ Facilitates automation of any `Anaconda` based
           Just Another Kickstart Script
 ```
 
-## Dependencies ##
-JAKS is a fairly independent kickstart implementation with the exception
-of two dependencies which assist in creating customizable ISO's & the `%post`
-configuration process.
-
-### jaks2iso; ISO customization tool ###
-The `jaks2iso` tool accompanying this project facilitates customizing any
-`Anaconda` based [distribution](http://fedoraproject.org/wiki/Anaconda/Distros).
-
-It requires the following binaries; `mkisofs` & `isohybrid`.
-
-### jaks-post-config; OS hardening & customization tool(s) ###
-The [jaks-post-config](https://github.com/jas-/jaks-post-config) toolkit
-assists in every facet of configuring the system in the pre-boot (chroot)
-environment.
-
-It is exendable and provides a wide range of `%post` configuration
-tools for things like [network](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-network),
-[DNS](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-dns),
-[login defaults](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-acct-defaults),
-[auditing](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-audit-rules),
-[PAM](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-pam-cracklib),
-[services](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-services-disable) &
-[user account creation](https://github.com/jas-/jaks-post-config/blob/master/scripts/config-user-admin).
-
-This tool is currently configured as a sub-module of this repository making it
-easy to include it as a dependency when cloned with the `--recursive` option.
-
 ## Options ##
 The options listed below are custom arguments which supercede those provided
 from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
