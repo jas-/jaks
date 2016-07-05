@@ -4,7 +4,7 @@ splashimage=/EFI/BOOT/splash.xpm.gz
 timeout 5
 hiddenmenu
 title {LABEL} Local Kickstart
-	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL={LABEL}:/ks.cfg
+	kernel /images/pxeboot/vmlinuz nompath inst.lang=en_US inst.keymap=us inst.ks=hd:/ks.cfg
 	initrd /images/pxeboot/initrd.img
 
 title Rescue Installed System

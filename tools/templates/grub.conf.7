@@ -21,11 +21,11 @@ search --no-floppy --set=root -l '{LABEL}'
 
 ### BEGIN /etc/grub.d/10_linux ###
 menuentry 'RHEL {LABEL} kickstart' --class fedora --class gnu-linux --class gnu --class os {
-	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL={LABEL} nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL={LABEL}:/ks.cfg
+	linuxefi /images/pxeboot/vmlinuz inst.nompath inst.lang=en_US inst.keymap=us inst.ks=hd:/ks.cfg
 	initrdefi /images/pxeboot/initrd.img
 }
 
 menuentry 'Rescue System' --class fedora --class gnu-linux --class gnu --class os {
-	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL={LABEL} rescue quiet
+	linuxefi /images/pxeboot/vmlinuz rescue quiet
 	initrdefi /images/pxeboot/initrd.img
 }

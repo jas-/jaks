@@ -319,9 +319,14 @@ for img in ${iso[@]}; do
 
 
   # Begin the build
-  mkisofs -U -A "{LABEL}" -V "{LABEL}" \
-    -volset "{LABEL}" -J -joliet-long \
-   	-o ../${isodir}/jaks-${date}-${filename} \
+#  mkisofs -U -A "{LABEL}" -V "{LABEL}" \
+#    -volset "{LABEL}" -J -joliet-long \
+#   	-o ../${isodir}/jaks-${date}-${filename} \
+#   	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
+#    -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
+#    -e images/efiboot.img -no-emul-boot . &>/dev/null
+    
+    mkisofs -o ../${isodir}/jaks-${date}-${filename} \
    	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
     -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
     -e images/efiboot.img -no-emul-boot . &>/dev/null
@@ -337,9 +342,8 @@ for img in ${iso[@]}; do
 
 
   # Ensure it is bootable by USB & DVD media types
-  isohybrid -u \
-    ${isodir}/jaks-${date}-${filename} \
-    &>/dev/null
+  isohybrid -u ${isodir}/jaks-${date}-${filename} &>/dev/null
+
 
   echo "done"
 
