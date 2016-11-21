@@ -4,7 +4,7 @@ Facilitates automation of any `Anaconda` based
 [distribution](http://fedoraproject.org/wiki/Anaconda/Distros)
 
 ```text
-        ____.  _____   ____  __.  _________
+         ____.  _____   ____  __.  _________
         |    | /  _  \ |    |/ _| /   _____/
         |    |/  /_\  \|      <   \_____  \
     /\__|    /    |    \    |  \  /        \
@@ -86,8 +86,7 @@ op = .40 + .20 + .10 + .2 (Less than 100GB in size. Allocates by percentages of 
 ```
 
 And the decision tree that auto-assembles the disks is shown here. The final
-result will depend on the size of the disk(s) and the number of disk(s) found
-on the host.
+result will depend on the size and the number of disk(s) found on the host.
 
 ```text
 	(d^n = 1) ? d0 – (b + m x 1) –
