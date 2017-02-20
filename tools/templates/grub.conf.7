@@ -21,7 +21,7 @@ search --no-floppy --set=root -l '{LABEL}'
 
 ### BEGIN /etc/grub.d/10_linux ###
 menuentry 'RHEL {LABEL} kickstart' --class fedora --class gnu-linux --class gnu --class os {
-	linuxefi /images/pxeboot/vmlinuz inst.nompath inst.lang=en_US inst.keymap=us inst.ks=hd:/ks.cfg
+	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL={LABEL} quiet nompath lang=en_US keymap=us ks=hd:LABEL={LABEL}:/ks.cfg method=hd:LABEL={LABEL}:/mnt/stage2 repo=hd:LABEL={LABEL}:/
 	initrdefi /images/pxeboot/initrd.img
 }
 
