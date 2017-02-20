@@ -336,17 +336,17 @@ for img in ${iso[@]}; do
 
 
   # Begin the build
-#  mkisofs -U -A "{LABEL}" -V "{LABEL}" \
-#    -volset "{LABEL}" -J -joliet-long \
-#   	-o ../${isodir}/jaks-${date}-${filename} \
-#   	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
-#    -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
-#    -e images/efiboot.img -no-emul-boot . &>/dev/null
+  mkisofs -U -A "${label}" -V "${label}" \
+    -volset "${label}" -J -joliet-long \
+   	-o ../${isodir}/jaks-${date}-${filename} \
+   	-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
+    -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
+    -e images/efiboot.img -no-emul-boot . &>/dev/null
     
-    mkisofs -o ../${isodir}/jaks-${date}-${filename} \
-      -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
-      -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
-      -e images/efiboot.img -no-emul-boot . &>/dev/null
+#    mkisofs -o ../${isodir}/jaks-${date}-${filename} \
+#      -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot \
+#      -boot-load-size 4 -boot-info-table -eltorito-alt-boot \
+#      -e images/efiboot.img -no-emul-boot . &>/dev/null
 
   echo "done"
 
@@ -368,7 +368,7 @@ for img in ${iso[@]}; do
   #rm -fr ${buildnme}
 
 
-  echo "Build complete @ '${isodir}jaks-${date}-${filename}'"
+  echo "Build complete @ '${isodir}/jaks-${date}-${filename}'"
   echo ""
 
 done
