@@ -177,6 +177,11 @@ Primary:
     |   |_ tmplv:     /tmp          {tmp_size}MB
 EOF
 
+# Set the -x flag for debugging if ${DEBUG} = true
+if [ "${DEBUG}" == "true" ]; then
+  set -x
+fi
+
 
 ###############################################
 # Function definitions - general              #

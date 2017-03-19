@@ -19,16 +19,13 @@ from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 
 ### General ###
 | Option | Type | Default | Description |
-|:-:|:-:|:-:|:-:|
+|:-|:-:|:-:|:-|
 | INSTALL | boolean | false | If specified will skip the safety check regarding installation |
 | DEBUG | boolean | false | Used to display reports for each category of `%pre` & `%post` script execution |
-| ROOTPW | string | NULL | If not specified will prompt user for input |
-| LOCATION | string | America/Denver | Must be a valid timezone specified by the [IANA timezone database](https://www.iana.org/time-zones) |
 | LANG | string | en_US.UTF-8 | Correlates to the language options found @ `/usr/share/system-config-language/locale-list` |
+| LOCATION | string | America/Denver | Must be a valid timezone specified by the [IANA timezone database](https://www.iana.org/time-zones) |
+| ROOTPW | string | NULL | If not specified will prompt user for input |
 
-### Locale/Timezone ###
-`LOCATION` *[(string) Default: (empty)]* -
-The location can be used to supercede the GeoIP installation option.
 
 ### Networking ###
 `IP` *[(string) Default: (empty)]* -
