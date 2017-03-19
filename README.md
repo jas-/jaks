@@ -18,21 +18,13 @@ The options listed below are custom arguments which supercede those provided
 from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 
 ### General ###
-`INSTALL` *[(boolean) Default: false]* -
-Disables safety prompt and can facilitate an automated installation.
-
-`DEBUG` *[(boolean) Default: false]* -
-When set to 'true' forces user input & generates informational reports based
-on the following;
-
- 1. Provided boot arguments
- 2. Root user account details
- 3. Locale/Timezone specific information
- 4. Networking specific information
- 5. Disk(s) configuration
-
-`ROOTPW` *[(string) Default: (empty)]* -
-Here a root user account can be configured to asssit with automation.
+| Option | Type | Default | Description |
+|:-:|:-:|:-:|:-:|
+| INSTALL | boolean | false | If specified will skip the safety check regarding installation |
+| DEBUG | boolean | false | Used to display reports for each category of `%pre` & `%post` script execution |
+| ROOTPW | string | NULL | If not specified will prompt user for input |
+| LOCATION | string | America/Denver | Must be a valid timezone specified by the [IANA timezone database](https://www.iana.org/time-zones) |
+| LANG | string | en_US.UTF-8 | Correlates to the language options found @ `/usr/share/system-config-language/locale-list` |
 
 ### Locale/Timezone ###
 `LOCATION` *[(string) Default: (empty)]* -
