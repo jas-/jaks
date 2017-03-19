@@ -365,7 +365,8 @@ for img in ${iso[@]}; do
   echo "done"
 
 
-  #rm -fr ${buildnme}
+  # Clean up
+  rm -fr ${buildnme}
 
 
   echo "Build complete @ '${isodir}/jaks-${date}-${filename}'"

@@ -31,10 +31,11 @@ INSTALL=false
 # automation (no user interaction)
 ROOTPW=
 
-# LOCATION is empty but can be provided as command line arg to facilitate
-# automation (no user interaction). If the HOSTNAME parameter first three
-# characters match MST or PST this is not required for automation
-LOCATION=
+# LOCATION defaults to 'America/Denver' but can be provided at boot
+LOCATION="America/Denver"
+
+# LANG defaults to 'en_US.UTF-8' but can be provided at boot
+LANG="en_US.UTF-8"
 
 # HOSTNAME is empty but if provided & conforms to naming standard will be used
 # to set LOCATION. Also, if HOSTNAME is not provided every attempt is made to
@@ -240,7 +241,7 @@ function confirminstall()
   while [ "${install}" != "yes" ]; do
     clear
     echo '********************************************************************'
-    echo '*                ____.  _____   ____  __.  _________               *'
+    echo '*                 ____.  _____   ____  __.  _________              *'
     echo '*                |    | /  _  \ |    |/ _| /   _____/              *'
     echo '*                |    |/  /_\  \|      <   \_____  \               *'
     echo '*            /\__|    /    |    \    |  \  /        \              *'
@@ -262,7 +263,7 @@ function confirminstall()
     read -p "Proceed with install? " install
 
     # If 'no' proceed to shut down system
-    if [ "${install" == "no" ]; then
+    if [ "${install}" == "no" ]; then
       echo "Shuting down ... "
       shutdown -h now
     fi
@@ -294,6 +295,8 @@ function configureroot()
 # Configure the hostname (either arg or dhcp)
 function configurehostname()
 {
+  local hname=
+
   # Set ${hostname}: ${args[HOSTNAME]} or value of `uname -n`
   if [ "${HOSTNAME}" == "" ]; then
 
@@ -301,7 +304,7 @@ function configurehostname()
     hname="$(uname -n)"
 
     # If static DHCP enabled option 12 *might* contain the appropriate hostname
-    if [[ ! "${hname}" ~ localhost ]]; then
+    if [[ ! "${hname}" =~ localhost ]]; then
       hostname="${hname}"
     fi
   else
@@ -311,43 +314,6 @@ function configurehostname()
     # Set the current OS hostname to ${hostname}
     hostname "${hostname}"
   fi
-}
-
-
-# Configure the location
-function configurelocation()
-{
-  # Set ${location} to ${LOCATION} or first 3 characters of ${hostname}
-  if [ "${LOCATION}" == "" ]; then
-    location="$(echo "${hostname:0:3}"|awk '{print toupper($0)}')"
-  else
-    location="$(echo "${LOCATION}"|awk '{print toupper($0)}')"
-  fi
-
-  # If ${location} != MST || PST then search
-  if [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; then
-
-    # Search for ${location} in ${mst_prefix}
-    mst_res=$(in_array ${location} ${mst_prefix[@]})
-    if [ $? -eq 0 ]; then
-      location="MST"
-      echo "Found MST as location"
-    fi
-
-    # Search for ${location} in ${pst_prefix}
-    pst_res=$(in_array ${location} ${pst_prefix[@]})
-    if [ $? -eq 0 ]; then
-      location="PST"
-      echo "Found PST as location"
-    fi
-  fi
-
-  # Prompt for ${location} if it doesn't match the list
-  while [[ ! "${location}" =~ ^PST$ ]] && [[ ! "${location}" =~ ^MST$ ]]; do
-    echo "Could not determine location from hostname provided."
-    read -p "Physical location? [MST|PST] " location
-    echo ""
-  done
 }
 
 
@@ -388,26 +354,11 @@ function configureproxy()
 }
 
 
-# Setup NFS & timezone configurations
-function configurenfszones()
+# Setup timezone configurations
+function configuretimezone()
 {
-  # Setup NFS & timezone for MST location
-  if [ "${location}" == "MST" ]; then
-    zone="${mst_timezone}"
-    nfs_server="${mst_nfsserver}"
-  fi
-
-  # Setup NFS & timezone for PST location
-  if [ "${location}" == "PST" ]; then
-    zone="${pst_timezone}"
-    nfs_server="${pst_nfsserver}"
-  fi
-
   # Write out /tmp/timezone
-  echo "timezone ${country}/${zone} --isUtc" > /tmp/ks-timezone
-
-  # Write out /tmp/nfsshare file
-  echo "nfs --server=${nfs_server} --dir=${nfspath}" > /tmp/ks-nfsshare
+  echo "timezone ${LOCATION} --isUtc" > /tmp/ks-timezone
 }
 
 
@@ -955,11 +906,11 @@ clear
 
 
 ###############################################
-# Configuration for the physical location     #
+# Configuration for location/timezone         #
 ###############################################
 
 # Configure the physical location
-configurelocation
+configuretimezone
 
 # Clear the terminal
 clear
@@ -977,16 +928,6 @@ clear
 
 
 ###############################################
-# Configuration for the NFS share & zone      #
-###############################################
-
-# Setup timezone & NFS specific configurations
-configurenfszones
-
-# Clear the terminal
-clear
-
-###############################################
 # Create a simple to parse file of options    #
 ###############################################
 
@@ -995,6 +936,7 @@ cat <<EOF > /tmp/ks-arguments
 DEBUG ${DEBUG}
 INSTALL ${INSTALL}
 DVD ${DVD}
+LANG ${LANG}
 LOCATION ${LOCATION}
 HOSTNAME ${HOSTNAME}
 IPADDR ${IPADDR}
@@ -1020,10 +962,11 @@ General options:
   INSTALL:       ${INSTALL}
   ROOTPW:        *************
 
-Location options:
-  COUNTRY:       ${country}
-  TIMEZONE:      ${zone}
-  LOCATION:      ${location}
+Language option:
+  LANGUAGE:      ${LANG}
+
+Location option:
+  LOCATION:      ${LOCATION}
 
 EOF
 
@@ -1302,7 +1245,7 @@ keyboard us
 reboot
 
 # Use NFS or DVD for installation media
-%include /tmp/ks-nfsshare
+#%include /tmp/ks-nfsshare
 
 # Include disk configuration
 %include /tmp/ks-diskconfig
@@ -1329,8 +1272,9 @@ skipx
 firstboot --disable
 
 # Handle package installation
-%packages
-@base
+%packages --ignoremissing
+@Base
+@Core
 %end
 ###############################################
 # End kick start automation procedures      #
@@ -1441,7 +1385,7 @@ function findtools()
   local haystack=$(find / -type d -name ${buildtools}|head -1)
 
   # If it exists return 0 and echo the path
-  if [[ -d ${haystack} ]] && [[ -f ${haystack}/rhel-builder ]]; then
+  if [[ -d ${haystack} ]] && [[ -f ${haystack}/jaks-post-config ]]; then
     echo "${haystack}" && return 0
   fi
 
@@ -1723,8 +1667,8 @@ fi
 ###############################################
 
 # Does our build tool exist?
-if [ ! -f "${build_tools}/rhel-builder" ]; then
-  echo "RHEL build tool doesn't seem to exist @ ${build_tools}/rhel-builder"
+if [ ! -f "${build_tools}/jaks-post-config" ]; then
+  echo "RHEL build tool doesn't seem to exist @ ${build_tools}/jaks-post-config"
   exit 1
 fi
 
@@ -1734,7 +1678,7 @@ fi
 ###############################################
 
 # Record a timestamped hostname string for build logs
-folder=/root/${HOSTNAME}-$(date +%Y%m%d-%H%M)
+folder=/root/${HOSTNAME:=localhost}-$(date +%Y%m%d-%H%M)
 
 # Create a folder structure for operational logging
 if [ ! -d "${folder}" ]; then
@@ -1756,7 +1700,7 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Run ${build_tools} to validate current configuration with logging
-./rhel-builder -vc \
+./jaks-post-config -vc \
   > ${folder}/pre/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
@@ -1765,7 +1709,7 @@ echo "Please wait; auto-configuring system according to build standards"
 ###############################################
 
 # Run ${build_tools} to make changes according to RHEL build guide standards
-./rhel-builder -va kickstart \
+./jaks-post-config -va kickstart \
   > ${folder}/build/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
@@ -1810,7 +1754,7 @@ fi
 cd ../
 
 # Run ${build_tools} to validate changes
-./rhel-builder -vc \
+./jaks-post-config -vc \
   > ${folder}/post/${HOSTNAME}-$(date +%Y%m%d-%H%M).log 2>/dev/null
 
 
@@ -1822,7 +1766,7 @@ cd ../
 log_file="${folder}/build/${HOSTNAME}-*.log"
 
 # Get total number of tools configured to run
-total=$(awk '$0 ~ /^\[/{print}' rhel-builder|wc -l)
+total=$(awk '$0 ~ /^\[/{print}' jaks-post-config|wc -l)
 
 # Get an array of configuration scripts that were run
 tools=($(awk '$0 ~ /^Executing:/{print $2}' ${log_file}))
