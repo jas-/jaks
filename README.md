@@ -21,7 +21,7 @@ from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 The options provided here allow for configuration of the `grub` boot options.
 
 | Option | Type | Default | Description |
-|:-:|:-:|:-:|:-:|
+|:-|:-:|:-:|:-|
 | `INSTALL` | *boolean* | false | If specified will skip the safety check regarding installation |
 | `DEBUG` | *boolean* | false | Used to display reports for each category of `%pre` & `%post` script execution |
 | `LANG` | *string* | en_US.UTF-8 | Correlates to the language options found @ `/usr/share/system-config-language/locale-list` |
@@ -33,7 +33,7 @@ The options provided here allow for configuration of the `grub` boot options.
 While the `anaconda` API does contain [networking](https://rhinstaller.github.io/anaconda/boot-options.html#network-options) `jaks` networking options can be used to supplement them which allows for a temporary build environment.
 
 | Option | Type | Default | Description |
-|:-:|:-:|:-:|:-:|
+|:-|:-:|:-:|:-|
 | `IP` | *string* | NULL | If specified, this option will set the default IP address of the system and will superceede the default `ip` option when both are provided. This allows for a possible temporary build environment network configuration. |
 | `NETMASK` | *string* | NULL | If specified, this option will set the default subnet of the system and will superceede the default `netmask` option when both are provided. |
 | `GATEWAY` | *string* | NULL | If specified, this option will set the default route of the system and will superceede the default `gateway` option when both are provided. |
