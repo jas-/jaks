@@ -19,6 +19,7 @@ from the [installer](https://rhinstaller.github.io/anaconda/boot-options.html).
 
 ### General ###
 The options provided here allow for configuration of the `grub` boot options.
+
 | Option | Type | Default | Description |
 |:-:|:-:|:-:|:-:|
 | `INSTALL` | *boolean* | false | If specified will skip the safety check regarding installation |
@@ -30,6 +31,7 @@ The options provided here allow for configuration of the `grub` boot options.
 
 ### Networking ###
 While the `anaconda` API does contain [networking](https://rhinstaller.github.io/anaconda/boot-options.html#network-options) `jaks` networking options can be used to supplement them which allows for a temporary build environment.
+
 | Option | Type | Default | Description |
 |:-:|:-:|:-:|:-:|
 | `IP` | *string* | NULL | If specified, this option will set the default IP address of the system and will superceede the default `ip` option when both are provided. This allows for a possible temporary build environment network configuration. |
