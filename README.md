@@ -39,25 +39,23 @@ While the `anaconda` API does contain [networking](https://rhinstaller.github.io
 | `GATEWAY` | *string* | NULL | If specified, this option will set the default route of the system and will superceede the default `gateway` option when both are provided. |
 
 
-## Disk(s) configuration ##
+### Disk(s) configuration ###
 The `JAKS` LVM disk configuration is based on a configurable template
 variable. It will detect all non-usb & non-network storage devices and
 assemble them into the following partition schema.
 
-```text
-Physical partition(s)
-  /boot
-  /boot/efi (when an EFI installation is used)
+| Path | Type | Size
+|:-|:-:|:-|
+| `/boot` | *Physical* | 500MB |
+| `/boot/efi` | *Physical* | 500MB |
+| `swap` | *LVM* | Physical Memory x 2 |
+| `/var` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
+| `/export/home` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
+| `/tmp` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
+| `/opt/app` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
 
-LVM configuration
-  swap
-  /
-  /var
-  /export/home
-  /tmp
-  /opt/app
-```
 
+#### Disk sizing ####
 To accomodate for disks of varying size the folling conditionals are
 used to determine how to assemble the disk(s).
 
