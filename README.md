@@ -30,7 +30,7 @@ The options provided here allow for configuration of the `grub` boot options.
 
 
 ### Networking ###
-While the `anaconda` API does contain [networking](https://rhinstaller.github.io/anaconda/boot-options.html#network-options) `jaks` networking options can be used to supplement them which allows for a temporary build environment.
+While the `anaconda` API does contain [networking](https://rhinstaller.github.io/anaconda/boot-options.html#network-options), the `jaks` networking options can be used to supplement them which allows for a temporary build environment.
 
 | Option | Type | Default | Description |
 |:-|:-:|:-:|:-|
@@ -76,11 +76,11 @@ And the decision tree that auto-assembles the disks is shown here. The final
 result will depend on the size and the number of disk(s) found on the host.
 
 ```text
-	(d^n = 1) ? d0 – (b + m x 1) –
-        (d0 > f) && (d0 < pp) ? d0 – (pp + d0 (.75))
-        (d0 = f) && (d0 > pp) ? d0 – (vp + d0(.75))
-        (d0 < f) ? d0 – (op + d0(.75))
-	(d^n > 1) ? d0 – (b + m x 1) – (pp + d^n - d0(.75))
+(d^n = 1) ? d0 – (b + m x 1) –
+  (d0 > f) && (d0 < pp) ? d0 – (pp + d0 (.75))
+  (d0 = f) && (d0 > pp) ? d0 – (vp + d0(.75))
+  (d0 < f) ? d0 – (op + d0(.75))
+(d^n > 1) ? d0 – (b + m x 1) – (pp + d^n - d0(.75))
 ```
 
 ## Contributing ##
