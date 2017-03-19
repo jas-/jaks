@@ -49,10 +49,10 @@ assemble them into the following partition schema.
 | `/boot` | *Physical* | 500MB |
 | `/boot/efi` | *Physical* | 500MB |
 | `swap` | *LVM* | Physical Memory x 2 |
-| `/var` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
-| `/export/home` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
-| `/tmp` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
-| `/opt/app` | *LVM* | See [Disk sizing](markdown-header-disk-sizing) |
+| `/var` | *LVM* | See [Disk sizing](#disk-sizing) |
+| `/export/home` | *LVM* | See [Disk sizing](#disk-sizing) |
+| `/tmp` | *LVM* | See [Disk sizing](#disk-sizing) |
+| `/opt/app` | *LVM* | See [Disk sizing](#disk-sizing) |
 
 
 #### Disk sizing ####
@@ -61,7 +61,7 @@ used to determine how to assemble the disk(s).
 
 *All sizes are represented in bytes*
 ```text
-d^n = Physical disks
+d^n = Number of Physical disks (d=disks, n=number of disks)
 m = Physical System Memory
 b = 524288000 (500MB)
 f = 107374182400 (100GB)
