@@ -92,4 +92,4 @@ to help facilitate pull requests.
 This software is licensed under the
 [MIT License](https://github.com/jas-/jaks/blob/master/LICENSE).
 
-Copyright Jason Gerfen, 2015-2016.
+Copyright Jason Gerfen, 2015 - 2017.

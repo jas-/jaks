@@ -18,7 +18,7 @@ menu color scrollbar 0 #ffffffff #00000000
 label {LABEL}
   menu label {LABEL} Kickstart
   kernel vmlinuz
-  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL=RHEL-{VER}:/ks.cfg DVD=true
+  append initrd=initrd.img nompath inst.lang=en_US inst.keymap=us inst.ks=hd:LABEL={LABEL}:/ks.cfg DVD=true
 
 label local
   menu label Boot from ^local drive
