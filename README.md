@@ -44,15 +44,16 @@ The `JAKS` LVM disk configuration is based on a configurable template
 variable. It will detect all non-usb & non-network storage devices and
 assemble them into the following partition schema.
 
-| Path | Type | Size
-|:-|:-:|:-|
-| `/boot` | *Physical* | 500MB |
-| `/boot/efi` | *Physical* | 500MB |
-| `swap` | *LVM* | Physical Memory x 2 |
-| `/var` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/export/home` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/tmp` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/opt/app` | *LVM* | See [Disk sizing](#disk-sizing) |
+| Path | Type | Size | Filesystem |
+|:-|:-:|:-|:-|
+| `/boot` | *Physical* | 500MB | ext4 |
+| `/boot/efi` | *Physical* | 500MB | vfat |
+| `swap` | *LVM* | Physical Memory x 2 | swap |
+| `/` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/export/home` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/var` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/tmp` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/opt/app` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
 
 
 #### Disk sizing ####
