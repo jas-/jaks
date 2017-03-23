@@ -44,30 +44,31 @@ The `JAKS` LVM disk configuration is based on a configurable template
 variable. It will detect all non-usb & non-network storage devices and
 assemble them into the following partition schema.
 
-| Path | Type | Size
-|:-|:-:|:-|
-| `/boot` | *Physical* | 500MB |
-| `/boot/efi` | *Physical* | 500MB |
-| `swap` | *LVM* | Physical Memory x 2 |
-| `/var` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/export/home` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/tmp` | *LVM* | See [Disk sizing](#disk-sizing) |
-| `/opt/app` | *LVM* | See [Disk sizing](#disk-sizing) |
+| Path | Type | Size | Filesystem |
+|:-|:-:|:-|:-|
+| `/boot` | *Physical* | 500MB | ext4 |
+| `/boot/efi` | *Physical* | 500MB | vfat |
+| `swap` | *LVM* | Physical Memory x 2 | swap |
+| `/` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/export/home` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/var` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/tmp` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
+| `/opt` | *LVM* | See [Disk sizing](#disk-sizing) | ext4 |
 
 
 #### Disk sizing ####
-To accomodate for disks of varying size the folling conditionals are
+To accomodate for disks of varying size the following conditionals are
 used to determine how to assemble the disk(s).
 
 *All sizes are represented in bytes*
 ```text
 d^n = Number of Physical disks (d=disks, n=number of disks)
 m = Physical System Memory
-b = 524288000 (500MB)
-f = 107374182400 (100GB)
-pp = 107374182400 + 42949672960 + 10737418240 + 2147483648 (Physical Partitions)
-vp = 42949672960 + 21474836480 + 10737418240 + 2147483648 (Virtual Partition)
-op = .40 + .20 + .10 + .2 (Less than 100GB in size. Allocates by percentages of disk size)
+b = 500MB
+f = 100GB
+pp = 100GB + 40GB + 10GB + 2GB
+vp = 40GB + 20GB + 10GB + 20GB
+op = 40% + 20% + 10% + 2% (Less than 100GB in size. Allocates by percentages of disk size)
 ```
 
 And the decision tree that auto-assembles the disks is shown here. The final
@@ -75,10 +76,10 @@ result will depend on the size and the number of disk(s) found on the host.
 
 ```text
 (d^n = 1) ? d0 – (b + m x 1) –
-  (d0 > f) && (d0 < pp) ? d0 – (pp + d0 (.75))
-  (d0 = f) && (d0 > pp) ? d0 – (vp + d0(.75))
-  (d0 < f) ? d0 – (op + d0(.75))
-(d^n > 1) ? d0 – (b + m x 1) – (pp + d^n - d0(.75))
+  (d0 > f) && (d0 < pp) ? d0 – (pp + d0 (75%))
+  (d0 = f) && (d0 > pp) ? d0 – (vp + d0(75%))
+  (d0 < f) ? d0 – (op + d0(75%))
+(d^n > 1) ? d0 – (b + m x 1) – (pp + d^n - d0(75%))
 ```
 
 ## Contributing ##

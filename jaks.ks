@@ -100,8 +100,8 @@ pv_tmpl="part {ID} --size={SIZE} --grow --ondisk={DISK}"
 # 'optappvg' volgroup variable; used when phsyical disks > 1
 vg_tmpl="volgroup optappvg {ID} --pesize=4096"
 
-# 'optapplv' variable for logical volume creation
-lv_tmpl="logvol /opt/app --fstype=ext4 --name=optapplv --vgname={VOLGROUP} \
+# 'optlv' variable for logical volume creation
+lv_tmpl="logvol /opt --fstype=ext4 --name=optlv --vgname={VOLGROUP} \
 --size={SIZE}"
 
 # '/boot/efi' partition template
@@ -154,11 +154,11 @@ Extended:
   Logical Volume Configuration:
     |_ optapppv       {disks}
     | |_ optappvg                   {size}MB
-    |___|_ optapplv:  /opt/app      {optapp_size}MB
+    |___|_ optlv:     /opt          {opt_size}MB
 EOF
 
 # 'VM' disk report
-vm_disk_report="    |___|_ optapplv:  /opt/app      {optapp_size}MB"
+vm_disk_report="    |___|_ optlv:      /opt         {opt_size}MB"
 
 # Final disk report
 read -d '' disk_report <<"EOF"
@@ -440,7 +440,7 @@ function configuredisks()
   local disk="${1}"  # comma seperated list; i.e. sda:size,sdb:size etc
   local swap="${2}"  # swap disk space (physical memory x 1)
 
-  local optapp=0     # Is set to 1 when multiple disks are used for /opt/app
+  local optapp=0     # Is set to 1 when multiple disks are used for /opt
 
   # Set ${efi} to empty
   local efi=
@@ -454,7 +454,7 @@ function configuredisks()
   # If ${#disks[@]} > 1 send to 'multipledisks()' function
   if [ ${#disks[@]} -gt 1 ]; then
 
-     # Call multipledisks() which creates a complex entry to handle /opt/app
+     # Call multipledisks() which creates a complex entry to handle /opt
     multipledisks "${disk}"
 
     # Set ${optapp} = 1 to prevent duplication on primary disk
@@ -570,25 +570,25 @@ function configuredisks()
   # Add ${root_size}, ${var_size}, ${home_size} & ${tmp_size}
   total_parts=$(expr ${root_size} + ${var_size} + ${home_size} + ${tmp_size})
 
-  # Calculate ${optapp_size} based on ${size} - ${total_parts}
+  # Calculate ${opt_size} based on ${size} - ${total_parts}
   total_size=$(expr ${size} - ${total_parts})
 
-  # Remove 2% overhead from ${optapp_size}
-  #optapp_size=$(expr ${total_size} - $(percent ${total_size} 2))
+  # Remove 2% overhead from ${opt_size}
+  #opt_size=$(expr ${total_size} - $(percent ${total_size} 2))
 
-  # Remove 75% and use as ${optapp_size} because RHEL keeps changing the LVM API
+  # Remove 75% and use as ${opt_size} because RHEL keeps changing the LVM API
   remove=$(expr ${total_size} - $(percent ${total_size} 75))
-  optapp_size=$(expr ${total_size} - ${remove})
+  opt_size=$(expr ${total_size} - ${remove})
 
-  # If /opt/app isn't defined create it in /tmp/ks-diskconfig-extra
+  # If /opt isn't defined create it in /tmp/ks-diskconfig-extra
   if [ ${optapp} -eq 0 ]; then
     echo "$(echo "${lv_tmpl}" |
       sed -e "s|{VOLGROUP}|rootvg|g" \
-          -e "s|{SIZE}|$(b2mb ${optapp_size})|g")" >> /tmp/ks-diskconfig-extra
+          -e "s|{SIZE}|$(b2mb ${opt_size})|g")" >> /tmp/ks-diskconfig-extra
 
     # Also generate a report
     echo "${vm_disk_report}" |
-      sed -e "s|{optapp_size}|$(b2mb ${optapp_size})|g" \
+      sed -e "s|{opt_size}|$(b2mb ${opt_size})|g" \
         > /tmp/ks-report-disks-extra
   fi
 
@@ -606,7 +606,7 @@ function configuredisks()
     echo "  LV home: $(b2mb ${home_size})MB (${home_size} bytes)" >> ${dlog}
     echo "  LV tmp: $(b2mb ${tmp_size})MB (${tmp_size} bytes)" >> ${dlog}
     if [ ${optapp} -eq 0 ]; then
-      echo "  LV optapp: $(b2mb ${optapp_size})MB (${optapp_size} bytes)" >> ${dlog}
+      echo "  LV optapp: $(b2mb ${opt_size})MB (${opt_size} bytes)" >> ${dlog}
     fi
   fi
 
@@ -635,7 +635,7 @@ function configuredisks()
 }
 
 
-# Function to handle extending /opt/app with multiple disks
+# Function to handle extending /opt with multiple disks
 function multipledisks()
 {
   local disk="${1}"
@@ -755,7 +755,7 @@ function multipledisks()
   echo "${extra_disk_report}" |
     sed -e "s|{size}|$(b2mb ${vsize})|g" \
         -e "s|{disks}|${rdn}|g" \
-        -e "s|{optapp_size}|$(b2mb ${vsize})|g" > /tmp/ks-report-disks-extra
+        -e "s|{opt_size}|$(b2mb ${vsize})|g" > /tmp/ks-report-disks-extra
 }
 
 
